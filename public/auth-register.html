@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account - ModernAdmin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="ModernAdmin - Bootstrap Admin Template">
+  <meta name="keywords" content="admin, dashboard, bootstrap">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts - Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="../../vendors/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../../vendors/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../../vendors/remixicon/remixicon.css" rel="stylesheet">
+  <link href="../../vendors/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="../../vendors/phosphor-icons/phosphor-icons.css" rel="stylesheet">
+  <link href="../../vendors/lucide-icons/lucide.css" rel="stylesheet">
+  <link href="../../vendors/simple-datatables/style.css" rel="stylesheet">
+  <link href="../../vendors/quill/quill.snow.css" rel="stylesheet">
+  <link href="../../vendors/quill/quill.bubble.css" rel="stylesheet">
+  <link href="../../vendors/choices.js/choices.min.css" rel="stylesheet">
+  <link href="../../vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <!-- =======================================================
+    * Template Name: ModernAdmin - Bootstrap Admin Template
+    * Template URL:  https://bootstrapmade.com/modern-admin-bootstrap-html-admin-template/
+    * Updated: Jan 28, 2026 with Bootstrap v5.3.8
+    * Author: BootstrapMade.com
+    * License: https://bootstrapmade.com/license/
+    ======================================================== -->
+</head>
+
+<body>
+  <div class="auth-layout auth-layout-split">
+    <!-- Split Layout: Form Side -->
+    <div class="auth-form-side">
+      <div class="auth-container">
+        <!-- Logo -->
+        <a href="index.html" class="auth-logo">
+          <img src="assets/img/logo.webp" alt="ModernAdmin">
+          <span>ModernAdmin</span>
+        </a>
+
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <h1 class="auth-title">Create your account</h1>
+            <p class="auth-subtitle">Start your 30-day free trial. No credit card required.</p>
+          </div>
+
+          <form class="auth-form" novalidate>
+            <div class="row">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="firstName" class="form-label">First name</label>
+                  <input type="text" class="form-control" id="firstName" name="firstName" placeholder="John" required>
+                  <div class="invalid-feedback">Please enter your first name.</div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="lastName" class="form-label">Last name</label>
+                  <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Doe" required>
+                  <div class="invalid-feedback">Please enter your last name.</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email" class="form-label">Work email</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="name@company.com" required>
+              <div class="invalid-feedback">Please enter a valid email address.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="password" name="password" placeholder="Create a strong password" required minlength="8">
+                <button class="btn btn-outline-secondary" type="button" data-toggle-password>
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+              <div class="form-text">Must be at least 8 characters with letters and numbers.</div>
+              <div class="invalid-feedback">Password must be at least 8 characters.</div>
+            </div>
+
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+              <label class="form-check-label" for="terms">
+                I agree to the <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a>
+              </label>
+              <div class="invalid-feedback">You must agree to the terms.</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Create account</button>
+
+            <div class="auth-divider">
+              <span>or sign up with</span>
+            </div>
+
+            <div class="auth-social">
+              <button type="button" class="btn btn-outline-secondary">
+                <i class="bi bi-google"></i>
+                Google
+              </button>
+              <button type="button" class="btn btn-outline-secondary">
+                <i class="bi bi-microsoft"></i>
+                Microsoft
+              </button>
+            </div>
+          </form>
+
+          <p class="auth-footer-text">
+            Already have an account? <a href="auth-login.html" class="auth-link">Sign in</a>
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer-centered">
+          <div class="footer-copyright">
+            &copy; 2026 <a href="#">ModernAdmin</a>. All Rights Reserved.
+          </div>
+          <div class="footer-links">
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Service</a>
+            <a href="#">Help</a>
+          </div>
+          <div class="credits">
+            <!-- All the links in the footer should remain intact. -->
+            <!-- You can delete the links only if you purchased the pro version. -->
+            <!-- Licensing information: https://bootstrapmade.com/license/ -->
+            <!-- Purchase the pro version with working PHP/AJAX contact form:  https://bootstrapmade.com/modern-admin-bootstrap-html-admin-template/ -->
+            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <!-- Split Layout: Brand Side -->
+    <div class="auth-brand-side">
+      <div class="auth-brand-content">
+        <div class="auth-brand-icon">
+          <i class="bi bi-shield-lock"></i>
+        </div>
+        <h2 class="auth-brand-title">Start Your Journey</h2>
+        <p class="auth-brand-text">Join thousands of users who trust us for their business management needs. Get started with a free trial today.</p>
+        <div class="auth-brand-features">
+          <div class="auth-brand-feature">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>256-bit SSL Encryption</span>
+          </div>
+          <div class="auth-brand-feature">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>Two-Factor Authentication</span>
+          </div>
+          <div class="auth-brand-feature">
+            <i class="bi bi-check-circle-fill"></i>
+            <span>24/7 Security Monitoring</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="../../vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../../vendors/apexcharts/apexcharts.min.js"></script>
+  <script src="../../vendors/chart.js/chart.umd.js"></script>
+  <script src="../../vendors/echarts/echarts.min.js"></script>
+  <script src="../../vendors/simple-datatables/simple-datatables.js"></script>
+  <script src="../../vendors/quill/quill.js"></script>
+  <script src="../../vendors/tinymce/tinymce.min.js"></script>
+  <script src="../../vendors/choices.js/choices.min.js"></script>
+  <script src="../../vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="../../vendors/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS Files -->
+  <script src="assets/js/theme.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <!-- App Sidebar Toggle (for app pages with sidebars) -->
+  <script src="assets/js/apps-sidebar-toggle.js"></script>
+
+</body>
+
+</html>

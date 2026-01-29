@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Toasts - ModernAdmin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="ModernAdmin - Bootstrap Admin Template">
+  <meta name="keywords" content="admin, dashboard, bootstrap">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts - Roboto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="../../vendors/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="../../vendors/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+  <link href="../../vendors/remixicon/remixicon.css" rel="stylesheet">
+  <link href="../../vendors/fontawesome-free/css/all.min.css" rel="stylesheet">
+  <link href="../../vendors/phosphor-icons/phosphor-icons.css" rel="stylesheet">
+  <link href="../../vendors/lucide-icons/lucide.css" rel="stylesheet">
+  <link href="../../vendors/simple-datatables/style.css" rel="stylesheet">
+  <link href="../../vendors/quill/quill.snow.css" rel="stylesheet">
+  <link href="../../vendors/quill/quill.bubble.css" rel="stylesheet">
+  <link href="../../vendors/choices.js/choices.min.css" rel="stylesheet">
+  <link href="../../vendors/flatpickr/flatpickr.min.css" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="assets/css/main.css" rel="stylesheet">
+
+  <!-- =======================================================
+    * Template Name: ModernAdmin - Bootstrap Admin Template
+    * Template URL:  https://bootstrapmade.com/modern-admin-bootstrap-html-admin-template/
+    * Updated: Jan 28, 2026 with Bootstrap v5.3.8
+    * Author: BootstrapMade.com
+    * License: https://bootstrapmade.com/license/
+    ======================================================== -->
+</head>
+
+<body>
+  <!-- Header -->
+  <!-- Header -->
+  <header class="header">
+    <!-- Header Left -->
+    <div class="header-left">
+      <a href="index.html" class="header-logo">
+        <img src="assets/img/logo.webp" alt="ModernAdmin">
+        <span>ModernAdmin</span>
+      </a>
+      <button class="sidebar-toggle" title="Toggle Sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+    </div>
+
+    <!-- Header Search (Desktop) -->
+    <div class="header-search">
+      <form class="search-form" action="search-results.html" method="GET">
+        <i class="bi bi-search search-icon"></i>
+        <input type="search" name="q" placeholder="Search..." autocomplete="off">
+        <kbd class="search-shortcut">Ctrl+K</kbd>
+      </form>
+    </div>
+
+    <!-- Header Right -->
+    <div class="header-right">
+      <!-- Desktop Actions (hidden on mobile, shown in mobile menu) -->
+      <div class="header-actions-desktop">
+        <!-- Apps Dropdown -->
+        <div class="header-action dropdown apps-dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Apps">
+            <i class="bi bi-grid-3x3-gap"></i>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end apps-menu">
+            <div class="apps-menu-header">
+              <h6>Quick Access</h6>
+            </div>
+            <div class="apps-grid">
+              <a href="index.html" class="apps-item">
+                <div class="apps-item-icon primary">
+                  <i class="bi bi-speedometer2"></i>
+                </div>
+                <span class="apps-item-title">Dashboard</span>
+              </a>
+              <a href="apps-kanban.html" class="apps-item">
+                <div class="apps-item-icon success">
+                  <i class="bi bi-kanban"></i>
+                </div>
+                <span class="apps-item-title">Projects</span>
+              </a>
+              <a href="apps-chat.html" class="apps-item">
+                <div class="apps-item-icon info">
+                  <i class="bi bi-chat-square-text"></i>
+                </div>
+                <span class="apps-item-title">Messages</span>
+              </a>
+              <a href="apps-contacts.html" class="apps-item">
+                <div class="apps-item-icon warning">
+                  <i class="bi bi-person-lines-fill"></i>
+                </div>
+                <span class="apps-item-title">Contacts</span>
+              </a>
+              <a href="apps-todo.html" class="apps-item">
+                <div class="apps-item-icon danger">
+                  <i class="bi bi-check2-square"></i>
+                </div>
+                <span class="apps-item-title">Tasks</span>
+              </a>
+              <a href="apps-calendar.html" class="apps-item">
+                <div class="apps-item-icon secondary">
+                  <i class="bi bi-calendar-event"></i>
+                </div>
+                <span class="apps-item-title">Calendar</span>
+              </a>
+              <a href="apps-file-manager.html" class="apps-item">
+                <div class="apps-item-icon primary">
+                  <i class="bi bi-folder2-open"></i>
+                </div>
+                <span class="apps-item-title">Files</span>
+              </a>
+              <a href="apps-email.html" class="apps-item">
+                <div class="apps-item-icon info">
+                  <i class="bi bi-envelope"></i>
+                </div>
+                <span class="apps-item-title">Email</span>
+              </a>
+              <a href="settings.html" class="apps-item">
+                <div class="apps-item-icon muted">
+                  <i class="bi bi-gear"></i>
+                </div>
+                <span class="apps-item-title">Settings</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button class="header-action theme-toggle" title="Toggle Theme">
+          <i class="ph ph-moon theme-icon-dark"></i>
+          <i class="ph ph-sun theme-icon-light"></i>
+        </button>
+
+        <!-- Language Selector -->
+        <div class="header-action dropdown language-dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Language">
+            <span class="lang-flag">🇺🇸</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item active" href="#">
+                <span class="lang-flag">🇺🇸</span>
+                <span>English</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">
+                <span class="lang-flag">🇪🇸</span>
+                <span>Español</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">
+                <span class="lang-flag">🇫🇷</span>
+                <span>Français</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">
+                <span class="lang-flag">🇩🇪</span>
+                <span>Deutsch</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#">
+                <span class="lang-flag">🇨🇳</span>
+                <span>中文</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Notifications -->
+        <div class="header-action dropdown notification-dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+            <i class="bi bi-bell"></i>
+            <span class="badge">3</span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end">
+            <div class="notification-header">
+              <h6>Notifications</h6>
+              <span class="notification-count">3 new</span>
+            </div>
+            <div class="notification-list">
+              <a href="#" class="notification-item unread">
+                <div class="notification-avatar success">
+                  <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Order Completed</div>
+                  <div class="notification-text">Your order #12345 has been delivered successfully</div>
+                  <div class="notification-time">
+                    <i class="bi bi-clock"></i>
+                    5 min ago
+                  </div>
+                </div>
+              </a>
+              <a href="#" class="notification-item unread">
+                <div class="notification-avatar warning">
+                  <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">Low Storage Warning</div>
+                  <div class="notification-text">Server storage is running low (85% used)</div>
+                  <div class="notification-time">
+                    <i class="bi bi-clock"></i>
+                    1 hour ago
+                  </div>
+                </div>
+              </a>
+              <a href="#" class="notification-item unread">
+                <div class="notification-avatar info">
+                  <i class="bi bi-person-plus"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">New Team Member</div>
+                  <div class="notification-text">Sarah Johnson joined the design team</div>
+                  <div class="notification-time">
+                    <i class="bi bi-clock"></i>
+                    2 hours ago
+                  </div>
+                </div>
+              </a>
+              <a href="#" class="notification-item">
+                <div class="notification-avatar primary">
+                  <i class="bi bi-chat-left-text"></i>
+                </div>
+                <div class="notification-content">
+                  <div class="notification-title">New Comment</div>
+                  <div class="notification-text">Mike commented on your post</div>
+                  <div class="notification-time">
+                    <i class="bi bi-clock"></i>
+                    Yesterday
+                  </div>
+                </div>
+              </a>
+            </div>
+            <div class="notification-footer">
+              <a href="notifications.html">
+                View all notifications
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Dropdown -->
+        <div class="header-action dropdown user-dropdown">
+          <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="assets/img/profile-img.webp" alt="User" class="avatar">
+          </button>
+          <div class="dropdown-menu dropdown-menu-end">
+            <div class="user-dropdown-header">
+              <img src="assets/img/profile-img.webp" alt="User" class="user-dropdown-avatar">
+              <div class="user-dropdown-info">
+                <div class="user-dropdown-name">John Doe</div>
+                <div class="user-dropdown-role">Administrator</div>
+              </div>
+            </div>
+            <div class="user-dropdown-body">
+              <a class="user-dropdown-item" href="profile.html">
+                <i class="bi bi-person"></i>
+                <span>My Profile</span>
+              </a>
+              <a class="user-dropdown-item" href="settings.html">
+                <i class="bi bi-gear"></i>
+                <span>Account Settings</span>
+              </a>
+              <a class="user-dropdown-item" href="activity.html">
+                <i class="bi bi-clock-history"></i>
+                <span>Activity Log</span>
+              </a>
+            </div>
+            <div class="user-dropdown-footer">
+              <a class="user-dropdown-logout" href="auth-login.html">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign Out</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile Actions (visible only on mobile) -->
+      <div class="header-actions-mobile">
+        <!-- Search Toggle (Mobile) -->
+        <button class="header-action search-toggle" title="Search">
+          <i class="bi bi-search"></i>
+        </button>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="header-action mobile-menu-toggle" title="More">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search -->
+  <div class="mobile-search">
+    <form class="search-form" action="search-results.html" method="GET">
+      <input type="search" name="q" placeholder="Search..." autocomplete="off">
+      <button type="submit"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+
+  <!-- Mobile Header Menu -->
+  <div class="mobile-header-menu">
+    <div class="mobile-header-menu-content">
+      <!-- Theme Toggle -->
+      <button class="mobile-menu-item theme-toggle" title="Toggle Theme">
+        <i class="ph ph-moon theme-icon-dark"></i>
+        <i class="ph ph-sun theme-icon-light"></i>
+        <span class="mobile-menu-label">Theme</span>
+      </button>
+
+      <!-- Notifications -->
+      <a href="notifications.html" class="mobile-menu-item">
+        <i class="bi bi-bell"></i>
+        <span class="badge">3</span>
+        <span class="mobile-menu-label">Notifications</span>
+      </a>
+
+      <!-- Profile -->
+      <a href="profile.html" class="mobile-menu-item">
+        <i class="bi bi-person"></i>
+        <span class="mobile-menu-label">Profile</span>
+      </a>
+
+      <!-- Settings -->
+      <a href="settings.html" class="mobile-menu-item">
+        <i class="bi bi-gear"></i>
+        <span class="mobile-menu-label">Settings</span>
+      </a>
+
+      <!-- Sign Out -->
+      <a href="auth-login.html" class="mobile-menu-item mobile-menu-item-danger">
+        <i class="bi bi-box-arrow-right"></i>
+        <span class="mobile-menu-label">Sign Out</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <a href="index.html" class="sidebar-logo">
+        <img src="assets/img/logo.webp" alt="ModernAdmin">
+        <span>ModernAdmin</span>
+      </a>
+      <button class="sidebar-close">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar-nav">
+      <ul class="nav-menu">
+        <!-- Main Section -->
+        <li class="nav-item">
+          <a class="nav-link " href="index.html" data-sidebar-tooltip="Dashboard">
+            <i class="ph-light ph-squares-four"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Dashboards Submenu -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Dashboards">
+            <i class="ph-light ph-gauge"></i>
+            <span>Dashboards</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="dashboard-sales.html">Sales</a></li>
+            <li><a class="nav-link " href="dashboard-analytics.html">Analytics</a></li>
+            <li><a class="nav-link " href="dashboard-crm.html">CRM</a></li>
+            <li><a class="nav-link " href="dashboard-marketing.html">Marketing</a></li>
+            <li><a class="nav-link " href="dashboard-projects.html">Projects</a></li>
+            <li><a class="nav-link " href="dashboard-finance.html">Finance</a></li>
+          </ul>
+        </li>
+
+        <!-- Users -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
+            <i class="ph-light ph-users"></i>
+            <span>Users</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="users.html">Users List</a></li>
+            <li><a class="nav-link " href="users-view.html">User View</a></li>
+            <li><a class="nav-link " href="users-edit.html">User Edit</a></li>
+            <li><a class="nav-link " href="profile.html">Profile</a></li>
+            <!-- 3rd Level - Settings submenu -->
+            <li class="has-submenu ">
+              <a class="nav-link" href="#" aria-expanded="false">
+                Settings
+                <i class="ph-light ph-caret-down nav-arrow"></i>
+              </a>
+              <ul class="nav-submenu ">
+                <li><a class="nav-link " href="settings.html">Account</a></li>
+                <li><a class="nav-link " href="notifications.html">Notifications</a></li>
+                <li><a class="nav-link " href="activity.html">Activity</a></li>
+              </ul>
+            </li>
+            <li><a class="nav-link " href="roles.html">Roles & Permissions</a></li>
+          </ul>
+        </li>
+
+        <!-- Authentication -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Authentication">
+            <i class="ph-light ph-shield-check"></i>
+            <span>Authentication</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="auth-login.html">Login</a></li>
+            <li><a class="nav-link " href="auth-register.html">Register</a></li>
+            <li><a class="nav-link " href="auth-forgot-password.html">Forgot Password</a></li>
+            <li><a class="nav-link " href="auth-reset-password.html">Reset Password</a></li>
+            <li><a class="nav-link " href="auth-verify-email.html">Email Verification</a></li>
+            <li><a class="nav-link " href="auth-two-factor.html">Two Factor Auth</a></li>
+            <li><a class="nav-link " href="auth-lock-screen.html">Lock Screen</a></li>
+          </ul>
+        </li>
+
+        <!-- Apps Section -->
+        <li class="nav-heading"><span>Apps</span></li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-calendar.html" data-sidebar-tooltip="Calendar">
+            <i class="ph-light ph-calendar-blank"></i>
+            <span>Calendar</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-kanban.html" data-sidebar-tooltip="Kanban Board">
+            <i class="ph-light ph-kanban"></i>
+            <span>Kanban Board</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-chat.html" data-sidebar-tooltip="Chat">
+            <i class="ph-light ph-chat-circle-dots"></i>
+            <span>Chat</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-contacts.html" data-sidebar-tooltip="Contacts">
+            <i class="ph-light ph-address-book"></i>
+            <span>Contacts</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-file-manager.html" data-sidebar-tooltip="File Manager">
+            <i class="ph-light ph-folder-open"></i>
+            <span>File Manager</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-email.html" data-sidebar-tooltip="Email">
+            <i class="ph-light ph-envelope"></i>
+            <span>Email</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-todo.html" data-sidebar-tooltip="Todo List">
+            <i class="ph-light ph-check-square"></i>
+            <span>Todo List</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="apps-support.html" data-sidebar-tooltip="Support Center">
+            <i class="ph-light ph-headset"></i>
+            <span>Support Center</span>
+          </a>
+        </li>
+
+        <!-- UI Elements Section -->
+        <li class="nav-heading"><span>UI Elements</span></li>
+
+        <li class="nav-item has-submenu open">
+          <a class="nav-link" href="#" aria-expanded="true" data-sidebar-tooltip="Components">
+            <i class="ph-light ph-puzzle-piece"></i>
+            <span>Components</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu show">
+            <li><a class="nav-link " href="components-alerts.html">Alerts</a></li>
+            <li><a class="nav-link " href="components-accordion.html">Accordion</a></li>
+            <li><a class="nav-link " href="components-badges.html">Badges</a></li>
+            <li><a class="nav-link " href="components-breadcrumbs.html">Breadcrumbs</a></li>
+            <li><a class="nav-link " href="components-buttons.html">Buttons</a></li>
+            <li><a class="nav-link " href="components-cards.html">Cards</a></li>
+            <li><a class="nav-link " href="components-carousel.html">Carousel</a></li>
+            <li><a class="nav-link " href="components-dropdowns.html">Dropdowns</a></li>
+            <li><a class="nav-link " href="components-list-group.html">List Group</a></li>
+            <li><a class="nav-link " href="components-modal.html">Modal</a></li>
+            <li><a class="nav-link " href="components-nav-tabs.html">Navs & Tabs</a></li>
+            <li><a class="nav-link " href="components-offcanvas.html">Offcanvas</a></li>
+            <li><a class="nav-link " href="components-pagination.html">Pagination</a></li>
+            <li><a class="nav-link " href="components-popovers.html">Popovers</a></li>
+            <li><a class="nav-link " href="components-progress.html">Progress</a></li>
+            <li><a class="nav-link " href="components-spinners.html">Spinners</a></li>
+            <li><a class="nav-link active" href="components-toasts.html">Toasts</a></li>
+            <li><a class="nav-link " href="components-tooltips.html">Tooltips</a></li>
+          </ul>
+        </li>
+
+        <!-- Widgets -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Widgets">
+            <i class="ph-light ph-grid-four"></i>
+            <span>Widgets</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="widgets-cards.html">Cards</a></li>
+            <li><a class="nav-link " href="widgets-banners.html">Banners</a></li>
+            <li><a class="nav-link " href="widgets-charts.html">Charts</a></li>
+            <li><a class="nav-link " href="widgets-apps.html">Apps</a></li>
+            <li><a class="nav-link " href="widgets-data.html">Data</a></li>
+          </ul>
+        </li>
+
+        <!-- Forms Section -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Forms">
+            <i class="ph-light ph-textbox"></i>
+            <span>Forms</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="forms-elements.html">Form Elements</a></li>
+            <li><a class="nav-link " href="forms-layouts.html">Form Layouts</a></li>
+            <li><a class="nav-link " href="forms-validation.html">Validation</a></li>
+            <li><a class="nav-link " href="forms-wizard.html">Wizard</a></li>
+            <li><a class="nav-link " href="forms-editors.html">Rich Editors</a></li>
+            <li><a class="nav-link " href="forms-pickers.html">Date/Time Pickers</a></li>
+            <li><a class="nav-link " href="forms-select.html">Advanced Select</a></li>
+            <li><a class="nav-link " href="forms-upload.html">File Upload</a></li>
+          </ul>
+        </li>
+
+        <!-- Tables Section -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Tables">
+            <i class="ph-light ph-table"></i>
+            <span>Tables</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="tables-basic.html">Basic Tables</a></li>
+            <li><a class="nav-link " href="tables-datatables.html">DataTables</a></li>
+            <li><a class="nav-link " href="tables-responsive.html">Responsive Tables</a></li>
+          </ul>
+        </li>
+
+        <!-- Charts Section -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Charts">
+            <i class="ph-light ph-chart-bar"></i>
+            <span>Charts</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="charts-apexcharts.html">ApexCharts</a></li>
+            <li><a class="nav-link " href="charts-chartjs.html">Chart.js</a></li>
+            <li><a class="nav-link " href="charts-echarts.html">ECharts</a></li>
+          </ul>
+        </li>
+
+        <!-- Icons Section -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Icons">
+            <i class="ph-light ph-diamond"></i>
+            <span>Icons</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="icons-bootstrap.html">Bootstrap Icons</a></li>
+            <li><a class="nav-link " href="icons-remixicon.html">Remix Icons</a></li>
+            <li><a class="nav-link " href="icons-fontawesome.html">Font Awesome</a></li>
+            <li><a class="nav-link " href="icons-phosphor.html">Phosphor Icons</a></li>
+            <li><a class="nav-link " href="icons-lucide.html">Lucide Icons</a></li>
+          </ul>
+        </li>
+
+        <!-- Pages Section -->
+        <li class="nav-heading"><span>Pages</span></li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="contact.html" data-sidebar-tooltip="Contact">
+            <i class="ph-light ph-envelope-simple"></i>
+            <span>Contact</span>
+          </a>
+        </li>
+
+        <!-- Invoices -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Invoices">
+            <i class="ph-light ph-receipt"></i>
+            <span>Invoices</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="invoice-list.html">Invoice List</a></li>
+            <li><a class="nav-link " href="invoice.html">Invoice View</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="pricing.html" data-sidebar-tooltip="Pricing">
+            <i class="ph-light ph-tag"></i>
+            <span>Pricing</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="faq.html" data-sidebar-tooltip="FAQ">
+            <i class="ph-light ph-question"></i>
+            <span>FAQ</span>
+          </a>
+        </li>
+
+        <!-- Error Pages -->
+        <li class="nav-item has-submenu ">
+          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Error Pages">
+            <i class="ph-light ph-warning"></i>
+            <span>Error Pages</span>
+            <i class="ph-light ph-caret-down nav-arrow"></i>
+          </a>
+          <ul class="nav-submenu ">
+            <li><a class="nav-link " href="error-404.html">404 Not Found</a></li>
+            <li><a class="nav-link " href="error-403.html">403 Forbidden</a></li>
+            <li><a class="nav-link " href="error-500.html">500 Server Error</a></li>
+            <li><a class="nav-link " href="error-maintenance.html">Maintenance</a></li>
+            <li><a class="nav-link " href="error-coming-soon.html">Coming Soon</a></li>
+          </ul>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="timeline.html" data-sidebar-tooltip="Timeline">
+            <i class="ph-light ph-clock-counter-clockwise"></i>
+            <span>Timeline</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="search-results.html" data-sidebar-tooltip="Search Results">
+            <i class="ph-light ph-magnifying-glass"></i>
+            <span>Search Results</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link " href="blank.html" data-sidebar-tooltip="Blank Page">
+            <i class="ph-light ph-file"></i>
+            <span>Blank Page</span>
+          </a>
+        </li>
+
+      </ul>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-user">
+        <a href="profile.html" class="sidebar-footer-profile">
+          <img src="assets/img/profile-img.webp" alt="User" class="sidebar-footer-avatar">
+          <div class="sidebar-footer-info">
+            <div class="sidebar-footer-name">John Doe</div>
+            <div class="sidebar-footer-role">Administrator</div>
+          </div>
+        </a>
+        <div class="sidebar-footer-actions">
+          <a href="settings.html" class="sidebar-footer-action" title="Settings">
+            <i class="ph-light ph-gear"></i>
+          </a>
+          <a href="auth-login.html" class="sidebar-footer-action sidebar-footer-logout" title="Logout">
+            <i class="ph-light ph-sign-out"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div class="sidebar-overlay"></div>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <h1 class="page-title">Toasts</h1>
+        <nav class="breadcrumb">
+          <a href="index.html" class="breadcrumb-item">Home</a>
+          <a href="#" class="breadcrumb-item">Components</a>
+          <span class="breadcrumb-item active">Toasts</span>
+        </nav>
+      </div>
+
+      <!-- Basic Toasts -->
+      <section class="section">
+        <div class="row g-4">
+          <!-- Basic Toast -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Basic Toast</h5>
+                <p class="card-subtitle">Simple toast with header and body</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static">
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-bell text-primary me-2"></i>
+                      <strong class="me-auto">Notification</strong>
+                      <small class="text-muted">just now</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Hello, world! This is a toast message.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Toast Demo -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Live Toast Demo</h5>
+                <p class="card-subtitle">Click the button to trigger the toast</p>
+              </div>
+              <div class="card-body">
+                <button type="button" class="btn btn-primary" id="liveToastBtn">Show Live Toast</button>
+
+                <div class="toast-container position-fixed bottom-0 end-0 p-3">
+                  <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-check-circle text-success me-2"></i>
+                      <strong class="me-auto">Success</strong>
+                      <small>just now</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Your changes have been saved successfully!
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Colored Toasts -->
+      <section class="section">
+        <h5 class="section-title mb-3">Colored Toasts</h5>
+        <div class="row g-4">
+          <!-- Color Variants -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Color Variants</h5>
+                <p class="card-subtitle">Toasts with different background colors</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- Primary -->
+                  <div class="toast show align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This is a primary toast message.
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Success -->
+                  <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Success! Your action was completed.
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Warning -->
+                  <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Warning! Please check your input.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Danger -->
+                  <div class="toast show align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Error! Something went wrong.
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Info -->
+                  <div class="toast show align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Info: New updates are available.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Soft Color Variants -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Soft Color Variants</h5>
+                <p class="card-subtitle">Toasts with soft/light background colors</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- Primary Soft -->
+                  <div class="toast show align-items-center bg-primary-light text-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This is a soft primary toast.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Success Soft -->
+                  <div class="toast show align-items-center bg-success-light text-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Success! Operation completed.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Warning Soft -->
+                  <div class="toast show align-items-center bg-warning-light text-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Warning! Review before proceeding.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Danger Soft -->
+                  <div class="toast show align-items-center bg-danger-light text-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-x-circle me-2"></i>
+                        Error! Please try again.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Info Soft -->
+                  <div class="toast show align-items-center bg-info-light text-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Info: Check out new features.
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toast with Custom Content -->
+      <section class="section">
+        <h5 class="section-title mb-3">Custom Content</h5>
+        <div class="row g-4">
+          <!-- Toast with Image -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Toast with Avatar</h5>
+                <p class="card-subtitle">Toasts featuring user avatars</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <img src="assets/img/avatars/avatar-1.webp" class="rounded-circle me-2" width="20" height="20" alt="User">
+                      <strong class="me-auto">John Doe</strong>
+                      <small class="text-muted">2 mins ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Hey! Just wanted to check in on the project status.
+                    </div>
+                  </div>
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <img src="assets/img/avatars/avatar-2.webp" class="rounded-circle me-2" width="20" height="20" alt="User">
+                      <strong class="me-auto">Sarah Smith</strong>
+                      <small class="text-muted">5 mins ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      The design files are ready for review.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toast with Actions -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Toast with Actions</h5>
+                <p class="card-subtitle">Toasts with action buttons</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-envelope text-primary me-2"></i>
+                      <strong class="me-auto">New Message</strong>
+                      <small class="text-muted">just now</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      You have received a new message from the support team.
+                      <div class="mt-2 pt-2 border-top d-flex gap-2">
+                        <button type="button" class="btn btn-primary btn-sm">View</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="toast">Dismiss</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-cloud-arrow-up text-success me-2"></i>
+                      <strong class="me-auto">File Upload</strong>
+                      <small class="text-muted">just now</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Your file has been uploaded successfully.
+                      <div class="mt-2 pt-2 border-top d-flex gap-2">
+                        <button type="button" class="btn btn-success btn-sm">Open File</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm">Share</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Toast Placements -->
+      <section class="section">
+        <h5 class="section-title mb-3">Toast Placements</h5>
+        <div class="row g-4">
+          <!-- Placement Preview -->
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">Placement Options</h5>
+                <p class="card-subtitle">Choose where toasts appear on screen</p>
+              </div>
+              <div class="card-body">
+                <div class="row g-3 mb-4">
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-0 start-0">Top Left</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-0 start-50 translate-middle-x">Top Center</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-0 end-0">Top Right</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-50 start-0 translate-middle-y">Middle Left</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-50 start-50 translate-middle">Middle Center</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="top-50 end-0 translate-middle-y">Middle Right</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="bottom-0 start-0">Bottom Left</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-placement="bottom-0 start-50 translate-middle-x">Bottom Center</button>
+                  </div>
+                  <div class="col-auto">
+                    <button type="button" class="btn btn-primary btn-sm" data-placement="bottom-0 end-0">Bottom Right (Default)</button>
+                  </div>
+                </div>
+
+                <!-- Placement Preview Box -->
+                <div class="position-relative bg-light rounded border" style="height: 300px;">
+                  <!-- Visual representation of placement options -->
+                  <div class="position-absolute top-0 start-0 m-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Top Left</div>
+                  </div>
+                  <div class="position-absolute top-0 start-50 translate-middle-x mt-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Top Center</div>
+                  </div>
+                  <div class="position-absolute top-0 end-0 m-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Top Right</div>
+                  </div>
+                  <div class="position-absolute top-50 start-0 translate-middle-y ms-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Middle Left</div>
+                  </div>
+                  <div class="position-absolute top-50 start-50 translate-middle">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Center</div>
+                  </div>
+                  <div class="position-absolute top-50 end-0 translate-middle-y me-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Middle Right</div>
+                  </div>
+                  <div class="position-absolute bottom-0 start-0 m-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Bottom Left</div>
+                  </div>
+                  <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2">
+                    <div class="bg-primary-light text-primary px-2 py-1 rounded small">Bottom Center</div>
+                  </div>
+                  <div class="position-absolute bottom-0 end-0 m-2">
+                    <div class="bg-success text-white px-2 py-1 rounded small">Bottom Right</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stacking & Auto-hide -->
+      <section class="section">
+        <h5 class="section-title mb-3">Stacking & Auto-hide</h5>
+        <div class="row g-4">
+          <!-- Stacked Toasts -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Stacked Toasts</h5>
+                <p class="card-subtitle">Multiple toasts stack vertically</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-check-circle text-success me-2"></i>
+                      <strong class="me-auto">Saved</strong>
+                      <small class="text-muted">2 seconds ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Document saved successfully.
+                    </div>
+                  </div>
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-cloud-download text-primary me-2"></i>
+                      <strong class="me-auto">Download</strong>
+                      <small class="text-muted">5 seconds ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      File download started.
+                    </div>
+                  </div>
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+                      <strong class="me-auto">Warning</strong>
+                      <small class="text-muted">10 seconds ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      Your session will expire in 5 minutes.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Auto-hide Options -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Auto-hide Options</h5>
+                <p class="card-subtitle">Configure toast visibility duration</p>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">Toasts can be configured to auto-hide after a delay or stay visible until dismissed.</p>
+
+                <div class="d-flex flex-column gap-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="autoHide3s">3 seconds</button>
+                    <span class="small text-muted">Quick notification</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="autoHide5s">5 seconds</button>
+                    <span class="small text-muted">Default duration</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="autoHide10s">10 seconds</button>
+                    <span class="small text-muted">Important messages</span>
+                  </div>
+                  <div class="d-flex align-items-center gap-3">
+                    <button type="button" class="btn btn-outline-warning btn-sm" id="noAutoHide">No auto-hide</button>
+                    <span class="small text-muted">Requires manual dismiss</span>
+                  </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-light rounded">
+                  <code class="small">
+                    data-bs-autohide="false"<br>
+                    data-bs-delay="5000"
+                  </code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Real-World Examples -->
+      <section class="section">
+        <h5 class="section-title mb-3">Real-World Examples</h5>
+        <div class="row g-4">
+          <!-- Notification Center -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Notification Center</h5>
+                <p class="card-subtitle">App-style notification toasts</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- New Comment -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <span class="bg-primary rounded-circle me-2" style="width: 8px; height: 8px; display: inline-block;"></span>
+                      <strong class="me-auto">New Comment</strong>
+                      <small class="text-muted">1m ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body d-flex align-items-start gap-2">
+                      <img src="assets/img/avatars/avatar-3.webp" class="rounded-circle" width="32" height="32" alt="User">
+                      <div>
+                        <p class="mb-1"><strong>Mike Johnson</strong> commented on your post:</p>
+                        <p class="text-muted small mb-0">"Great work on this project! The design looks amazing..."</p>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- File Shared -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <span class="bg-success rounded-circle me-2" style="width: 8px; height: 8px; display: inline-block;"></span>
+                      <strong class="me-auto">File Shared</strong>
+                      <small class="text-muted">5m ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body d-flex align-items-center gap-2">
+                      <div class="bg-warning-light text-warning rounded p-2">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                      </div>
+                      <div>
+                        <p class="mb-0 fw-medium">Project_Proposal.pdf</p>
+                        <p class="text-muted small mb-0">Shared by Emily Davis</p>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Meeting Reminder -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <span class="bg-warning rounded-circle me-2" style="width: 8px; height: 8px; display: inline-block;"></span>
+                      <strong class="me-auto">Meeting Reminder</strong>
+                      <small class="text-muted">15m ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body d-flex align-items-center gap-2">
+                      <div class="bg-info-light text-info rounded p-2">
+                        <i class="bi bi-calendar-event"></i>
+                      </div>
+                      <div>
+                        <p class="mb-0 fw-medium">Team Standup</p>
+                        <p class="text-muted small mb-0">Starting in 15 minutes</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- System Status Toasts -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">System Status</h5>
+                <p class="card-subtitle">System and status notifications</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- Connection Restored -->
+                  <div class="toast show align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-wifi"></i>
+                        <div>
+                          <strong>Connection Restored</strong>
+                          <p class="mb-0 small opacity-75">You are back online</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Update Available -->
+                  <div class="toast show align-items-center text-bg-info border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <div>
+                          <strong>Update Available</strong>
+                          <p class="mb-0 small opacity-75">Version 2.1.0 is ready to install</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Low Storage -->
+                  <div class="toast show align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-hdd"></i>
+                        <div>
+                          <strong>Low Storage</strong>
+                          <p class="mb-0 small">Only 2.5 GB remaining</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                  <!-- Error -->
+                  <div class="toast show align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-exclamation-octagon"></i>
+                        <div>
+                          <strong>Sync Failed</strong>
+                          <p class="mb-0 small opacity-75">Unable to sync with server</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- E-commerce Toasts -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">E-commerce Notifications</h5>
+                <p class="card-subtitle">Shopping and order notifications</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- Added to Cart -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-cart-check text-success me-2"></i>
+                      <strong class="me-auto">Added to Cart</strong>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body d-flex align-items-center gap-3">
+                      <div class="bg-light rounded p-2" style="width: 50px; height: 50px;">
+                        <img src="assets/img/logo.webp" alt="Product" class="img-fluid">
+                      </div>
+                      <div class="flex-grow-1">
+                        <p class="mb-0 fw-medium">Wireless Headphones</p>
+                        <p class="text-muted small mb-0">$149.99 × 1</p>
+                      </div>
+                      <a href="#" class="btn btn-primary btn-sm">View Cart</a>
+                    </div>
+                  </div>
+                  <!-- Order Shipped -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-truck text-primary me-2"></i>
+                      <strong class="me-auto">Order Shipped</strong>
+                      <small class="text-muted">2h ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      <p class="mb-2">Your order #12345 has been shipped!</p>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm">Track Order</button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="toast">Dismiss</button>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Discount Alert -->
+                  <div class="toast show align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" style="background: linear-gradient(135deg, var(--accent-color), #8b5cf6);">
+                    <div class="d-flex text-white">
+                      <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-percent fs-4"></i>
+                        <div>
+                          <strong>Flash Sale!</strong>
+                          <p class="mb-0 small opacity-75">Use code SAVE20 for 20% off</p>
+                        </div>
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Toasts -->
+          <div class="col-lg-6">
+            <div class="card h-100">
+              <div class="card-header">
+                <h5 class="card-title">Social Notifications</h5>
+                <p class="card-subtitle">Social media style notifications</p>
+              </div>
+              <div class="card-body">
+                <div class="toast-container position-static d-flex flex-column gap-2">
+                  <!-- New Follower -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-person-plus text-primary me-2"></i>
+                      <strong class="me-auto">New Follower</strong>
+                      <small class="text-muted">just now</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body d-flex align-items-center gap-3">
+                      <img src="assets/img/avatars/avatar-4.webp" class="rounded-circle" width="40" height="40" alt="User">
+                      <div class="flex-grow-1">
+                        <p class="mb-0"><strong>Alex Turner</strong> started following you</p>
+                        <p class="text-muted small mb-0">142 followers</p>
+                      </div>
+                      <button class="btn btn-primary btn-sm">Follow Back</button>
+                    </div>
+                  </div>
+                  <!-- Like Notification -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-heart-fill text-danger me-2"></i>
+                      <strong class="me-auto">Post Liked</strong>
+                      <small class="text-muted">3m ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      <div class="d-flex">
+                        <div class="d-flex me-2">
+                          <img src="assets/img/avatars/avatar-5.webp" class="rounded-circle border border-2 border-white" width="24" height="24" alt="User" style="margin-right: -8px; z-index: 3;">
+                          <img src="assets/img/avatars/avatar-6.webp" class="rounded-circle border border-2 border-white" width="24" height="24" alt="User" style="margin-right: -8px; z-index: 2;">
+                          <img src="assets/img/avatars/avatar-7.webp" class="rounded-circle border border-2 border-white" width="24" height="24" alt="User" style="z-index: 1;">
+                        </div>
+                        <span><strong>Emma, David</strong> and <strong>23 others</strong> liked your post</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Mention -->
+                  <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                      <i class="bi bi-at text-info me-2"></i>
+                      <strong class="me-auto">Mentioned You</strong>
+                      <small class="text-muted">10m ago</small>
+                      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                      <img src="assets/img/avatars/avatar-8.webp" class="rounded-circle me-2" width="20" height="20" alt="User">
+                      <strong>@chris_dev</strong> mentioned you in a comment: "Hey <span class="text-primary">@you</span> check this out!"
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-links">
+          <a href="#">About</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+          <a href="#">Contact</a>
+        </div>
+        <div class="footer-copyright">
+          &copy; 2026 <a href="#">ModernAdmin</a>. All Rights Reserved.
+        </div>
+        <div class="footer-credits">
+          <div class="credits">
+            <!-- All the links in the footer should remain intact. -->
+            <!-- You can delete the links only if you purchased the pro version. -->
+            <!-- Licensing information: https://bootstrapmade.com/license/ -->
+            <!-- Purchase the pro version with working PHP/AJAX contact form:  https://bootstrapmade.com/modern-admin-bootstrap-html-admin-template/ -->
+            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Back to Top -->
+  <a href="#" class="back-to-top">
+    <i class="bi bi-arrow-up"></i>
+  </a>
+
+  <!-- Vendor JS Files -->
+  <script src="../../vendors/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="../../vendors/apexcharts/apexcharts.min.js"></script>
+  <script src="../../vendors/chart.js/chart.umd.js"></script>
+  <script src="../../vendors/echarts/echarts.min.js"></script>
+  <script src="../../vendors/simple-datatables/simple-datatables.js"></script>
+  <script src="../../vendors/quill/quill.js"></script>
+  <script src="../../vendors/tinymce/tinymce.min.js"></script>
+  <script src="../../vendors/choices.js/choices.min.js"></script>
+  <script src="../../vendors/flatpickr/flatpickr.min.js"></script>
+  <script src="../../vendors/php-email-form/validate.js"></script>
+
+  <!-- Template Main JS Files -->
+  <script src="assets/js/theme.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <!-- App Sidebar Toggle (for app pages with sidebars) -->
+  <script src="assets/js/apps-sidebar-toggle.js"></script>
+
+  <script>
+    // Live Toast Demo
+    const liveToastBtn = document.getElementById('liveToastBtn');
+    const liveToast = document.getElementById('liveToast');
+    if (liveToastBtn && liveToast) {
+      const toastBootstrap = bootstrap.Toast.getOrCreateInstance(liveToast);
+      liveToastBtn.addEventListener('click', () => {
+        toastBootstrap.show();
+      });
+    }
+  </script>
+</body>
+
+</html>
