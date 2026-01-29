@@ -3,11 +3,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
 
-  <title>@yield('title', 'Dashboard')</title>
+  <title>@yield('title', 'Undi')</title>
 
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="ModernAdmin - Bootstrap Admin Template">
-  <meta name="keywords" content="admin, dashboard, bootstrap">
+  <meta name="description" content="Undi - aplikasi web untuk pejuang rakyat">
+  <meta name="keywords" content="undi,rakyat,elantan">
 
   <!-- Favicons -->
   <link href="{{ asset('assets/img/favicon.png') }}" rel="icon">

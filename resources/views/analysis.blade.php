@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Undi - Dashboard')
+@section('title', 'Dashboard')
 
 
 @section('content')
@@ -12,7 +12,7 @@
         <div class="card-body d-flex align-items-center">
           <div class="welcome-content">
             <p class="welcome-greeting">Good day,</p>
-            <h3 class="welcome-name">{{ auth()->user()->name }}</h3>
+            <h3 class="welcome-name">David Dev!</h3>
             <div class="welcome-date">
               <i class="bi bi-calendar3"></i>
               <span id="currentDate">Jan 23, 2026</span>

@@ -3,7 +3,7 @@
   <h1 class="page-title">Dashboard</h1>
 
   <nav class="breadcrumb">
-    <a href="{{ route('dashboard') }}" class="breadcrumb-item">ModernAdmin</a>
+    <a href="{{ route('dashboard') }}" class="breadcrumb-item">Undi</a>
     <span class="breadcrumb-item active">Dashboard</span>
   </nav>
 </div>
