@@ -16,93 +16,17 @@
         <form class="search-form" action="#" method="GET">
             <i class="bi bi-search search-icon"></i>
             <input type="search" name="q" placeholder="Search..." autocomplete="off">
-            <kbd class="search-shortcut">Ctrl+K</kbd>
+            {{-- <kbd class="search-shortcut">Ctrl+K</kbd> --}}
         </form>
     </div>
 
     <!-- Header Right -->
     <div class="header-right">
 
-        <!-- Apps Dropdown -->
-        <div class="header-action dropdown apps-dropdown">
-            <button class="dropdown-toggle" data-bs-toggle="dropdown">
-                <i class="bi bi-grid-3x3-gap"></i>
-            </button>
-
-            <div class="dropdown-menu dropdown-menu-end apps-menu">
-                <div class="apps-menu-header">
-                    <h6>Quick Access</h6>
-                </div>
-
-                <div class="apps-grid">
-                    <a href="{{ route('dashboard') }}" class="apps-item">
-                        <div class="apps-item-icon primary">
-                            <i class="bi bi-speedometer2"></i>
-                        </div>
-                        <span>Dashboard</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon success">
-                            <i class="bi bi-kanban"></i>
-                        </div>
-                        <span>Projects</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon info">
-                            <i class="bi bi-chat-square-text"></i>
-                        </div>
-                        <span>Messages</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon warning">
-                            <i class="bi bi-person-lines-fill"></i>
-                        </div>
-                        <span>Contacts</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon danger">
-                            <i class="bi bi-check2-square"></i>
-                        </div>
-                        <span>Tasks</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon secondary">
-                            <i class="bi bi-calendar-event"></i>
-                        </div>
-                        <span>Calendar</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon primary">
-                            <i class="bi bi-folder2-open"></i>
-                        </div>
-                        <span>Files</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon info">
-                            <i class="bi bi-envelope"></i>
-                        </div>
-                        <span>Email</span>
-                    </a>
-
-                    <a href="#" class="apps-item">
-                        <div class="apps-item-icon muted">
-                            <i class="bi bi-gear"></i>
-                        </div>
-                        <span>Settings</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+      
 
         <!-- Theme Toggle -->
-        <button class="header-action theme-toggle">
+        <button class="header-action theme-toggle d-none">
             <i class="ph ph-moon theme-icon-dark"></i>
             <i class="ph ph-sun theme-icon-light"></i>
         </button>

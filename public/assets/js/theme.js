@@ -16,7 +16,7 @@
   const THEME_KEY = 'theme';
   const DARK_THEME = 'dark';
   const LIGHT_THEME = 'light';
-  const mql = window.matchMedia('(prefers-color-scheme: dark)');
+  const mql = window.matchMedia('(prefers-color-scheme: light)');
 
   initTheme();
   document.addEventListener('DOMContentLoaded', initThemeToggle);
