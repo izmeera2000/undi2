@@ -1,31 +1,20 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\PengundiController;
-
-
 Route::get('/', function () {
-    return view('admin.page.dashboard');
+    return view('welcome');
 });
-
-
 
 Route::get('/dashboard', function () {
-    return view('admin.page.dashboard');
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
-
-
-Route::post('/chart/sales', [ReportController::class, 'sales']);
-
-Route::get('/pengundi', [PengundiController::class, 'index']);
- 
-
-// Tampilkan semua pengundi
-Route::get('/pengundi', [PengundiController::class, 'index'])->name('pengundi.index');
-
-// Tampilkan pengundi berdasarkan ID
- 
+require __DIR__.'/auth.php';
