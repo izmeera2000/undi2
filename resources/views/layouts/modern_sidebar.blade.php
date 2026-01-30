@@ -1,9 +1,9 @@
   <aside class="sidebar">
     <!-- Sidebar Header -->
     <div class="sidebar-header">
-      <a href="index.html" class="sidebar-logo">
-        <img src="assets/img/logo.webp" alt="ModernAdmin">
-        <span>ModernAdmin</span>
+      <a href="{{ route('dashboard') }}" class="sidebar-logo">
+        <img src="assets/img/logo.webp" alt="Undi">
+        <span>Undi</span>
       </a>
       <button class="sidebar-close">
         <i class="bi bi-x-lg"></i>
@@ -25,16 +25,13 @@
         <li class="nav-item has-submenu ">
           <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Dashboards">
             <i class="ph-light ph-gauge"></i>
-            <span>Dashboards</span>
+            <span>Pengundi</span>
             <i class="ph-light ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu ">
-            <li><a class="nav-link " href="dashboard-sales.html">Sales</a></li>
-            <li><a class="nav-link " href="dashboard-analytics.html">Analytics</a></li>
-            <li><a class="nav-link " href="dashboard-crm.html">CRM</a></li>
-            <li><a class="nav-link " href="dashboard-marketing.html">Marketing</a></li>
-            <li><a class="nav-link " href="dashboard-projects.html">Projects</a></li>
-            <li><a class="nav-link " href="dashboard-finance.html">Finance</a></li>
+             <li><a class="nav-link " href="dashboard-analytics.html">Analytics</a></li>
+            <li><a class="nav-link " href="dashboard-crm.html">Insert</a></li>
+ 
           </ul>
         </li>
 
@@ -42,55 +39,31 @@
         <li class="nav-item has-submenu ">
           <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
             <i class="ph-light ph-users"></i>
-            <span>Users</span>
+            <span>Staff</span>
             <i class="ph-light ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu ">
-            <li><a class="nav-link " href="users.html">Users List</a></li>
-            <li><a class="nav-link " href="users-view.html">User View</a></li>
-            <li><a class="nav-link " href="users-edit.html">User Edit</a></li>
-            <li><a class="nav-link " href="profile.html">Profile</a></li>
-            <!-- 3rd Level - Settings submenu -->
-            <li class="has-submenu ">
-              <a class="nav-link" href="#" aria-expanded="false">
-                Settings
-                <i class="ph-light ph-caret-down nav-arrow"></i>
-              </a>
-              <ul class="nav-submenu ">
-                <li><a class="nav-link " href="settings.html">Account</a></li>
-                <li><a class="nav-link " href="notifications.html">Notifications</a></li>
-                <li><a class="nav-link " href="activity.html">Activity</a></li>
-              </ul>
-            </li>
+            <li><a class="nav-link " href="users.html">List</a></li>
+             {{-- <li><a class="nav-link " href="users-edit.html">User Edit</a></li>
+             <li><a class="nav-link " href="users-view.html">User View</a></li> --}}
+            {{-- <li><a class="nav-link " href="profile.html">Profile</a></li> --}}
+  
             <li><a class="nav-link " href="roles.html">Roles & Permissions</a></li>
           </ul>
         </li>
 
-        <!-- Authentication -->
-        <li class="nav-item has-submenu ">
-          <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Authentication">
-            <i class="ph-light ph-shield-check"></i>
-            <span>Authentication</span>
-            <i class="ph-light ph-caret-down nav-arrow"></i>
-          </a>
-          <ul class="nav-submenu ">
-            <li><a class="nav-link " href="auth-login.html">Login</a></li>
-            <li><a class="nav-link " href="auth-register.html">Register</a></li>
-            <li><a class="nav-link " href="auth-forgot-password.html">Forgot Password</a></li>
-            <li><a class="nav-link " href="auth-reset-password.html">Reset Password</a></li>
-            <li><a class="nav-link " href="auth-verify-email.html">Email Verification</a></li>
-            <li><a class="nav-link " href="auth-two-factor.html">Two Factor Auth</a></li>
-            <li><a class="nav-link " href="auth-lock-screen.html">Lock Screen</a></li>
-          </ul>
-        </li>
+        
+
+
+ 
 
         <!-- Apps Section -->
         <li class="nav-heading"><span>Apps</span></li>
 
         <li class="nav-item">
-          <a class="nav-link " href="apps-calendar.html" data-sidebar-tooltip="Calendar">
+          <a class="nav-link " href="apps-calendar.html" data-sidebar-tooltip="Event">
             <i class="ph-light ph-calendar-blank"></i>
-            <span>Calendar</span>
+            <span>Event</span>
           </a>
         </li>
 
@@ -321,7 +294,7 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link " href="blank.html" data-sidebar-tooltip="Blank Page">
+          <a class="nav-link " href="{{ route('testimport') }}" data-sidebar-tooltip="Blank Page">
             <i class="ph-light ph-file"></i>
             <span>Blank Page</span>
           </a>
@@ -336,7 +309,7 @@
         <a href="profile.html" class="sidebar-footer-profile">
           <img src="assets/img/profile-img.webp" alt="User" class="sidebar-footer-avatar">
           <div class="sidebar-footer-info">
-            <div class="sidebar-footer-name">John Doe</div>
+            <div class="sidebar-footer-name">{{ auth()->user()->name }}</div>
             <div class="sidebar-footer-role">Administrator</div>
           </div>
         </a>
