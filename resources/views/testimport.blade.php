@@ -13,6 +13,13 @@
     <button type="submit">Upload Excel</button>
 </form>
 
+<a href="/pengundi/transfer"
+   onclick="return confirm('Pindahkan data ke jadual rasmi?')"
+   class="btn btn-primary">
+   Transfer Pengundi
+</a>
+
+
   </div>
  
 

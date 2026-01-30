@@ -15,8 +15,15 @@ class PengundiImportController extends Controller
             'file' => 'required|mimes:xlsx,csv'
         ]);
 
-        Excel::import(new PengundiRawImport, $request->file('file'));
 
-        return back()->with('success', 'Data pengundi berjaya diimport');
+        Excel::queueImport(
+            new PengundiRawImport,
+            $request->file('file')
+        );
+
+        return back()->with(
+            'success',
+            'Import sedang diproses di background'
+        );
     }
 }
