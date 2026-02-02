@@ -8,39 +8,39 @@
 
   <div class="mb-4">
     <!-- Traffic Overview Chart -->
-<div>
-  <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="card-title mb-0">Overview</h5>
+    <div>
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">Overview</h5>
 
-      <!-- Year select -->
-      <div class="card-actions">
-        <select id="yearSelect" class="form-select form-select-sm">
-          <option value="2026" selected>2026</option>
-          <option value="2025">2025</option>
-          <option value="2024">2024</option>
-          <option value="2023">2023</option>
-          <option value="2022">2022</option>
-        </select>
+          <!-- Year select -->
+          <div class="card-actions">
+            <select id="yearSelect" class="form-select form-select-sm">
+              <option value="2026" selected>2026</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
+          </div>
+        </div>
+
+
       </div>
     </div>
-
-    
-  </div>
-</div>
 
 
 
   </div>
 
   <!-- Stats Row -->
-  <div class="dashboard-grid dashboard-grid-4">
+  <div class="dashboard-grid dashboard-grid-3">
     <!-- Total Visitors -->
     <div class="card widget-stat">
       <div class="widget-stat-header">
         <div>
           <div class="widget-stat-value">248,532</div>
-          <div class="widget-stat-label">Total Visitors</div>
+          <div class="widget-stat-label">Jumlah Pengundi</div>
         </div>
         <div class="widget-stat-icon primary">
           <i class="bi bi-people"></i>
@@ -51,28 +51,14 @@
       </div>
     </div>
 
-    <!-- Page Views -->
-    <div class="card widget-stat">
-      <div class="widget-stat-header">
-        <div>
-          <div class="widget-stat-value">1.2M</div>
-          <div class="widget-stat-label">Page Views</div>
-        </div>
-        <div class="widget-stat-icon success">
-          <i class="bi bi-eye"></i>
-        </div>
-      </div>
-      <div class="widget-stat-change positive">
-        <i class="bi bi-arrow-up"></i> 18.3% vs last month
-      </div>
-    </div>
+
 
     <!-- Bounce Rate -->
     <div class="card widget-stat">
       <div class="widget-stat-header">
         <div>
           <div class="widget-stat-value">32.4%</div>
-          <div class="widget-stat-label">Bounce Rate</div>
+          <div class="widget-stat-label">First Time Voter</div>
         </div>
         <div class="widget-stat-icon warning">
           <i class="bi bi-arrow-return-left"></i>
@@ -88,7 +74,7 @@
       <div class="widget-stat-header">
         <div>
           <div class="widget-stat-value">4m 32s</div>
-          <div class="widget-stat-label">Avg Session</div>
+          <div class="widget-stat-label">Ahli UMNO</div>
         </div>
         <div class="widget-stat-icon info">
           <i class="bi bi-clock-history"></i>
@@ -100,6 +86,9 @@
     </div>
   </div>
 
+
+
+
   <!-- Charts Row -->
   <div class="mb-4">
     <!-- Traffic Overview Chart -->
@@ -107,7 +96,7 @@
       <div class="card">
         <div class="card-header">
           <h5 class="card-title">Overview</h5>
-          
+
         </div>
         <div class="card-body">
           <div class="chart-container" id="OverviewChart"></div>
@@ -119,45 +108,50 @@
 
 
   </div>
+  <div class="two-column-layout">
 
 
-  <div class="mb-4">
-    <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title">Jantina </h5>
-          
+     <div class="mb-4">
+      <!-- Traffic Overview Chart -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Jantina </h5>
+
+          </div>
+          <div class="card-body">
+            <div class="chart-container" id="jantinaChart2"></div>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="chart-container" id="jantinaChart"></div>
-        </div>
+
+
       </div>
 
 
     </div>
 
 
-  </div>
+    <div class="mb-4">
+      <!-- Traffic Overview Chart -->
+      <div>
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title">Jantina </h5>
+
+          </div>
+          <div class="card-body">
+            <div class="chart-container" id="jantinaChart"></div>
+          </div>
+        </div>
 
 
-  <div class="mb-4">
-    <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title">Jantina </h5>
-        
-        </div>
-        <div class="card-body">
-          <div class="chart-container" id="jantinaChart2"></div>
-        </div>
       </div>
 
 
     </div>
 
 
+   
   </div>
 
 
@@ -293,68 +287,68 @@
     loadJantinaChart();
   </script>
 
-<script>
-let jantinaChart2;
+  <script>
+    let jantinaChart2;
 
-function loadJantinaChart2(filters = {}) {
-    let params = new URLSearchParams(filters).toString();
+    function loadJantinaChart2(filters = {}) {
+      let params = new URLSearchParams(filters).toString();
 
-    fetch(`/analytics/chart/jantina2?${params}`)
+      fetch(`/analytics/chart/jantina2?${params}`)
         .then(res => res.json())
         .then(data => {
 
-            let umurGroups = [...new Set(data.map(d => d.umur_group))];
-            let jantinaList = ['Perempuan', 'Lelaki'];
+          let umurGroups = [...new Set(data.map(d => d.umur_group))];
+          let jantinaList = ['Perempuan', 'Lelaki'];
 
-            // Build series for stacked chart
-            let series = jantinaList.map(j => ({
-                name: j,
-                data: umurGroups.map(u => {
-                    let row = data.find(d => d.umur_group === u && d.jantina === j);
-                    return row ? row.total : 0;
-                })
-            }));
+          // Build series for stacked chart
+          let series = jantinaList.map(j => ({
+            name: j,
+            data: umurGroups.map(u => {
+              let row = data.find(d => d.umur_group === u && d.jantina === j);
+              return row ? row.total : 0;
+            })
+          }));
 
-            let options = {
-                chart: {
-                    type: 'bar',
-                    stacked: true,
-                    height: 400
-                },
-                plotOptions: {
-                    bar: {
-                        columnWidth: '50%',
-                    }
-                },
-                tooltip: {
-                    shared: true,
-                    intersect: false
-                },
-                series: series,
-                xaxis: {
-                    categories: umurGroups,
-                    title: { text: 'Umur' }
-                },
-                yaxis: {
-                    title: { text: 'Jumlah Pengundi' }
-                }
-            };
-
-            if (jantinaChart2) {
-                jantinaChart2.updateOptions(options);
-            } else {
-                jantinaChart2 = new ApexCharts(
-                    document.querySelector("#jantinaChart2"),
-                    options
-                );
-                jantinaChart2.render();
+          let options = {
+            chart: {
+              type: 'bar',
+              stacked: true,
+              height: 400
+            },
+            plotOptions: {
+              bar: {
+                columnWidth: '50%',
+              }
+            },
+            tooltip: {
+              shared: true,
+              intersect: false
+            },
+            series: series,
+            xaxis: {
+              categories: umurGroups,
+              title: { text: 'Umur' }
+            },
+            yaxis: {
+              title: { text: 'Jumlah Pengundi' }
             }
-        });
-}
+          };
 
-// Initial load
-loadJantinaChart2();
-</script>
+          if (jantinaChart2) {
+            jantinaChart2.updateOptions(options);
+          } else {
+            jantinaChart2 = new ApexCharts(
+              document.querySelector("#jantinaChart2"),
+              options
+            );
+            jantinaChart2.render();
+          }
+        });
+    }
+
+    // Initial load
+    loadJantinaChart2();
+  </script>
 
 
 
