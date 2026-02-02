@@ -13,7 +13,8 @@ return new class extends Migration {
         Schema::create('pengundi', function (Blueprint $table) {
             $table->id();
             $table->foreignId('dm_id')->constrained('dm');
-            $table->string('nokp_baru')->unique();
+
+            $table->string('nokp_baru');
             $table->string('nokp_lama')->nullable();
             $table->string('nama');
             $table->string('jantina')->nullable();
@@ -29,9 +30,14 @@ return new class extends Migration {
             $table->text('negeri')->nullable();
             $table->string('status_umno')->nullable();
             $table->string('status_baru')->nullable();
-            $table->string('tarikh_undian')->nullable();  
+            $table->year('tarikh_undian'); // 👈 YEAR type
+
+            // ✅ COMPOSITE UNIQUE
+            $table->unique(['nokp_baru', 'tarikh_undian']);
+
             $table->timestamps();
         });
+
     }
 
     /**

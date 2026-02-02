@@ -2,7 +2,7 @@
     <!-- Sidebar Header -->
     <div class="sidebar-header">
       <a href="{{ route('dashboard') }}" class="sidebar-logo">
-        <img src="assets/img/logo.webp" alt="Undi">
+        <img src="{{ asset('assets/img/logo.webp') }}" alt="Undi">
         <span>Undi</span>
       </a>
       <button class="sidebar-close">
@@ -15,7 +15,7 @@
       <ul class="nav-menu">
         <!-- Main Section -->
         <li class="nav-item">
-          <a class="nav-link active" href="index.html" data-sidebar-tooltip="Dashboard">
+          <a class="nav-link active" href="{{ route('dashboard') }}" data-sidebar-tooltip="Dashboard">
             <i class="ph-light ph-squares-four"></i>
             <span>Dashboard</span>
           </a>
@@ -29,8 +29,8 @@
             <i class="ph-light ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu ">
-             <li><a class="nav-link " href="dashboard-analytics.html">Analytics</a></li>
-            <li><a class="nav-link " href="dashboard-crm.html">Insert</a></li>
+             <li><a class="nav-link " href="{{ route('pengundi.analysis') }}">Analytics</a></li>
+            <li><a class="nav-link " href="{{ route('dashboard') }}">Insert</a></li>
  
           </ul>
         </li>
@@ -53,19 +53,19 @@
         </li>
 
         
-
+ <li class="nav-item">
+          <a class="nav-link " href="{{ route('event') }}" data-sidebar-tooltip="Event">
+            <i class="ph-light ph-calendar-blank"></i>
+            <span>Event</span>
+          </a>
+        </li>
 
  
 
         <!-- Apps Section -->
         <li class="nav-heading"><span>Apps</span></li>
 
-        <li class="nav-item">
-          <a class="nav-link " href="apps-calendar.html" data-sidebar-tooltip="Event">
-            <i class="ph-light ph-calendar-blank"></i>
-            <span>Event</span>
-          </a>
-        </li>
+       
 
         <li class="nav-item">
           <a class="nav-link " href="apps-kanban.html" data-sidebar-tooltip="Kanban Board">
@@ -307,7 +307,7 @@
     <div class="sidebar-footer">
       <div class="sidebar-footer-user">
         <a href="profile.html" class="sidebar-footer-profile">
-          <img src="assets/img/profile-img.webp" alt="User" class="sidebar-footer-avatar">
+          <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="sidebar-footer-avatar">
           <div class="sidebar-footer-info">
             <div class="sidebar-footer-name">{{ auth()->user()->name }}</div>
             <div class="sidebar-footer-role">Administrator</div>

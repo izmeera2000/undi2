@@ -4,13 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-use App\Jobs\TransferPengundiJob;
+use App\Jobs\TransferMembersJob;
 
-class PengundiTransferController extends Controller
+class MembersTransferController extends Controller
 {
     public function transfer()
     {
-        TransferPengundiJob::dispatch();
+        TransferMembersJob::dispatch();
 
         return back()->with(
             'success',

@@ -1,0 +1,141 @@
+<?php
+
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class PengundiAnalyticsController extends Controller
+{
+    //
+    public function overview(Request $request)
+    {
+        $query = DB::table('pengundi')
+            ->selectRaw("
+
+        
+            CASE
+                WHEN umur BETWEEN 18 AND 20 THEN '18-20'
+                WHEN umur BETWEEN 21 AND 29 THEN '21-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END AS umur_group,
+
+            CASE
+                WHEN bangsa IN ('MELAYU', 'CINA', 'INDIA') THEN bangsa
+                ELSE 'LAIN-LAIN'
+            END AS bangsa_group,
+
+            COUNT(*) AS total
+            
+        ");
+
+        // 🔹 Filters
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->first_time !== null && $request->first_time !== '') {
+            $query->where('first_time', $request->first_time);
+        }
+
+        if ($request->jantina) {
+            $query->where('jantina', $request->jantina);
+        }
+
+        if ($request->kategori_pengundi) {
+            $query->where('kategori_pengundi', $request->kategori_pengundi);
+        }
+
+        $data = $query
+            ->groupBy('umur_group', 'bangsa_group')
+            ->orderByRaw("FIELD(bangsa_group, 'MELAYU', 'CINA', 'INDIA', 'LAIN-LAIN')")
+            ->get();
+
+        return response()->json($data);
+    }
+
+
+    public function jantina(Request $request)
+    {
+        $query = DB::table('pengundi')
+            ->selectRaw("
+            CASE
+                WHEN jantina = 'P' THEN 'Perempuan'
+                WHEN jantina = 'L' THEN 'Lelaki'
+                ELSE jantina
+            END AS jantina,
+            COUNT(*) as total
+        ");
+
+        // 🔹 Apply filters if needed
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->first_time !== null && $request->first_time !== '') {
+            $query->where('first_time', $request->first_time);
+        }
+
+        if ($request->kategori_pengundi) {
+            $query->where('kategori_pengundi', $request->kategori_pengundi);
+        }
+
+        $data = $query->groupBy('jantina')->get();
+
+        return response()->json($data);
+    }
+
+public function overviewByJantina(Request $request)
+{
+    $query = DB::table('pengundi')
+        ->selectRaw("
+            CASE
+                WHEN umur BETWEEN 18 AND 20 THEN '18-20'
+                WHEN umur BETWEEN 21 AND 29 THEN '21-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END AS umur_group,
+
+            CASE
+                WHEN jantina = 'P' THEN 'Perempuan'
+                WHEN jantina = 'L' THEN 'Lelaki'
+                ELSE jantina
+            END AS jantina,
+
+            COUNT(*) AS total
+        ");
+
+    // Apply filters
+    if ($request->status) {
+        $query->where('status', $request->status);
+    }
+    if ($request->first_time !== null && $request->first_time !== '') {
+        $query->where('first_time', $request->first_time);
+    }
+    if ($request->kategori_pengundi) {
+        $query->where('kategori_pengundi', $request->kategori_pengundi);
+    }
+
+    $data = $query
+        ->groupBy('umur_group', 'jantina')
+        ->orderByRaw("
+            CASE 
+                WHEN umur_group = '18-20' THEN 1
+                WHEN umur_group = '21-29' THEN 2
+                WHEN umur_group = '30-39' THEN 3
+                WHEN umur_group = '40-49' THEN 4
+                WHEN umur_group = '50-59' THEN 5
+                ELSE 6
+            END
+        ")
+        ->get();
+
+    return response()->json($data);
+}
+
+
+}
