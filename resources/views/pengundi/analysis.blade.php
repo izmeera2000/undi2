@@ -114,7 +114,7 @@
 
         </div>
         <div class="card-body">
-
+          <div class="chart-container" id="OverviewChart"></div>
         </div>
       </div>
 
@@ -155,11 +155,7 @@
 
           </div>
           <div class="card-body">
-                <x-analytics.chart id="jantinaDonut3" type="donut" endpoint="/analytics/chart/jantina" mode="single"
-            :colors="['#FF69B4', '#1E90FF']" :x-axis="['field' => 'jantina']" :data-a="[
-          ['label' => 'Perempuan', 'value' => 'total'],
-          ['label' => 'Lelaki', 'value' => 'total'],
-      ]" />
+            <div class="chart-container" id="jantinaChart"></div>
           </div>
         </div>
 
@@ -257,32 +253,289 @@
 @push('scripts')
   <script>
     const modeSelect = document.getElementById('modeSelect');
-    const year1 = document.getElementById('year1');
-    const year2 = document.getElementById('year2');
+    const year1Select = document.getElementById('year1');
+    const year2Select = document.getElementById('year2');
 
-    function triggerAnalytics() {
-      // show / hide compare year
-      year2.classList.toggle('d-none', modeSelect.value !== 'compare');
+    let chart;
 
-      window.dispatchEvent(
-        new CustomEvent('analytics:change', {
-          detail: {
-            mode: modeSelect.value,
-            year1: year1.value,
-            year2: year2.value
-          }
-        })
-      );
+    function triggerChartLoad() {
+      const mode = modeSelect.value;
+      const year1 = year1Select.value;
+      const year2 = year2Select.value;
+
+      // Show / hide year2
+      if (mode === 'compare') {
+        year2Select.classList.remove('d-none');
+      } else {
+        year2Select.classList.add('d-none');
+      }
+
+      // Build payload
+      let payload = { mode };
+
+      if (mode === 'compare') {
+        payload.year1 = year1;
+        payload.year2 = year2;
+      } else {
+        payload.year = year1;
+      }
+
+      loadChart(payload);
+      loadJantinaChart(payload);
+loadJantinaChart2(payload);
+
+
     }
 
-    // 🔥 CONNECT EVENTS
-    modeSelect.addEventListener('change', triggerAnalytics);
-    year1.addEventListener('change', triggerAnalytics);
-    year2.addEventListener('change', triggerAnalytics);
+    function loadChart(filters = {}) {
+      fetch('/analytics/chart/overview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document
+            .querySelector('meta[name="csrf-token"]')
+            .getAttribute('content')
+        },
+        body: JSON.stringify(filters)
+      })
+        .then(response => response.json())
+        .then(data => {
 
-    // 🔥 INITIAL LOAD
-    triggerAnalytics();
-  </script>
+          let umurGroups = [...new Set(data.map(d => d.umur_group))];
+          let bangsaList = [...new Set(data.map(d => d.bangsa_group))];
+
+          let series = bangsaList.map(bangsa => ({
+            name: bangsa,
+            data: umurGroups.map(umur => {
+              let row = data.find(
+                d => d.bangsa_group === bangsa && d.umur_group === umur
+              );
+              return row ? row.total : 0;
+            })
+          }));
+
+          let options = {
+            chart: {
+              type: 'bar',
+              stacked: true,
+              height: 400
+            },
+            tooltip: {
+              shared: true,
+              intersect: false,
+            },
+            series: series,
+            xaxis: {
+              categories: umurGroups,
+              title: { text: 'Umur' }
+            },
+            yaxis: {
+              title: { text: 'Jumlah Pengundi' }
+            }
+          };
+
+          if (chart) {
+            chart.updateOptions(options);
+          } else {
+            chart = new ApexCharts(
+              document.querySelector("#OverviewChart"),
+              options
+            );
+            chart.render();
+          }
+        });
+    }
+
+    // 🔹 Events
+    modeSelect.addEventListener('change', triggerChartLoad);
+    year1Select.addEventListener('change', triggerChartLoad);
+    year2Select.addEventListener('change', triggerChartLoad);
+
+    // 🔹 First load
+    triggerChartLoad();
+
+    let jantinaChart;
+
+    function loadJantinaChart(filters = {}) {
+      fetch('/analytics/chart/jantina', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(filters)
+      })
+        .then(res => res.json())
+        .then(data => {
+
+          const mode = filters.mode || 'single';
+
+          // Get all labels (jantina)
+          const labels = [...new Set(data.map(d => d.jantina))];
+
+          let series = [];
+          let seriesLabels = [];
+
+          if (mode === 'single') {
+            // Single year: series = totals
+            series = labels.map(label => {
+              const row = data.find(d => d.jantina === label);
+              return row ? row.total : 0;
+            });
+            seriesLabels = labels;
+
+          } else if (mode === 'compare') {
+            // Compare years: create a series per year
+            const years = [...new Set(data.map(d => d.tahun))].sort();
+            series = years.map(year => {
+              return labels.map(label => {
+                const row = data.find(d => d.jantina === label && +d.tahun === +year);
+                return row ? row.total : 0;
+              });
+            });
+            seriesLabels = labels;
+          }
+
+          const options = {
+            chart: { type: 'donut', height: 350 },
+            labels: seriesLabels,
+            legend: { position: 'bottom' },
+            tooltip: {
+              y: {
+                formatter: val => val + ' pengundi'
+              }
+            },
+            series: mode === 'single' ? series : series[0], // initial render
+            responsive: [{
+              breakpoint: 480,
+              options: { chart: { width: 300 }, legend: { position: 'bottom' } }
+            }]
+          };
+
+          if (jantinaChart) {
+            if (mode === 'compare') {
+              // Update series dynamically for multiple years
+              jantinaChart.updateOptions({
+                series: series[0], // show first year by default
+                labels: seriesLabels
+              });
+            } else {
+              jantinaChart.updateOptions(options);
+            }
+          } else {
+            jantinaChart = new ApexCharts(
+              document.querySelector("#jantinaChart"),
+              options
+            );
+            jantinaChart.render();
+          }
+
+          // Optional: add a dropdown to switch between years if comparing
+          if (mode === 'compare') {
+            let yearSelect = document.getElementById('jantinaYearSelect');
+            if (!yearSelect) {
+              yearSelect = document.createElement('select');
+              yearSelect.id = 'jantinaYearSelect';
+              yearSelect.classList.add('form-select', 'form-select-sm', 'mt-2');
+              document.querySelector("#jantinaChart").insertAdjacentElement('afterend', yearSelect);
+
+              years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.text = y;
+                yearSelect.appendChild(opt);
+              });
+
+              yearSelect.addEventListener('change', () => {
+                const selectedYear = +yearSelect.value;
+                const yearData = data.filter(d => +d.tahun === selectedYear);
+                const newSeries = labels.map(label => {
+                  const row = yearData.find(d => d.jantina === label);
+                  return row ? row.total : 0;
+                });
+                jantinaChart.updateSeries(newSeries);
+              });
+            }
+          }
+
+        });
+    }
+
+   </script>
+
+
+
+
+
+<script>
+let jantinaChart2;
+
+function loadJantinaChart2(filters = {}) {
+  fetch('/analytics/chart/jantina2', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+    },
+    body: JSON.stringify(filters)
+  })
+  .then(res => res.json())
+  .then(data => {
+
+    const mode = filters.mode || 'single';
+    const umurGroups = [...new Set(data.map(d => d.umur_group))];
+    const jantinaList = ['Perempuan', 'Lelaki'];
+
+    let series = [];
+
+    if (mode === 'single') {
+      series = jantinaList.map(j => ({
+        name: j,
+        data: umurGroups.map(u => {
+          const row = data.find(d => d.umur_group === u && d.jantina === j);
+          return row ? row.total : 0;
+        })
+      }));
+    } else if (mode === 'compare') {
+      // Multiple years: one stacked series per gender per year
+      const years = [...new Set(data.map(d => d.tahun))].sort();
+      jantinaList.forEach(j => {
+        years.forEach(y => {
+          const name = `${j} (${y})`;
+          const rowData = umurGroups.map(u => {
+            const row = data.find(d => d.umur_group === u && d.jantina === j && +d.tahun === +y);
+            return row ? row.total : 0;
+          });
+          series.push({ name, data: rowData });
+        });
+      });
+    }
+
+    const options = {
+      chart: { type: 'bar', stacked: true, height: 400 },
+      plotOptions: { bar: { columnWidth: '50%' } },
+      tooltip: { shared: true, intersect: false },
+      series: series,
+      xaxis: { categories: umurGroups, title: { text: 'Umur' } },
+      yaxis: { title: { text: 'Jumlah Pengundi' } },
+      legend: { position: 'bottom' }
+    };
+
+    if (jantinaChart2) {
+      jantinaChart2.updateOptions(options);
+    } else {
+      jantinaChart2 = new ApexCharts(
+        document.querySelector("#jantinaChart2"),
+        options
+      );
+      jantinaChart2.render();
+    }
+
+  });
+}
+
+ 
+</script>
 
 
 
