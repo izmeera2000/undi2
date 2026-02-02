@@ -63,9 +63,9 @@ Route::get('/members/transfer', [MembersTransferController::class, 'transfer']);
 
  
 
-Route::get('/analytics/chart/overview', [PengundiAnalyticsController::class, 'overview']);
-Route::get('/analytics/chart/jantina', [PengundiAnalyticsController::class, 'jantina']);
-Route::get('/analytics/chart/jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
+Route::post('/analytics/chart/overview', [PengundiAnalyticsController::class, 'overview']);
+Route::post('/analytics/chart/jantina', [PengundiAnalyticsController::class, 'jantina']);
+Route::post('/analytics/chart/jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
 
 
 

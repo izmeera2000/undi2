@@ -11,8 +11,6 @@ class PengundiAnalyticsController extends Controller
     {
         $query = DB::table('pengundi')
             ->selectRaw("
-
-        
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -27,11 +25,26 @@ class PengundiAnalyticsController extends Controller
                 ELSE 'LAIN-LAIN'
             END AS bangsa_group,
 
+            YEAR(tarikh_undian) AS tahun,
+
             COUNT(*) AS total
-            
         ");
 
-        // 🔹 Filters
+        // 🔹 MODE HANDLING
+
+        // 🔹 Other filters
+// SINGLE
+        if ($request->mode !== 'compare' && $request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+        // COMPARE
+        if ($request->mode === 'compare') {
+            $query->whereIn('tarikh_undian', [$request->year1, $request->year2]);
+        }
+
+
+
         if ($request->status) {
             $query->where('status', $request->status);
         }
@@ -48,13 +61,16 @@ class PengundiAnalyticsController extends Controller
             $query->where('kategori_pengundi', $request->kategori_pengundi);
         }
 
+        // 🔹 Grouping
         $data = $query
-            ->groupBy('umur_group', 'bangsa_group')
+            ->groupBy('umur_group', 'bangsa_group', 'tahun')
+            ->orderBy('tahun')
             ->orderByRaw("FIELD(bangsa_group, 'MELAYU', 'CINA', 'INDIA', 'LAIN-LAIN')")
             ->get();
 
         return response()->json($data);
     }
+
 
 
     public function jantina(Request $request)
@@ -70,6 +86,17 @@ class PengundiAnalyticsController extends Controller
         ");
 
         // 🔹 Apply filters if needed
+
+                if ($request->mode !== 'compare' && $request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+        // COMPARE
+        if ($request->mode === 'compare') {
+            $query->whereIn('tarikh_undian', [$request->year1, $request->year2]);
+        }
+
+
         if ($request->status) {
             $query->where('status', $request->status);
         }
@@ -87,10 +114,10 @@ class PengundiAnalyticsController extends Controller
         return response()->json($data);
     }
 
-public function overviewByJantina(Request $request)
-{
-    $query = DB::table('pengundi')
-        ->selectRaw("
+    public function overviewByJantina(Request $request)
+    {
+        $query = DB::table('pengundi')
+            ->selectRaw("
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -109,20 +136,30 @@ public function overviewByJantina(Request $request)
             COUNT(*) AS total
         ");
 
-    // Apply filters
-    if ($request->status) {
-        $query->where('status', $request->status);
-    }
-    if ($request->first_time !== null && $request->first_time !== '') {
-        $query->where('first_time', $request->first_time);
-    }
-    if ($request->kategori_pengundi) {
-        $query->where('kategori_pengundi', $request->kategori_pengundi);
-    }
 
-    $data = $query
-        ->groupBy('umur_group', 'jantina')
-        ->orderByRaw("
+                if ($request->mode !== 'compare' && $request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+        // COMPARE
+        if ($request->mode === 'compare') {
+            $query->whereIn('tarikh_undian', [$request->year1, $request->year2]);
+        }
+
+        // Apply filters
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        if ($request->first_time !== null && $request->first_time !== '') {
+            $query->where('first_time', $request->first_time);
+        }
+        if ($request->kategori_pengundi) {
+            $query->where('kategori_pengundi', $request->kategori_pengundi);
+        }
+
+        $data = $query
+            ->groupBy('umur_group', 'jantina')
+            ->orderByRaw("
             CASE 
                 WHEN umur_group = '18-20' THEN 1
                 WHEN umur_group = '21-29' THEN 2
@@ -132,10 +169,10 @@ public function overviewByJantina(Request $request)
                 ELSE 6
             END
         ")
-        ->get();
+            ->get();
 
-    return response()->json($data);
-}
+        return response()->json($data);
+    }
 
 
 }
