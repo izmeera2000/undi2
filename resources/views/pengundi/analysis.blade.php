@@ -282,7 +282,7 @@
 
       loadChart(payload);
       loadJantinaChart(payload);
-loadJantinaChart2(payload);
+      loadJantinaChart2(payload);
 
 
     }
@@ -461,81 +461,75 @@ loadJantinaChart2(payload);
         });
     }
 
-   </script>
-
-
-
-
-
-<script>
-let jantinaChart2;
-
-function loadJantinaChart2(filters = {}) {
-  fetch('/analytics/chart/jantina2', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-    },
-    body: JSON.stringify(filters)
-  })
-  .then(res => res.json())
-  .then(data => {
-
-    const mode = filters.mode || 'single';
-    const umurGroups = [...new Set(data.map(d => d.umur_group))];
-    const jantinaList = ['Perempuan', 'Lelaki'];
-
-    let series = [];
-
-    if (mode === 'single') {
-      series = jantinaList.map(j => ({
-        name: j,
-        data: umurGroups.map(u => {
-          const row = data.find(d => d.umur_group === u && d.jantina === j);
-          return row ? row.total : 0;
-        })
-      }));
-    } else if (mode === 'compare') {
-      // Multiple years: one stacked series per gender per year
-      const years = [...new Set(data.map(d => d.tahun))].sort();
-      jantinaList.forEach(j => {
-        years.forEach(y => {
-          const name = `${j} (${y})`;
-          const rowData = umurGroups.map(u => {
-            const row = data.find(d => d.umur_group === u && d.jantina === j && +d.tahun === +y);
-            return row ? row.total : 0;
-          });
-          series.push({ name, data: rowData });
-        });
-      });
-    }
-
-    const options = {
-      chart: { type: 'bar', stacked: true, height: 400 },
-      plotOptions: { bar: { columnWidth: '50%' } },
-      tooltip: { shared: true, intersect: false },
-      series: series,
-      xaxis: { categories: umurGroups, title: { text: 'Umur' } },
-      yaxis: { title: { text: 'Jumlah Pengundi' } },
-      legend: { position: 'bottom' }
-    };
-
-    if (jantinaChart2) {
-      jantinaChart2.updateOptions(options);
-    } else {
-      jantinaChart2 = new ApexCharts(
-        document.querySelector("#jantinaChart2"),
-        options
-      );
-      jantinaChart2.render();
-    }
-
-  });
-}
-
  
-</script>
+    let jantinaChart2;
+
+    function loadJantinaChart2(filters = {}) {
+      fetch('/analytics/chart/jantina2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(filters)
+      })
+        .then(res => res.json())
+        .then(data => {
+
+          const mode = filters.mode || 'single';
+          const umurGroups = [...new Set(data.map(d => d.umur_group))];
+          const jantinaList = ['Perempuan', 'Lelaki'];
+
+          let series = [];
+
+          if (mode === 'single') {
+            series = jantinaList.map(j => ({
+              name: j,
+              data: umurGroups.map(u => {
+                const row = data.find(d => d.umur_group === u && d.jantina === j);
+                return row ? row.total : 0;
+              })
+            }));
+          } else if (mode === 'compare') {
+            // Multiple years: one stacked series per gender per year
+            const years = [...new Set(data.map(d => d.tahun))].sort();
+            jantinaList.forEach(j => {
+              years.forEach(y => {
+                const name = `${j} (${y})`;
+                const rowData = umurGroups.map(u => {
+                  const row = data.find(d => d.umur_group === u && d.jantina === j && +d.tahun === +y);
+                  return row ? row.total : 0;
+                });
+                series.push({ name, data: rowData });
+              });
+            });
+          }
+
+          const options = {
+            chart: { type: 'bar', stacked: true, height: 400 },
+            plotOptions: { bar: { columnWidth: '50%' } },
+            tooltip: { shared: true, intersect: false },
+            series: series,
+            xaxis: { categories: umurGroups, title: { text: 'Umur' } },
+            yaxis: { title: { text: 'Jumlah Pengundi' } },
+            legend: { position: 'bottom' }
+          };
+
+          if (jantinaChart2) {
+            jantinaChart2.updateOptions(options);
+          } else {
+            jantinaChart2 = new ApexCharts(
+              document.querySelector("#jantinaChart2"),
+              options
+            );
+            jantinaChart2.render();
+          }
+
+        });
+    }
+
+
+  </script>
 
 
 
