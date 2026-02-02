@@ -15,7 +15,10 @@ class Chart extends Component
     public array $dataA;
     public array $dataB;
 
-    public function __construct(
+    public array $colors;
+
+
+   public function __construct(
         string $id,
         string $type = 'bar',
         string $endpoint,
@@ -23,7 +26,8 @@ class Chart extends Component
         array $xAxis = [],
         array $yAxis = [],
         array $dataA = [],
-        array $dataB = []
+        array $dataB = [],
+        array $colors = []
     ) {
         $this->id = $id;
         $this->type = $type;
@@ -33,6 +37,7 @@ class Chart extends Component
         $this->yAxis = $yAxis;
         $this->dataA = $dataA;
         $this->dataB = $dataB;
+        $this->colors = $colors;
     }
 
     public function render()
