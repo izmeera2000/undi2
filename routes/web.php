@@ -7,6 +7,10 @@ use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PengundiAnalyticsController;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+use Illuminate\Http\Request; // ✅ correct
+
 
 Route::get('/', function () {
     return view('auth.login');
@@ -52,8 +56,13 @@ Route::get('/pengundi/transfer', [PengundiTransferController::class, 'transfer']
 Route::post('/pengundi/import', [PengundiImportController::class, 'import']);
 
 
+Route::post('/pengundi/analytics/pdf', function (Request $request) {
+    $charts = $request->input('charts'); // full array with id, image, title
 
-
+    return Pdf::loadView('pengundi.pdf', ['charts' => $charts])
+        ->setPaper('a4', 'portrait')
+        ->download('pengundi-analytics.pdf');
+});
 
 
 Route::post('/members/upload', [MembersUploadController::class, 'upload'])

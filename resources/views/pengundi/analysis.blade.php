@@ -31,6 +31,11 @@
               <option value={{ $year }}>{{ $year }}</option>
             @endforeach
           </select>
+
+          <button id="exportPdf" class="btn btn-danger">
+            Export PDF
+          </button>
+
         </div>
       </div>
     </div>
@@ -97,8 +102,7 @@
   <!-- Charts Row -->
   <div class="mb-4">
     <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
+       <div class="card">
         <div class="card-header">
           <h5 class="card-title">Overview</h5>
 
@@ -109,8 +113,7 @@
       </div>
 
 
-    </div>
-
+ 
 
   </div>
 
@@ -119,19 +122,17 @@
 
     <div class="mb-4">
       <!-- Traffic Overview Chart -->
-      <div>
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title">Jantina </h5>
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title">Jantina </h5>
 
-          </div>
-          <div class="card-body">
-            <div class="chart-container" id="jantinaChart2"></div>
-          </div>
         </div>
-
-
+        <div class="card-body">
+          <div class="chart-container" id="jantinaChart2"></div>
+        </div>
       </div>
+
+
 
 
     </div>
@@ -139,19 +140,17 @@
 
     <div class="mb-4">
       <!-- Traffic Overview Chart -->
-      <div>
-        <div class="card">
-          <div class="card-header">
-            <h5 class="card-title">Jantina </h5>
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title">Jantina </h5>
 
-          </div>
-          <div class="card-body">
-            <div class="chart-container" id="jantinaChart"></div>
-          </div>
         </div>
-
-
+        <div class="card-body">
+          <div class="chart-container" id="jantinaChart"></div>
+        </div>
       </div>
+
+
 
 
     </div>
@@ -165,8 +164,7 @@
 
     <div class="mb-4">
       <!-- Traffic Overview Chart -->
-      <div>
-        <div class="card">
+         <div class="card">
           <div class="card-header">
             <h5 class="card-title">Ahli Umno Bar (active/nnonactive) also pengunndi / not by umur_group</h5>
 
@@ -177,15 +175,13 @@
         </div>
 
 
-      </div>
-
+ 
 
     </div>
 
     <div class="mb-4">
       <!-- Traffic Overview Chart -->
-      <div>
-        <div class="card">
+         <div class="card  h-100">
           <div class="card-header">
             <h5 class="card-title">Ahli Umno Doughtnut (active/nnonactive) also pengunndi / not</h5>
 
@@ -196,8 +192,7 @@
         </div>
 
 
-      </div>
-
+ 
 
     </div>
 
@@ -208,8 +203,7 @@
 
   <div class="mb-4">
     <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
+       <div class="card">
         <div class="card-header">
           <h5 class="card-title">radial chart by dun </h5>
 
@@ -220,8 +214,7 @@
       </div>
 
 
-    </div>
-
+ 
 
   </div>
 
@@ -254,7 +247,57 @@
 
   <script>
 
+
+
+
     document.addEventListener('DOMContentLoaded', () => {
+
+const chartslist = {};
+
+document.getElementById('exportPdf').addEventListener('click', async () => {
+  // Map chart objects to friendly titles
+  const charts = [
+    { chart: overviewChart, title: 'Overview Chart' },
+    { chart: jantinaChart.chart, title: 'Jantina Chart' },
+    { chart: jantinaChart2.chart, title: 'Jantina by Umur' },
+    { chart: ahliChart.chart, title: 'Ahli UMNO Chart' },
+    { chart: ahliChart2.chart, title: 'Ahli UMNO by Umur' },
+    { chart: dundmChart.chart, title: 'DUN DM Treemap' },
+    { chart: dundmChartGrouped.chart, title: 'DUN DM Grouped by Umur' }
+  ];
+
+  const images = [];
+
+  for (const { chart, title } of charts) {
+    if (!chart) continue; // skip if not rendered yet
+    try {
+      const { imgURI } = await chart.dataURI();
+      images.push({ id: chart.w.globals.chartID, image: imgURI, title }); // <-- include title
+    } catch (err) {
+      console.warn('Chart not ready for export:', chart.w.globals.chartID);
+    }
+  }
+
+  if (!images.length) {
+    alert('No charts ready for export yet.');
+    return;
+  }
+
+  fetch('/pengundi/analytics/pdf', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRF-TOKEN': '{{ csrf_token() }}'
+    },
+    body: JSON.stringify({ charts: images })
+  })
+    .then(res => res.blob())
+    .then(blob => window.open(URL.createObjectURL(blob)));
+});
+
+
+
+
       /* ===========================
          GLOBAL HELPERS
       =========================== */
@@ -322,41 +365,71 @@
          CHART FACTORIES
       =========================== */
 
-      function renderDonut(el, chartRef, labels, series, colors = []) {
+      async function renderDonut(el, chartRef, labels, series, colors = []) {
         const options = {
-          chart: { type: 'donut', height: 350 },
+          chart: {
+            type: 'donut',
+            width: '100%',
+            height: '100%'
+          },
           labels,
           series,
-          colors, // 🔹 Custom colors here
+          colors,
           legend: { position: 'bottom' },
-          tooltip: { y: { formatter: v => v + ' pengundi' } }
+          tooltip: { y: { formatter: v => v + ' pengundi' } },
+          responsive: [
+            {
+              breakpoint: 768,
+              options: { chart: { width: '100%', height: 250 } }
+            }
+          ]
         };
 
-        if (chartRef.chart) chartRef.chart.updateOptions(options);
-        else {
+
+        if (chartRef.chart) {
+          chartRef.chart.updateOptions(options);
+          return chartRef.chart.render(); // optional, ensures updated
+        } else {
           chartRef.chart = new ApexCharts(el, options);
-          chartRef.chart.render();
+          await chartRef.chart.render(); // ✅ wait for render
+        }
+      }
+
+      async function renderPie(el, chartRef, labels, series) {
+        const options = {
+          chart: {
+            type: 'pie',
+            width: '100%',      // full width of container
+            height: 350,        // default height
+          },
+          labels,
+          series,
+          legend: {
+            position: 'bottom',
+            horizontalAlign: 'center',
+            offsetY: 0,
+          },
+          tooltip: {
+            y: {
+              formatter: v => v + ' pengundi'
+            }
+          },
+          
+        };
+
+        if (chartRef.chart) {
+          chartRef.chart.updateOptions(options);
+          return chartRef.chart.render(); // update chart if already exists
+        } else {
+          chartRef.chart = new ApexCharts(el, options);
+          await chartRef.chart.render();   // wait for initial render
         }
       }
 
 
-      function renderPie(el, chartRef, labels, series) {
-        const options = {
-          chart: { type: 'pie', height: 350 },
-          labels,
-          series,
-          legend: { position: 'bottom' },
-          tooltip: { y: { formatter: v => v + ' pengundi' } }
-        };
 
-        if (chartRef.chart) chartRef.chart.updateOptions(options);
-        else {
-          chartRef.chart = new ApexCharts(el, options);
-          chartRef.chart.render();
-        }
-      }
 
-      function renderStackedBar(el, chartRef, categories, series, yTitle = '', colors = []) {
+      async function renderStackedBar(el, chartRef, categories, series, yTitle = '', colors = []) {
         const options = {
           chart: { type: 'bar', stacked: true, height: 400 },
           plotOptions: { bar: { columnWidth: '50%' } },
@@ -368,87 +441,35 @@
           legend: { position: 'bottom' }
         };
 
-        if (chartRef.chart) chartRef.chart.updateOptions(options);
-        else {
+        if (chartRef.chart) {
+          chartRef.chart.updateOptions(options);
+          return chartRef.chart.render();
+        } else {
           chartRef.chart = new ApexCharts(el, options);
-          chartRef.chart.render();
+          await chartRef.chart.render();
         }
       }
 
-
-
-      function renderPolar(el, chartRef, labels, series) {
+      async function renderTreemap(el, chartRef, series) {
+        const colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#ff7043'];
         const options = {
-          chart: { type: 'polarArea', height: 350 },
-          labels: labels,
-          series: series,
-          legend: { position: 'bottom' },
-          stroke: { colors: ['#fff'] }, // optional, adds white border
-          fill: { opacity: 0.8 },
-          tooltip: { y: { formatter: v => v + ' pengundi' } },
-          responsive: [{
-            breakpoint: 480,
-            options: {
-              chart: { width: 300 },
-              legend: { position: 'bottom' }
-            }
-          }]
+          chart: { type: 'treemap', height: 450, toolbar: { show: true } },
+          series,
+          legend: { show: false },
+          dataLabels: { enabled: true, style: { fontSize: '12px', colors: ['#fff'] }, offsetY: -4 },
+          plotOptions: { treemap: { distributed: true, enableShades: true, shadeIntensity: 0.5, reverseNegativeShade: true } },
+          tooltip: { y: { formatter: val => val + ' pengundi' }, x: { formatter: val => val } },
+          colors
         };
 
         if (chartRef.chart) {
           chartRef.chart.updateOptions(options);
+          return chartRef.chart.render();
         } else {
           chartRef.chart = new ApexCharts(el, options);
-          chartRef.chart.render();
+          await chartRef.chart.render();
         }
       }
-
-      function renderTreemap(el, chartRef, series) {
-        const colors = [
-          '#008FFB', '#00E396', '#FEB019', '#FF4560',
-          '#775DD0', '#546E7A', '#26a69a', '#ff7043'
-        ]; // repeated if more DUNs
-
-        const options = {
-          chart: {
-            type: 'treemap',
-            height: 450,
-            toolbar: { show: true }
-          },
-          series: series,
-          legend: { show: false },
-          dataLabels: {
-            enabled: true,
-            formatter: function (val, opts) {
-              // Show DM name only
-              return val;
-            },
-            style: { fontSize: '12px', colors: ['#fff'] },
-            offsetY: -4
-          },
-          plotOptions: {
-            treemap: {
-              distributed: true,       // allows multiple colors
-              enableShades: true,      // shade intensity based on value
-              shadeIntensity: 0.5,
-              reverseNegativeShade: true
-            }
-          },
-          tooltip: {
-            y: { formatter: val => val + ' pengundi' },
-            x: { formatter: val => val } // shows DM name
-          },
-          colors: colors
-        };
-
-        if (chartRef.chart) chartRef.chart.updateOptions(options);
-        else {
-          chartRef.chart = new ApexCharts(el, options);
-          chartRef.chart.render();
-        }
-      }
-
-
 
       /* ===========================
          OVERVIEW CHART
@@ -496,7 +517,7 @@
         const data = await postJSON('/analytics/chart/jantina', payload);
         const colors = ['#FF1493', '#1E3A8A']; // Perempuan = green, Lelaki = red
 
-        renderDonut(
+        await renderDonut(
           document.querySelector('#jantinaChart'),
           jantinaChart,
           data.map(d => d.jantina),
@@ -522,7 +543,7 @@
           data: umurGroups.map(u => index[`${u}|${j}`]?.total ?? 0)
         }));
         const colors = ['#FF1493', '#1E3A8A']; // Perempuan = green, Lelaki = red
-        renderStackedBar(
+        await renderStackedBar(
           document.querySelector('#jantinaChart2'),
           jantinaChart2,
           umurGroups,
@@ -542,7 +563,7 @@
       async function loadAhli(payload) {
         const data = await postJSON('/analytics/chart/ahliumno', payload);
 
-        renderPie(
+        await renderPie(
           document.querySelector('#ahliChart'),
           ahliChart,
           data.map(d => d.status_ahli),
@@ -569,7 +590,7 @@
         }));
 
 
-        renderStackedBar(
+        await renderStackedBar(
           document.querySelector('#ahliChart2'),
           ahliChart2,
           umurGroups,
@@ -600,7 +621,7 @@
           data: dunGroups[dun]
         }));
 
-        renderTreemap(
+        await renderTreemap(
           document.querySelector('#dundm'),
           dundmChart,
           series
@@ -637,7 +658,7 @@
         // Optional colors for DUNs (or leave default)
         const colors = ['#1E3A8A', '#FF1493', '#F59E0B', '#10B981', '#8B5CF6'];
 
-        renderStackedBar(
+        await renderStackedBar(
           document.querySelector('#dundmChart2'),
           dundmChart2,
           umurGroups,
@@ -691,6 +712,9 @@
         }
       }
 
+
+
+
       document.getElementById('loadDunChart').addEventListener('click', () => {
         const selectedDun = document.getElementById('dunSelect').value;
 
@@ -709,22 +733,22 @@
          MASTER TRIGGER
       =========================== */
 
-      const reloadAll = debounce(() => {
+      const reloadAll = debounce(async () => {
         const payload = buildPayload();
 
-        loadOverview(payload);
-        loadJantina(payload);
-        loadJantinaByUmur(payload);
-        loadAhli(payload);
-        loadAhliByUmur(payload);
-        loadDunDm(payload);
+        await Promise.all([
+          loadOverview(payload),
+          loadJantina(payload),
+          loadJantinaByUmur(payload),
+          loadAhli(payload),
+          loadAhliByUmur(payload),
+          loadDunDm(payload),
+          loadDundmGrouped(payload)
+        ]);
 
-
-        loadDundmGrouped(payload);
-
-
-
+        console.log('All charts fully rendered ✅');
       }, 300);
+
 
       modeSelect.addEventListener('change', reloadAll);
       year1Select.addEventListener('change', reloadAll);
@@ -735,6 +759,10 @@
       reloadAll();
 
     });
+
+
+
+
 
   </script>
 
