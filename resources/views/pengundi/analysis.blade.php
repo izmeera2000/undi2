@@ -5,48 +5,38 @@
 
 @section('content')
 
-
   <div class="mb-4">
-    <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="card-title mb-0">Overview</h5>
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Overview</h5>
 
-          <div class="d-flex gap-2">
-            <!-- Mode -->
-            <select id="modeSelect" class="form-select form-select-sm">
-              <option value="single" selected>Single Year</option>
-              <option value="compare">Compare Years</option>
-            </select>
+        <div class="d-flex gap-2">
+          <!-- Mode -->
+          <select id="modeSelect" class="form-select form-select-sm {{ $years->count() <= 1 ? 'd-none' : '' }}">
+            <option value="single" selected>Single Year</option>
+            <option value="compare">Compare Years</option>
+          </select>
 
-            <!-- Year 1 -->
-            <select id="year1" class="form-select form-select-sm">
-              <option value="2022" selected>2022</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-            </select>
 
-            <!-- Year 2 (hidden unless compare) -->
-            <select id="year2" class="form-select form-select-sm d-none">
+          <!-- Year 1 -->
+          <select id="year1" class="form-select form-select-sm">
+            @foreach($years as $year)
+              <option value={{ $year }} {{ $loop->first ? 'selected' : '' }}>{{ $year }}</option>
+            @endforeach
+          </select>
 
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-
-            </select>
-          </div>
+          <!-- Year 2 (hidden unless compare) -->
+          <select id="year2" class="form-select form-select-sm {{ $years->count() <= 1 ? 'd-none' : '' }}">
+            @foreach($years as $year)
+              <option value={{ $year }}>{{ $year }}</option>
+            @endforeach
+          </select>
         </div>
-
-
-
       </div>
     </div>
-
-
-
   </div>
+
+
 
   <!-- Stats Row -->
   <div class="dashboard-grid dashboard-grid-3">
@@ -123,6 +113,7 @@
 
 
   </div>
+
   <div class="two-column-layout">
 
 
@@ -212,24 +203,7 @@
 
 
   </div>
-  <div class="mb-4">
-    <!-- Traffic Overview Chart -->
-    <div>
-      <div class="card">
-        <div class="card-header">
-          <h5 class="card-title">BY DUN and DM (umr group)</h5>
 
-        </div>
-        <div class="card-body">
-          <div class="chart-container" id=""></div>
-        </div>
-      </div>
-
-
-    </div>
-
-
-  </div>
 
 
   <div class="mb-4">
@@ -241,7 +215,7 @@
 
         </div>
         <div class="card-body">
-          <div class="chart-container" id=""></div>
+          <div class="chart-container" id="dundm"></div>
         </div>
       </div>
 
@@ -251,364 +225,525 @@
 
   </div>
 
+  <div class="mb-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title">DUN Chart (umur group)</h5>
+        <div>
+          <select id="dunSelect" class="form-select d-inline-block" style="width:200px;">
+            <option value="">All</option>
+            @foreach($duns as $dun)
+              <option value="{{ $dun->namadun }}">{{ $dun->namadun }}</option>
+            @endforeach
+          </select>
+
+          <button id="loadDunChart" class="btn btn-primary btn-sm">Load Chart</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container" id="dundmChartGrouped"></div>
+      </div>
+    </div>
+  </div>
+
+
 @endsection
 
 @push('scripts')
+
+
   <script>
-    const modeSelect = document.getElementById('modeSelect');
-    const year1Select = document.getElementById('year1');
-    const year2Select = document.getElementById('year2');
 
-    let chart;
+    document.addEventListener('DOMContentLoaded', () => {
+      /* ===========================
+         GLOBAL HELPERS
+      =========================== */
 
-    function triggerChartLoad() {
-      const mode = modeSelect.value;
-      const year1 = year1Select.value;
-      const year2 = year2Select.value;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
-      // Show / hide year2
-      if (mode === 'compare') {
-        year2Select.classList.remove('d-none');
-      } else {
-        year2Select.classList.add('d-none');
+      const postJSON = (url, payload) =>
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+      const uniq = arr => [...new Set(arr)];
+
+      const indexBy = (data, keys) => {
+        const map = {};
+        data.forEach(row => {
+          const k = keys.map(k => row[k]).join('|');
+          map[k] = row;
+        });
+        return map;
+      };
+
+      const debounce = (fn, delay = 300) => {
+        let t;
+        return (...args) => {
+          clearTimeout(t);
+          t = setTimeout(() => fn(...args), delay);
+        };
+      };
+
+      /* ===========================
+         SELECTORS
+      =========================== */
+
+      const modeSelect = document.getElementById('modeSelect');
+      const year1Select = document.getElementById('year1');
+      const year2Select = document.getElementById('year2');
+
+      /* ===========================
+         PAYLOAD BUILDER
+      =========================== */
+
+      function buildPayload() {
+        const mode = modeSelect.value;
+        const payload = { mode };
+
+        year2Select.classList.toggle('d-none', mode !== 'compare');
+
+        if (mode === 'compare') {
+          payload.year1 = year1Select.value;
+          payload.year2 = year2Select.value;
+        } else {
+          payload.year = year1Select.value;
+        }
+
+        return payload;
       }
 
-      // Build payload
-      let payload = { mode };
+      /* ===========================
+         CHART FACTORIES
+      =========================== */
 
-      if (mode === 'compare') {
-        payload.year1 = year1;
-        payload.year2 = year2;
-      } else {
-        payload.year = year1;
+      function renderDonut(el, chartRef, labels, series, colors = []) {
+        const options = {
+          chart: { type: 'donut', height: 350 },
+          labels,
+          series,
+          colors, // 🔹 Custom colors here
+          legend: { position: 'bottom' },
+          tooltip: { y: { formatter: v => v + ' pengundi' } }
+        };
+
+        if (chartRef.chart) chartRef.chart.updateOptions(options);
+        else {
+          chartRef.chart = new ApexCharts(el, options);
+          chartRef.chart.render();
+        }
       }
 
-      loadChart(payload);
-      loadJantinaChart(payload);
-      loadJantinaChart2(payload);
-      loadAhliChart(payload);
-      loadAhliChart2(payload);
 
-    }
+      function renderPie(el, chartRef, labels, series) {
+        const options = {
+          chart: { type: 'pie', height: 350 },
+          labels,
+          series,
+          legend: { position: 'bottom' },
+          tooltip: { y: { formatter: v => v + ' pengundi' } }
+        };
 
-    function loadChart(filters = {}) {
-      fetch('/analytics/chart/overview', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document
-            .querySelector('meta[name="csrf-token"]')
-            .getAttribute('content')
-        },
-        body: JSON.stringify(filters)
-      })
-        .then(response => response.json())
-        .then(data => {
+        if (chartRef.chart) chartRef.chart.updateOptions(options);
+        else {
+          chartRef.chart = new ApexCharts(el, options);
+          chartRef.chart.render();
+        }
+      }
 
-          let umurGroups = [...new Set(data.map(d => d.umur_group))];
-          let bangsaList = [...new Set(data.map(d => d.bangsa_group))];
+      function renderStackedBar(el, chartRef, categories, series, yTitle = '', colors = []) {
+        const options = {
+          chart: { type: 'bar', stacked: true, height: 400 },
+          plotOptions: { bar: { columnWidth: '50%' } },
+          tooltip: { shared: true, intersect: false },
+          series,
+          colors,
+          xaxis: { categories },
+          yaxis: { title: { text: yTitle } },
+          legend: { position: 'bottom' }
+        };
 
-          let series = bangsaList.map(bangsa => ({
-            name: bangsa,
-            data: umurGroups.map(umur => {
-              let row = data.find(
-                d => d.bangsa_group === bangsa && d.umur_group === umur
-              );
-              return row ? row.total : 0;
-            })
-          }));
+        if (chartRef.chart) chartRef.chart.updateOptions(options);
+        else {
+          chartRef.chart = new ApexCharts(el, options);
+          chartRef.chart.render();
+        }
+      }
 
-          let options = {
-            chart: {
-              type: 'bar',
-              stacked: true,
-              height: 400
-            },
-            tooltip: {
-              shared: true,
-              intersect: false,
-            },
-            series: series,
-            xaxis: {
-              categories: umurGroups,
-              title: { text: 'Umur' }
-            },
-            yaxis: {
-              title: { text: 'Jumlah Pengundi' }
+
+
+      function renderPolar(el, chartRef, labels, series) {
+        const options = {
+          chart: { type: 'polarArea', height: 350 },
+          labels: labels,
+          series: series,
+          legend: { position: 'bottom' },
+          stroke: { colors: ['#fff'] }, // optional, adds white border
+          fill: { opacity: 0.8 },
+          tooltip: { y: { formatter: v => v + ' pengundi' } },
+          responsive: [{
+            breakpoint: 480,
+            options: {
+              chart: { width: 300 },
+              legend: { position: 'bottom' }
             }
-          };
+          }]
+        };
 
-          if (chart) {
-            chart.updateOptions(options);
-          } else {
-            chart = new ApexCharts(
-              document.querySelector("#OverviewChart"),
-              options
-            );
-            chart.render();
-          }
-        });
-    }
+        if (chartRef.chart) {
+          chartRef.chart.updateOptions(options);
+        } else {
+          chartRef.chart = new ApexCharts(el, options);
+          chartRef.chart.render();
+        }
+      }
 
-    // 🔹 Events
-    modeSelect.addEventListener('change', triggerChartLoad);
-    year1Select.addEventListener('change', triggerChartLoad);
-    year2Select.addEventListener('change', triggerChartLoad);
+      function renderTreemap(el, chartRef, series) {
+        const colors = [
+          '#008FFB', '#00E396', '#FEB019', '#FF4560',
+          '#775DD0', '#546E7A', '#26a69a', '#ff7043'
+        ]; // repeated if more DUNs
 
-
-    let jantinaChart;
-
-    function loadJantinaChart(filters = {}) {
-      fetch('/analytics/chart/jantina', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(filters)
-      })
-        .then(res => res.json())
-        .then(data => {
-
-          const mode = filters.mode || 'single';
-
-          // Get all labels (jantina)
-          const labels = [...new Set(data.map(d => d.jantina))];
-
-          let series = [];
-          let seriesLabels = [];
-
-          if (mode === 'single') {
-            // Single year: series = totals
-            series = labels.map(label => {
-              const row = data.find(d => d.jantina === label);
-              return row ? row.total : 0;
-            });
-            seriesLabels = labels;
-
-          }
-
-          const options = {
-            chart: { type: 'donut', height: 350 },
-            labels: seriesLabels,
-            legend: { position: 'bottom' },
-            tooltip: {
-              y: {
-                formatter: val => val + ' pengundi'
-              }
+        const options = {
+          chart: {
+            type: 'treemap',
+            height: 450,
+            toolbar: { show: true }
+          },
+          series: series,
+          legend: { show: false },
+          dataLabels: {
+            enabled: true,
+            formatter: function (val, opts) {
+              // Show DM name only
+              return val;
             },
-            series: mode === 'single' ? series : series[0], // initial render
-            responsive: [{
-              breakpoint: 480,
-              options: { chart: { width: 300 }, legend: { position: 'bottom' } }
-            }]
-          };
+            style: { fontSize: '12px', colors: ['#fff'] },
+            offsetY: -4
+          },
+          plotOptions: {
+            treemap: {
+              distributed: true,       // allows multiple colors
+              enableShades: true,      // shade intensity based on value
+              shadeIntensity: 0.5,
+              reverseNegativeShade: true
+            }
+          },
+          tooltip: {
+            y: { formatter: val => val + ' pengundi' },
+            x: { formatter: val => val } // shows DM name
+          },
+          colors: colors
+        };
 
-          if (jantinaChart) {
-            jantinaChart.updateOptions(options);
-
-          } else {
-            jantinaChart = new ApexCharts(
-              document.querySelector("#jantinaChart"),
-              options
-            );
-            jantinaChart.render();
-          }
+        if (chartRef.chart) chartRef.chart.updateOptions(options);
+        else {
+          chartRef.chart = new ApexCharts(el, options);
+          chartRef.chart.render();
+        }
+      }
 
 
 
+      /* ===========================
+         OVERVIEW CHART
+      =========================== */
+
+      let overviewChart;
+
+      async function loadOverview(payload) {
+        const data = await postJSON('/analytics/chart/overview', payload);
+
+        const umurGroups = uniq(data.map(d => d.umur_group));
+        const bangsaList = uniq(data.map(d => d.bangsa_group));
+        const index = indexBy(data, ['bangsa_group', 'umur_group']);
+
+        const series = bangsaList.map(b => ({
+          name: b,
+          data: umurGroups.map(u => index[`${b}|${u}`]?.total ?? 0)
+        }));
+
+        const options = {
+          chart: { type: 'bar', stacked: true, height: 400 },
+          tooltip: { shared: true, intersect: false },
+          series,
+          xaxis: { categories: umurGroups, title: { text: 'Umur' } },
+          yaxis: { title: { text: 'Jumlah Pengundi' } }
+        };
+
+        if (overviewChart) overviewChart.updateOptions(options);
+        else {
+          overviewChart = new ApexCharts(
+            document.querySelector('#OverviewChart'),
+            options
+          );
+          overviewChart.render();
+        }
+      }
+
+      /* ===========================
+         JANTINA DONUT
+      =========================== */
+
+      const jantinaChart = {};
+
+      async function loadJantina(payload) {
+        const data = await postJSON('/analytics/chart/jantina', payload);
+        const colors = ['#FF1493', '#1E3A8A']; // Perempuan = green, Lelaki = red
+
+        renderDonut(
+          document.querySelector('#jantinaChart'),
+          jantinaChart,
+          data.map(d => d.jantina),
+          data.map(d => Number(d.total)),
+          colors
+        );
+      }
+
+      /* ===========================
+         JANTINA BY UMUR
+      =========================== */
+      const jantinaChart2 = {};
+
+      async function loadJantinaByUmur(payload) {
+        const data = await postJSON('/analytics/chart/jantina2', payload);
+
+        const umurGroups = uniq(data.map(d => d.umur_group));
+        const jantinaList = uniq(data.map(d => d.jantina));
+        const index = indexBy(data, ['umur_group', 'jantina']);
+
+        const series = jantinaList.map(j => ({
+          name: j,
+          data: umurGroups.map(u => index[`${u}|${j}`]?.total ?? 0)
+        }));
+        const colors = ['#FF1493', '#1E3A8A']; // Perempuan = green, Lelaki = red
+        renderStackedBar(
+          document.querySelector('#jantinaChart2'),
+          jantinaChart2,
+          umurGroups,
+          series,
+          'Jumlah Pengundi',
+          colors
+        );
+      }
 
 
+      /* ===========================
+         AHLI UMNO DONUT
+      =========================== */
+
+      const ahliChart = {};
+
+      async function loadAhli(payload) {
+        const data = await postJSON('/analytics/chart/ahliumno', payload);
+
+        renderPie(
+          document.querySelector('#ahliChart'),
+          ahliChart,
+          data.map(d => d.status_ahli),
+          data.map(d => Number(d.total))
+        );
+      }
+
+      /* ===========================
+         AHLI UMNO BY UMUR
+      =========================== */
+
+      const ahliChart2 = {};
+
+      async function loadAhliByUmur(payload) {
+        const data = await postJSON('/analytics/chart/ahliumno2', payload);
+
+        const umurGroups = uniq(data.map(d => d.umur_group));
+        const statusList = uniq(data.map(d => d.status_ahli));
+        const index = indexBy(data, ['umur_group', 'status_ahli']);
+
+        const series = statusList.map(s => ({
+          name: s,
+          data: umurGroups.map(u => index[`${u}|${s}`]?.total ?? 0)
+        }));
+
+
+        renderStackedBar(
+          document.querySelector('#ahliChart2'),
+          ahliChart2,
+          umurGroups,
+          series,
+          'Jumlah Pengundi'
+        );
+      }
+
+
+      /* ===========================
+   dundm
+  =========================== */
+      const dundmChart = {};
+
+      async function loadDunDm(payload) {
+        const data = await postJSON('/analytics/chart/dundm', payload);
+
+        // Group data by DUN
+        const dunGroups = {};
+        data.forEach(item => {
+          if (!dunGroups[item.namadun]) dunGroups[item.namadun] = [];
+          dunGroups[item.namadun].push({ x: item.namadm, y: Number(item.total) });
         });
-    }
 
+        // Transform into ApexCharts series format
+        const series = Object.keys(dunGroups).map(dun => ({
+          name: dun,
+          data: dunGroups[dun]
+        }));
 
-    let jantinaChart2;
+        renderTreemap(
+          document.querySelector('#dundm'),
+          dundmChart,
+          series
+        );
+      }
 
-    function loadJantinaChart2(filters = {}) {
-      fetch('/analytics/chart/jantina2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(filters)
-      })
-        .then(res => res.json())
-        .then(data => {
+      /* ===========================
+    dundm BY UMUR
+  =========================== */
 
-          const mode = filters.mode || 'single';
-          const umurGroups = [...new Set(data.map(d => d.umur_group))];
-          const jantinaList = ['Perempuan', 'Lelaki'];
+      const dundmChart2 = {};
 
-          let series = [];
+      async function loadDundmByUmur(payload) {
+        const data = await postJSON('/analytics/chart/dundm2', payload);
 
-          if (mode === 'single') {
-            series = jantinaList.map(j => ({
-              name: j,
-              data: umurGroups.map(u => {
-                const row = data.find(d => d.umur_group === u && d.jantina === j);
-                return row ? row.total : 0;
-              })
-            }));
-          }
+        // Extract DUNs
+        const dunList = [...new Set(data.map(d => d.namadun))];
 
-          const options = {
-            chart: { type: 'bar', stacked: true, height: 400 },
-            plotOptions: { bar: { columnWidth: '50%' } },
-            tooltip: { shared: true, intersect: false },
-            series: series,
-            xaxis: { categories: umurGroups, title: { text: 'Umur' } },
-            yaxis: { title: { text: 'Jumlah Pengundi' } },
-            legend: { position: 'bottom' }
-          };
-
-          if (jantinaChart2) {
-            jantinaChart2.updateOptions(options);
-          } else {
-            jantinaChart2 = new ApexCharts(
-              document.querySelector("#jantinaChart2"),
-              options
-            );
-            jantinaChart2.render();
-          }
-
+        // Index data by DUN → umur_group
+        const index = {};
+        data.forEach(d => {
+          index[`${d.namadun}|${d.umur_group}`] = d.total;
         });
-    }
+
+        // Age groups
+        const umurGroups = [...new Set(data.map(d => d.umur_group))].sort();
+
+        // Build series per DUN
+        const series = dunList.map(dun => ({
+          name: dun,
+          data: umurGroups.map(umur => index[`${dun}|${umur}`] || 0)
+        }));
+
+        // Optional colors for DUNs (or leave default)
+        const colors = ['#1E3A8A', '#FF1493', '#F59E0B', '#10B981', '#8B5CF6'];
+
+        renderStackedBar(
+          document.querySelector('#dundmChart2'),
+          dundmChart2,
+          umurGroups,
+          series,
+          'Jumlah Pengundi',
+          colors
+        );
+      }
 
 
 
+      const dundmChartGrouped = {};
 
+      async function loadDundmGrouped(payload) {
+        const data = await postJSON('/analytics/chart/dundm2spec', payload);
 
+        const dunList = uniq(data.map(d => d.namadun));
+        const dmList = uniq(data.map(d => d.namadm));
+        const umurGroups = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];
 
-
-    let ahliChart;
-
-    function loadAhliChart(filters = {}) {
-      fetch('/analytics/chart/ahliumno', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(filters)
-      })
-        .then(res => res.json())
-        .then(data => {
-
-          const mode = filters.mode || 'single';
-
-          // Get all labels (jantina)
-          const labels = data.map(d => d.status_ahli);
-
-          let series = [];
-          let seriesLabels = [];
-
-
-
-          series = data.map(d => Number(d.total));
-          seriesLabels = data.map(d => d.status_ahli);
-
-
-          const options = {
-            chart: { type: 'donut', height: 350 },
-            labels: seriesLabels,
-            legend: { position: 'bottom' },
-            tooltip: {
-              y: {
-                formatter: val => val + ' pengundi'
-              }
-            },
-            series: series, // initial render
-            responsive: [{
-              breakpoint: 480,
-              options: { chart: { width: 300 }, legend: { position: 'bottom' } }
-            }]
-          };
-
-          if (ahliChart) {
-            ahliChart.updateOptions(options);
-
-          } else {
-            ahliChart = new ApexCharts(
-              document.querySelector("#ahliChart"),
-              options
-            );
-            ahliChart.render();
-          }
-
-
-
+        const index = {};
+        data.forEach(d => {
+          index[`${d.namadun}|${d.namadm}|${d.umur_group}`] = d.total;
         });
-    }
+
+        const series = umurGroups.map(umur => ({
+          name: umur,
+          data: dmList.map(dm => {
+            const dun = data.find(d => d.namadm === dm)?.namadun;
+            return index[`${dun}|${dm}|${umur}`] || 0;
+          })
+        }));
+
+        const options = {
+          chart: { type: 'bar', stacked: true, height: 950 },
+          plotOptions: { bar: { horizontal: true, columnWidth: '50%' } },
+          xaxis: { categories: dmList, title: { text: 'Umur' } },
+          legend: { position: 'bottom' },
+          tooltip: { shared: true, intersect: false },
+          series
+        };
+
+        if (dundmChartGrouped.chart) {
+          dundmChartGrouped.chart.updateOptions(options);
+        } else {
+          dundmChartGrouped.chart = new ApexCharts(
+            document.querySelector('#dundmChartGrouped'),
+            options
+          );
+          dundmChartGrouped.chart.render();
+        }
+      }
+
+      document.getElementById('loadDunChart').addEventListener('click', () => {
+        const selectedDun = document.getElementById('dunSelect').value;
+
+        const payload = {
+          dun: selectedDun || ""
+        };
+
+        loadDundmGrouped(payload);
+      });
 
 
 
 
 
-    let ahliChart2;
+      /* ===========================
+         MASTER TRIGGER
+      =========================== */
 
-    function loadAhliChart2(filters = {}) {
-      fetch('/analytics/chart/ahliumno2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify(filters)
-      })
-        .then(res => res.json())
-        .then(data => {
+      const reloadAll = debounce(() => {
+        const payload = buildPayload();
 
-          const mode = filters.mode || 'single';
-const umurGroups = [...new Set(data.map(d => d.umur_group))];
-const statusList = [...new Set(data.map(d => d.status_ahli))];
-
-const series = statusList.map(status => ({
-  name: status,
-  data: umurGroups.map(u => {
-    const row = data.find(d => d.umur_group === u && d.status_ahli === status);
-    return row ? Number(row.total) : 0;
-  })
-}));
+        loadOverview(payload);
+        loadJantina(payload);
+        loadJantinaByUmur(payload);
+        loadAhli(payload);
+        loadAhliByUmur(payload);
+        loadDunDm(payload);
 
 
-          const options = {
-            chart: { type: 'bar', stacked: true, height: 400 },
-            plotOptions: { bar: { columnWidth: '50%' } },
-            tooltip: { shared: true, intersect: false },
-            series: series,
-            xaxis: { categories: umurGroups, title: { text: 'Umur' } },
-            yaxis: { title: { text: 'Jumlah Pengundi' } },
-            legend: { position: 'bottom' }
-          };
-
-          if (ahliChart2) {
-            ahliChart2.updateOptions(options);
-          } else {
-            ahliChart2 = new ApexCharts(
-              document.querySelector("#ahliChart2"),
-              options
-            );
-            ahliChart2.render();
-          }
-
-        });
-    }
+        loadDundmGrouped(payload);
 
 
 
+      }, 300);
+
+      modeSelect.addEventListener('change', reloadAll);
+      year1Select.addEventListener('change', reloadAll);
+      year2Select.addEventListener('change', reloadAll);
 
 
-    triggerChartLoad();
 
+      reloadAll();
 
-
-
-
+    });
 
   </script>
 
 
+  <script>
+    // Pass PHP $years to JS
+    const availableYears = @json($years);
+
+    console.log('Available years:', availableYears);
+  </script>
 
 @endpush

@@ -40,9 +40,11 @@ Route::get('/event', function () {
 
 
 
-Route::get('/pengundi/analytics', function () {
-    return view('pengundi.analysis');
-})->middleware(['auth', 'verified'])->name('pengundi.analysis');
+
+Route::get('/pengundi/analytics', [PengundiAnalyticsController::class, 'dropdowns'])
+    ->middleware(['auth', 'verified'])
+    ->name('pengundi.analysis');
+
 
 Route::get('/pengundi/transfer', [PengundiTransferController::class, 'transfer']);
 
@@ -69,6 +71,11 @@ Route::post('/analytics/chart/jantina2', [PengundiAnalyticsController::class, 'o
 
 Route::post('/analytics/chart/ahliumno', [PengundiAnalyticsController::class, 'ahliumno']);
 Route::post('/analytics/chart/ahliumno2', [PengundiAnalyticsController::class, 'overviewByAhliumno']);
+
+
+Route::post('/analytics/chart/dundm', [PengundiAnalyticsController::class, 'dundm']);
+Route::post('/analytics/chart/dundm2', [PengundiAnalyticsController::class, 'overviewByDundm']);
+Route::post('/analytics/chart/dundm2spec', [PengundiAnalyticsController::class, 'overviewByDundmSpecDun']);
 
 
 require __DIR__ . '/auth.php';
