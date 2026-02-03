@@ -61,7 +61,8 @@ Route::post('/pengundi/analytics/pdf', function (Request $request) {
 
     return Pdf::loadView('pengundi.pdf', ['charts' => $charts])
         ->setPaper('a4', 'portrait')
-        ->download('pengundi-analytics.pdf');
+
+        ->stream('pengundi-analytics.pdf');
 });
 
 
@@ -72,7 +73,7 @@ Route::post('/members/upload', [MembersUploadController::class, 'upload'])
 Route::get('/members/transfer', [MembersTransferController::class, 'transfer']);
 
 
- 
+
 
 Route::post('/analytics/chart/overview', [PengundiAnalyticsController::class, 'overview']);
 Route::post('/analytics/chart/jantina', [PengundiAnalyticsController::class, 'jantina']);
