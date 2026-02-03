@@ -67,6 +67,8 @@ Route::post('/analytics/chart/overview', [PengundiAnalyticsController::class, 'o
 Route::post('/analytics/chart/jantina', [PengundiAnalyticsController::class, 'jantina']);
 Route::post('/analytics/chart/jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
 
+Route::post('/analytics/chart/ahliumno', [PengundiAnalyticsController::class, 'ahliumno']);
+Route::post('/analytics/chart/ahliumno2', [PengundiAnalyticsController::class, 'overviewByAhliumno']);
 
 
 require __DIR__ . '/auth.php';

@@ -87,7 +87,7 @@ class PengundiAnalyticsController extends Controller
 
         // 🔹 Apply filters if needed
 
-                if ($request->mode !== 'compare' && $request->year) {
+        if ($request->mode !== 'compare' && $request->year) {
             $query->where('tarikh_undian', $request->year);
         }
 
@@ -137,7 +137,7 @@ class PengundiAnalyticsController extends Controller
         ");
 
 
-                if ($request->mode !== 'compare' && $request->year) {
+        if ($request->mode !== 'compare' && $request->year) {
             $query->where('tarikh_undian', $request->year);
         }
 
@@ -160,6 +160,140 @@ class PengundiAnalyticsController extends Controller
         $data = $query
             ->groupBy('umur_group', 'jantina')
             ->orderByRaw("
+            CASE 
+                WHEN umur_group = '18-20' THEN 1
+                WHEN umur_group = '21-29' THEN 2
+                WHEN umur_group = '30-39' THEN 3
+                WHEN umur_group = '40-49' THEN 4
+                WHEN umur_group = '50-59' THEN 5
+                ELSE 6
+            END
+        ")
+            ->get();
+
+        return response()->json($data);
+    }
+
+
+
+
+    public function ahliumno(Request $request)
+    {
+        $query = DB::table('pengundi')
+ 
+            ->selectRaw("
+             CASE
+                WHEN status_umno = 1 THEN 'Ahli UMNO'
+                ELSE 'Bukan Ahli'
+            END AS status_ahli,
+            COUNT(*) AS total
+        ");
+
+        /* =======================
+            FILTERS
+        ========================*/
+
+        // NORMAL MODE
+        if ($request->mode !== 'compare' && $request->year) {
+            $query->where('pengundi.tarikh_undian', $request->year);
+        }
+
+        // COMPARE MODE
+        if ($request->mode === 'compare') {
+            $query->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        }
+
+        if ($request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+
+        if ($request->status) {
+            $query->where('pengundi.status', $request->status);
+        }
+
+
+        if ($request->first_time !== null && $request->first_time !== '') {
+            $query->where('pengundi.first_time', $request->first_time);
+        }
+
+        if ($request->kategori_pengundi) {
+            $query->where('pengundi.kategori_pengundi', $request->kategori_pengundi);
+        }
+
+        $data = $query
+            ->groupBy('status_ahli')
+            ->get();
+
+        return response()->json($data);
+    }
+
+
+
+        public function overviewByAhliumno(Request $request)
+    {
+        $query = DB::table('pengundi')
+ 
+            ->selectRaw("
+             CASE
+                WHEN status_umno = 1 THEN 'Ahli UMNO'
+                ELSE 'Bukan Ahli'
+            END AS status_ahli,
+
+                        CASE
+                WHEN umur BETWEEN 18 AND 20 THEN '18-20'
+                WHEN umur BETWEEN 21 AND 29 THEN '21-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END AS umur_group,
+
+
+            COUNT(*) AS total
+        ");
+
+        /* =======================
+            FILTERS
+        ========================*/
+
+        // NORMAL MODE
+        if ($request->mode !== 'compare' && $request->year) {
+            $query->where('pengundi.tarikh_undian', $request->year);
+        }
+
+        // COMPARE MODE
+        if ($request->mode === 'compare') {
+            $query->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        }
+
+        if ($request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+
+        if ($request->status) {
+            $query->where('pengundi.status', $request->status);
+        }
+
+
+        if ($request->first_time !== null && $request->first_time !== '') {
+            $query->where('pengundi.first_time', $request->first_time);
+        }
+
+        if ($request->kategori_pengundi) {
+            $query->where('pengundi.kategori_pengundi', $request->kategori_pengundi);
+        }
+
+        $data = $query
+            ->groupBy('umur_group','status_ahli')
+                        ->orderByRaw("
             CASE 
                 WHEN umur_group = '18-20' THEN 1
                 WHEN umur_group = '21-29' THEN 2
