@@ -117,90 +117,65 @@
 
   </div>
 
-  <div class="two-column-layout">
-
-
-    <div class="mb-4">
-      <!-- Traffic Overview Chart -->
-      <div class="card">
+   <div class="row   mb-4">
+    <!-- First Column: Jantina Chart 1 (7 units) -->
+    <div class="col-md-7">
+      <div class="card h-100">
         <div class="card-header">
-          <h5 class="card-title">Jantina </h5>
-
+          <h5 class="card-title mb-0">Jantina</h5>
         </div>
         <div class="card-body">
           <div class="chart-container" id="jantinaChart2"></div>
         </div>
       </div>
-
-
-
-
     </div>
 
-
-    <div class="mb-4">
-      <!-- Traffic Overview Chart -->
+    <!-- Second Column: Jantina Chart 2 (5 units) -->
+    <div class="col-md-5">
       <div class="card h-100">
         <div class="card-header">
-          <h5 class="card-title">Jantina </h5>
-
+          <h5 class="card-title mb-0">Jantina</h5>
         </div>
         <div class="card-body">
           <div class="chart-container" id="jantinaChart"></div>
         </div>
       </div>
-
-
-
-
     </div>
-
-
-
   </div>
 
-  <div class="two-column-layout">
-    <!-- Charts Row -->
-
-    <div class="mb-4">
-      <!-- Traffic Overview Chart -->
-         <div class="card">
-          <div class="card-header">
-            <h5 class="card-title">Ahli Umno Bar (active/nnonactive) also pengunndi / not by umur_group</h5>
-
-          </div>
-          <div class="card-body">
-            <div class="chart-container" id="ahliChart2"></div>
-          </div>
+  <div class="row  mb-4">
+    <!-- First Column: Ahli Umno Bar Chart (7 units) -->
+    <div class="col-md-7">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            Ahli Umno Bar (active/nonactive) also pengundi / not by umur_group
+          </h5>
         </div>
-
-
- 
-
+        <div class="card-body">
+          <div class="chart-container" id="ahliChart2"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="mb-4">
-      <!-- Traffic Overview Chart -->
-         <div class="card  h-100">
-          <div class="card-header">
-            <h5 class="card-title">Ahli Umno Doughtnut (active/nnonactive) also pengunndi / not</h5>
-
-          </div>
-          <div class="card-body">
-            <div class="chart-container" id="ahliChart"></div>
-          </div>
+    <!-- Second Column: Ahli Umno Doughnut Chart (5 units) -->
+    <div class="col-md-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">
+            Ahli Umno Doughnut (active/nonactive) also pengundi / not
+          </h5>
         </div>
-
-
- 
-
+        <div class="card-body">
+          <div class="chart-container" id="ahliChart"></div>
+        </div>
+      </div>
     </div>
-
-
   </div>
+ 
 
 
-
+{{-- 
   <div class="mb-4">
     <!-- Traffic Overview Chart -->
        <div class="card">
@@ -216,7 +191,7 @@
 
  
 
-  </div>
+  </div> --}}
 
   <div class="mb-4">
     <div class="card">
@@ -262,7 +237,7 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
     { chart: jantinaChart2.chart, title: 'Jantina by Umur' },
     { chart: ahliChart.chart, title: 'Ahli UMNO Chart' },
     { chart: ahliChart2.chart, title: 'Ahli UMNO by Umur' },
-    { chart: dundmChart.chart, title: 'DUN DM Treemap' },
+    // { chart: dundmChart.chart, title: 'DUN DM Treemap' },
     { chart: dundmChartGrouped.chart, title: 'DUN DM Grouped by Umur' }
   ];
 
@@ -742,7 +717,7 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
           loadJantinaByUmur(payload),
           loadAhli(payload),
           loadAhliByUmur(payload),
-          loadDunDm(payload),
+          // loadDunDm(payload),
           loadDundmGrouped(payload)
         ]);
 

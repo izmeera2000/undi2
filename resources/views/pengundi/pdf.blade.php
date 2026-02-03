@@ -14,6 +14,8 @@
 <body>
 <div class="container my-4">
     @foreach($charts as $chart)
+<div class="container my-4">
+
         <div class="chart-card">
             @if(!empty($chart['title']))
                 <div class="chart-title">{{ $chart['title'] }}</div>
@@ -23,8 +25,9 @@
 
             <img src="{{ $chart['image'] }}" class="img-fluid">
         </div>
-        <div class="page-break"></div>
-    @endforeach
+</div>
+
+     @endforeach
 </div>
 </body>
 </html>
