@@ -694,7 +694,7 @@ async function renderStackedBar(
                         title: { align: "left" },
                     },
                     plotOptions: {
-                        bar: { horizontal: true, columnWidth: "60%" },
+                        // bar: { horizontal: true, columnWidth: isHorizontal ? "100%"  : "60%"},
                     },
                     chart: {
                         height: isHorizontal ? 800 : 500,
