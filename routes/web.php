@@ -90,7 +90,7 @@ Route::post('/analytics/chart/dundm2spec', [PengundiAnalyticsController::class, 
 
 Route::post('/analytics/chart/firsttime', [PengundiAnalyticsController::class, 'overviewByFirstTime']);
 
-Route::get('/analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
+Route::post('/analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
 
 
 require __DIR__ . '/auth.php';

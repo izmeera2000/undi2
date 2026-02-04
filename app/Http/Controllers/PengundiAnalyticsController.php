@@ -38,20 +38,34 @@ class PengundiAnalyticsController extends Controller
             'status_umno'
         ]);
 
-        $query = DB::table('pengundi');
+        $baseQuery = DB::table('pengundi');
 
         foreach ($filters as $key => $value) {
             if (!empty($value)) {
-                $query->where($key, $value);
+                $baseQuery->where($key, $value);
             }
         }
-        $totalQuery = clone $query;
 
-        $analytics = $query
+        /* ======================
+           TOTALS (BACKEND)
+        ====================== */
+
+        $totalPengundi = (clone $baseQuery)->count();
+
+        $totalUmno = (clone $baseQuery)
+            ->where('status_umno', '1')
+            ->count();
+
+        $totalFirstTimeVoter = (clone $baseQuery)
+            ->where('status_baru', '1')
+            ->count();
+
+        /* ======================
+           ANALYTICS CUBE
+        ====================== */
+
+        $analytics = (clone $baseQuery)
             ->selectRaw("
-            /* ======================
-               UMUR GROUP
-            ====================== */
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -61,17 +75,11 @@ class PengundiAnalyticsController extends Controller
                 ELSE '60+'
             END AS umur_group,
 
-            /* ======================
-               FIRST TIME VOTER
-            ====================== */
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN 1
                 ELSE 0
             END AS first_time_voter,
 
-            /* ======================
-               BANGSA GROUP
-            ====================== */
             CASE
                 WHEN LOWER(bangsa) LIKE '%melayu%' THEN 'Melayu'
                 WHEN LOWER(bangsa) LIKE '%cina%' 
@@ -82,27 +90,29 @@ class PengundiAnalyticsController extends Controller
 
             jantina,
             status_umno,
+            COUNT(*) AS total,
+            tarikh_undian
 
-            COUNT(*) as total
         ")
             ->groupBy([
                 'umur_group',
                 'first_time_voter',
                 'bangsa_group',
+                'tarikh_undian',
                 'jantina',
                 'status_umno'
             ])
             ->get();
 
-        $grandTotal = $totalQuery->count();
-
         return response()->json([
             'cube' => $analytics,
-            'grand_total' => $grandTotal
 
+            // 🔢 totals for dashboard cards
+            'total_pengundi' => $totalPengundi,
+            'total_umno' => $totalUmno,
+            'total_first_time_voter' => $totalFirstTimeVoter,
         ]);
     }
-
 
 
 
