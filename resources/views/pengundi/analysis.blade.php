@@ -107,7 +107,7 @@
         <h5 class="card-title">Bangsa</h5>
 
       </div>
-      <div class="card-body">
+      <div class="card-body overflow-auto">
         <div class="chart-container" id="bangsaChart"></div>
       </div>
     </div>
@@ -124,7 +124,7 @@
         <div class="card-header">
           <h5 class="card-title mb-0">Umur</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body overflow-auto">
           <div class="chart-container" id="umurChart"></div>
         </div>
       </div>
@@ -136,7 +136,7 @@
         <div class="card-header">
           <h5 class="card-title mb-0">Jantina</h5>
         </div>
-        <div class="card-body">
+        <div class="card-body  overflow-auto">
           <div class="chart-container" id="jantinaChart"></div>
         </div>
       </div>
@@ -152,17 +152,17 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title">DUN Chart DunxUMNOxUmur </h5>
         <div>
-          <select id="dunSelect" class="form-select d-inline-block" style="width:200px;">
+          {{-- <select id="dunSelect" class="form-select d-inline-block" style="width:200px;">
             <option value="">All</option>
             @foreach($duns as $dun)
-              <option value="{{ $dun->namadun }}">{{ $dun->namadun }}</option>
+            <option value="{{ $dun->namadun }}">{{ $dun->namadun }}</option>
             @endforeach
-          </select>
+          </select> --}}
 
-          <button id="loadDunChart" class="btn btn-primary btn-sm">Load Chart</button>
+          {{-- <button id="loadDunChart" class="btn btn-primary btn-sm">Load Chart</button> --}}
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body overflow-auto">
         <div class="chart-container mx-auto" id="dunChart"></div>
       </div>
     </div>
@@ -194,7 +194,6 @@
   <script>
 
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 
     const modeSelect = document.getElementById('modeSelect');
@@ -219,22 +218,40 @@
 
       for (const { chart, title } of Object.values(DashboardState.charts)) {
         if (!chart) continue;
-        console.log(chart.core.w.config.chart.height);
+        console.log(chart.core.w.config);
 
         const originalHeight = chart.core.w.config.chart.height;
+        const originalWidth = chart.core.w.config.chart.width;
+        const originalAnimated = chart.core.w.config.chart.animations.enabled;
+        const totalCategories = chart.w.config.xaxis.categories.length;
+        console.log(originalAnimated);
 
         try {
-          // 2️⃣ Temporarily resize for PDF
-await chart.updateOptions({
-  chart: {
-    background: '#fff', // forces white background
-    animations: { enabled: false },
-  }
-});
 
+          await chart.updateOptions({
+            chart: {
+              animations: { enabled: false },
+            },
+          });
+          if (totalCategories >= 6) {
+            try {
+              await chart.updateOptions({
+                chart: {
+                  width: 600,
+                },
+              });
+            } catch (error) {
+              console.error('Error updating chart width:', error);
+            }
+
+            await new Promise(r => setTimeout(r, 1300));
+
+          } else {
+            await new Promise(r => setTimeout(r, 600));
+
+          }
 
           // 3️⃣ Wait a moment for ApexCharts to render
-          await new Promise(r => setTimeout(r, 200));
 
           // 4️⃣ Capture image
           const { imgURI } = await chart.dataURI({ scale: 2 });
@@ -243,6 +260,17 @@ await chart.updateOptions({
             image: imgURI,
             title,
           });
+
+          if (totalCategories >= 6) {
+
+            await chart.updateOptions({
+              chart: {
+                width: originalWidth,
+                animations: { enabled: originalAnimated },
+
+              },
+            });
+          }
 
 
         } catch (err) {
@@ -254,6 +282,7 @@ await chart.updateOptions({
         alert('No charts ready for export yet.');
         return;
       }
+      console.log("start ex  ");
 
       // 6️⃣ Send to backend
       fetch('/pengundi/analytics/pdf', {
@@ -265,7 +294,12 @@ await chart.updateOptions({
         body: JSON.stringify({ charts: images })
       })
         .then(res => res.blob())
-        .then(blob => window.open(URL.createObjectURL(blob)));
+        .then(blob => {
+          window.open(URL.createObjectURL(blob));
+        })
+        .then(() => console.log("end ex"));
+
+
     });
 
 
@@ -284,6 +318,9 @@ await chart.updateOptions({
 
 
     async function loadDashboard(payload) {
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
 
       const res = await fetch('/analytics/pengundi', {
         method: 'POST',
@@ -308,7 +345,11 @@ await chart.updateOptions({
     }
 
 
+
+
+
     function renderAll() {
+      
       renderKPIs(DashboardState.cube, DashboardState.totals);
       renderBangsaChart(DashboardState.cube);
       renderUmurChart(DashboardState.cube);
@@ -469,7 +510,8 @@ await chart.updateOptions({
         'DM',                // X-axis
         [],
         'DM x Umur',         // Chart title
-        true                 // horizontal
+        true,               // horizontal
+        false
       );
     }
 
@@ -493,7 +535,7 @@ await chart.updateOptions({
         year1: year1Select.value,
         year2: year2Select.value,
         mode: modeSelect.value,
-        dun: dunSelect.value
+        // dun: dunSelect.value
       });
     }
     document.addEventListener('DOMContentLoaded', () => {
@@ -504,10 +546,10 @@ await chart.updateOptions({
       modeSelect.addEventListener('change', onFilterChange);
       year1Select.addEventListener('change', onFilterChange);
       year2Select.addEventListener('change', onFilterChange);
-      dunSelect.addEventListener('change', onFilterChange);
+      // dunSelect.addEventListener('change', onFilterChange);
     });
 
-
+  
   </script>
 
 

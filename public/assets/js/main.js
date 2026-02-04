@@ -575,14 +575,17 @@ async function renderStackedBar(
     colors = [],
     title = "",
     isHorizontal = false,
+    isAnimated = true,
 ) {
     const options = {
         chart: {
             type: "bar",
             stacked: true,
-            height: isHorizontal ? 800 : 400,
+            height: isHorizontal ? 800 : 600,
             width: isHorizontal ? 800 : undefined,
-
+            animations: {
+                enabled: isAnimated,
+            },
             events: {
                 dataPointSelection: function (event, chartContext, config) {
                     if (window.innerWidth < 768) {
@@ -643,6 +646,7 @@ async function renderStackedBar(
         plotOptions: {
             bar: {
                 horizontal: isHorizontal,
+ 
             },
         },
 
@@ -656,18 +660,17 @@ async function renderStackedBar(
         series,
         colors,
 
-       xaxis: {
-  categories,
-  title: {
-    text: isHorizontal ? yTitle : xTitle,
-  },
-},
-yaxis: {
-  title: {
-    text: isHorizontal ? xTitle : yTitle,
-  },
-},
-
+        xaxis: {
+            categories,
+            title: {
+                text: isHorizontal ? yTitle : xTitle,
+            },
+        },
+        yaxis: {
+            title: {
+                text: isHorizontal ? xTitle : yTitle,
+            },
+        },
 
         legend: { position: "bottom" },
 
@@ -693,7 +696,11 @@ yaxis: {
                     plotOptions: {
                         bar: { horizontal: true, columnWidth: "60%" },
                     },
-                    chart: { height: isHorizontal ? 800 : 500 },
+                    chart: {
+                        height: isHorizontal ? 800 : 500,
+                        width: isHorizontal ? 800 : 500,
+                    },
+
                     legend: { position: "bottom" },
                 },
             },
