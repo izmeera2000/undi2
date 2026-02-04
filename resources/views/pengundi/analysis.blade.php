@@ -119,19 +119,19 @@
 
   <div class="row   mb-4">
     <!-- First Column: Jantina Chart 1 (7 units) -->
-    <div class="col-md-7">
+    <div class="col">
       <div class="card h-100">
         <div class="card-header">
-          <h5 class="card-title mb-0">Jantina</h5>
+          <h5 class="card-title mb-0">Umur</h5>
         </div>
         <div class="card-body">
-          <div class="chart-container" id="jantinaChart2"></div>
+          <div class="chart-container" id="umurChart"></div>
         </div>
       </div>
     </div>
 
     <!-- Second Column: Jantina Chart 2 (5 units) -->
-    <div class="col-md-5">
+    <div class="col">
       <div class="card h-100">
         <div class="card-header">
           <h5 class="card-title mb-0">Jantina</h5>
@@ -175,24 +175,6 @@
 
 
 
-  {{--
-  <div class="mb-4">
-    <!-- Traffic Overview Chart -->
-    <div class="card">
-      <div class="card-header">
-        <h5 class="card-title">radial chart by dun </h5>
-
-      </div>
-      <div class="card-body">
-        <div class="chart-container" id="dundm"></div>
-      </div>
-    </div>
-
-
-
-
-  </div> --}}
-
   <div class="mb-4">
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
@@ -233,400 +215,262 @@
 @push('scripts')
 
 
-  <script>
+<script>
 
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 
-    const modeSelect = document.getElementById('modeSelect');
-    const year1Select = document.getElementById('year1');
-    const year2Select = document.getElementById('year2');
-    const dunSelect = document.getElementById('dunSelect');
+  const modeSelect = document.getElementById('modeSelect');
+  const year1Select = document.getElementById('year1');
+  const year2Select = document.getElementById('year2');
+  const dunSelect = document.getElementById('dunSelect');
 
 
 
-    document.getElementById('exportPdf').addEventListener('click', async () => {
-      // Map chart objects to friendly titles
-      const charts = [
-        { chart: overviewChart.chart, title: 'Overview Chart' },
-        { chart: jantinaChart.chart, title: 'Jantina Chart' },
-        { chart: jantinaChart2.chart, title: 'Jantina by Umur' },
-        { chart: ahliChart.chart, title: 'Ahli UMNO Chart' },
-        { chart: ahliChart2.chart, title: 'Ahli UMNO by Umur' },
-        // { chart: dundmChart.chart, title: 'DUN DM Treemap' },
-        { chart: dundmChartGrouped.chart, title: 'DUN DM Grouped by Umur' }
-      ];
+  document.getElementById('exportPdf').addEventListener('click', async () => {
+    // Map chart objects to friendly titles
+    const charts = [
+      { chart: overviewChart.chart, title: 'Overview Chart' },
+      { chart: jantinaChart.chart, title: 'Jantina Chart' },
+      { chart: jantinaChart2.chart, title: 'Jantina by Umur' },
+      { chart: ahliChart.chart, title: 'Ahli UMNO Chart' },
+      { chart: ahliChart2.chart, title: 'Ahli UMNO by Umur' },
+      // { chart: dundmChart.chart, title: 'DUN DM Treemap' },
+      { chart: dundmChartGrouped.chart, title: 'DUN DM Grouped by Umur' }
+    ];
 
-      const images = [];
+    const images = [];
 
-      for (const { chart, title } of charts) {
-        if (!chart) continue; // skip if not rendered yet
-        try {
-          const { imgURI } = await chart.dataURI();
-          images.push({ id: chart.w.globals.chartID, image: imgURI, title }); // <-- include title
-        } catch (err) {
-          console.warn('Chart not ready for export:', chart.w.globals.chartID);
-        }
+    for (const { chart, title } of charts) {
+      if (!chart) continue; // skip if not rendered yet
+      try {
+        const { imgURI } = await chart.dataURI();
+        images.push({ id: chart.w.globals.chartID, image: imgURI, title }); // <-- include title
+      } catch (err) {
+        console.warn('Chart not ready for export:', chart.w.globals.chartID);
       }
+    }
 
-      if (!images.length) {
-        alert('No charts ready for export yet.');
-        return;
-      }
+    if (!images.length) {
+      alert('No charts ready for export yet.');
+      return;
+    }
 
-      fetch('/pengundi/analytics/pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ charts: images })
-      })
-        .then(res => res.blob())
-        .then(blob => window.open(URL.createObjectURL(blob)));
+    fetch('/pengundi/analytics/pdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      },
+      body: JSON.stringify({ charts: images })
+    })
+      .then(res => res.blob())
+      .then(blob => window.open(URL.createObjectURL(blob)));
+  });
+
+
+
+
+
+
+
+  const DashboardState = {
+    cube: [],
+    totals: {},
+    charts: {
+      bangsa: { chart: null },
+      umur: { chart: null },
+      jantina: { chart: null }
+    }
+  };
+
+
+  async function loadDashboard(payload) {
+
+    const res = await fetch('/analytics/pengundi', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+      },
+      body: JSON.stringify(payload)
     });
 
+    const data = await res.json();
+    console.log("rendering");
 
-
-
-
-
-    /* ===========================
-       PAYLOAD BUILDER
-    =========================== */
-
-    function buildPayload() {
-      const mode = modeSelect.value;
-      const payload = { mode };
-
-      year2Select.classList.toggle('d-none', mode !== 'compare');
-
-      if (mode === 'compare') {
-        payload.year1 = year1Select.value;
-        payload.year2 = year2Select.value;
-      } else {
-        payload.year = year1Select.value;
-      }
-
-      return payload;
-    }
-
-    /* ===========================
-       CHART FACTORIES
-    =========================== */
-    async function renderDonut(el, chartRef, labels, series, colors = [], title = '') {
-      const options = {
-        chart: {
-          type: 'donut',
-          width: '100%',
-          height: '100%'
-        },
-        title: {
-          text: title,
-          align: 'center',
-          margin: 10,
-          style: {
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#263238'
-          }
-        },
-        labels,
-        series,
-        colors,
-        legend: { position: 'bottom' },
-        tooltip: { y: { formatter: v => v + ' pengundi' } },
-        responsive: [
-          {
-            breakpoint: 768,
-            options: { chart: { width: '100%', height: 250 } }
-          }
-        ]
-      };
-
-      if (chartRef.chart) {
-        chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
-      } else {
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
-      }
-    }
-
-    async function renderPie(el, chartRef, labels, series, title = '') {
-      const options = {
-        chart: {
-          type: 'pie',
-          width: '100%',
-          height: 350
-        },
-        title: {
-          text: title,
-          align: 'center',
-          margin: 10,
-          style: {
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#263238'
-          }
-        },
-        labels,
-        series,
-        legend: {
-          position: 'bottom',
-          horizontalAlign: 'center',
-          offsetY: 0
-        },
-        tooltip: {
-          y: {
-            formatter: v => v + ' pengundi'
-          }
-        }
-      };
-
-      if (chartRef.chart) {
-        chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
-      } else {
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
-      }
-    }
-
-
-    async function renderStackedBar(
-      el,
-      chartRef,
-      categories,
-      series,
-      yTitle = '',
-      xTitle = '',
-      colors = [],
-      title = ''
-    ) {
-      const options = {
-        chart: { type: 'bar', stacked: true, height: 400 },
-        plotOptions: { bar: { columnWidth: '50%' } },
-        tooltip: { shared: true, intersect: false },
-        series,
-        colors,
-        xaxis: {
-          categories,
-          title: {
-            text: xTitle
-          }
-        },
-        yaxis: {
-          title: {
-            text: yTitle
-          }
-        },
-        legend: { position: 'bottom' },
-        title: {
-          text: title,  // ✅ chart title
-          align: 'center',                        // 'left' | 'center' | 'right'
-          margin: 10,
-          style: {
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#263238'
-          }
-        },
-      };
-
-      if (chartRef.chart) {
-        chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
-      } else {
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
-      }
-    }
-
-
-    async function renderTreemap(el, chartRef, series) {
-      const colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#ff7043'];
-      const options = {
-        chart: { type: 'treemap', height: 450, toolbar: { show: true } },
-        series,
-        legend: { show: false },
-        dataLabels: { enabled: true, style: { fontSize: '12px', colors: ['#fff'] }, offsetY: -4 },
-        plotOptions: { treemap: { distributed: true, enableShades: true, shadeIntensity: 0.5, reverseNegativeShade: true } },
-        tooltip: { y: { formatter: val => val + ' pengundi' }, x: { formatter: val => val } },
-        colors
-      };
-
-      if (chartRef.chart) {
-        chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
-      } else {
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
-      }
-    }
-
-
-
-
-
-
-
-    function fetchAnalytics({
-      year1,
-      year2 = null,
-      mode = 'single', // single | compare | trend
-      dun = null,
-      jantina = null,
-      status_umno = null
-    } = {}) {
-
-      return fetch('/analytics/pengundi', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({
-          year1,
-          year2,
-          mode,
-          dun,
-          jantina,
-          status_umno
-        })
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch analytics');
-          return res.json();
-        });
-    }
-
-    fetchAnalytics({
-      year1: 2024,
-      mode: 'single'
-    }).then(data => {
-      console.log(data);
-
-
-    });
-
-
-    const DashboardState = {
-      cube: [],
-      totals: {},
-      charts: {
-        bangsa: { chart: null },
-        umur: { chart: null },
-        jantina: { chart: null }
-      }
+    DashboardState.cube = data.cube;
+    DashboardState.totals = {
+      totalPengundi: data.total_pengundi,
+      totalUmno: data.total_umno,
+      totalFirstTime: data.total_first_time_voter
     };
 
-
-    async function loadDashboard(payload) {
-
-      const res = await fetch('/analytics/pengundi', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-      console.log("rendering");
-
-      DashboardState.cube = data.cube;
-      DashboardState.totals = {
-        totalPengundi: data.total_pengundi,
-        totalUmno: data.total_umno,
-        totalFirstTime: data.total_first_time_voter
-      };
-
-      renderAll();
-    }
+    renderAll();
+  }
 
 
-    function renderAll() {
-      renderKPIs(DashboardState.cube, DashboardState.totals);
-      renderBangsaChart(DashboardState.cube);
-      // renderUmurChart(DashboardState.cube);
-      // renderJantinaChart(DashboardState.cube);
-    }
+  function renderAll() {
+    renderKPIs(DashboardState.cube, DashboardState.totals);
+    renderBangsaChart(DashboardState.cube);
+    renderUmurChart(DashboardState.cube);
+    renderJantinaChart(DashboardState.cube);
+  }
 
 
 
-    function renderBangsaChart(cube) {
+  function renderBangsaChart(cube) {
 
-      const categories = ['Melayu', 'Cina', 'India', 'Lain-lain'];
+    const categories = ['Melayu', 'Cina', 'India', 'Lain-lain'];
 
-      const series = [
-        {
-          name: 'UMNO',
-          data: categories.map(b =>
-            cube
-              .filter(x => x.bangsa_group === b && x.status_umno === '1')
-              .reduce((s, x) => s + x.total, 0)
+    const series = [
+      {
+        name: 'UMNO',
+        data: categories.map(b =>
+          cube
+            .filter(x => x.bangsa_group === b && x.status_umno === '1')
+            .reduce((s, x) => s + x.total, 0)
+        )
+      },
+      {
+        name: 'Bukan UMNO',
+        data: categories.map(b =>
+          cube
+            .filter(x => x.bangsa_group === b && x.status_umno === '0')
+            .reduce((s, x) => s + x.total, 0)
+        )
+      }
+    ];
+
+    renderStackedBar(
+      document.querySelector('#bangsaChart'),
+      DashboardState.charts.bangsa,
+      categories,
+      series,
+      'Jumlah Pengundi',
+      'Bangsa',
+      [],
+      'Bangsa × Status UMNO'
+    );
+  }
+
+  function renderUmurChart(cube) {
+    const categories = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];
+
+    // All combinations of status_umno × status_baru
+    const statusCombinations = [
+      { umno: '1', baru: '1', label: 'UMNO - First Time' },
+      { umno: '1', baru: '0', label: 'UMNO - Existing' },
+      { umno: '0', baru: '1', label: 'Bukan UMNO - First Time' },
+      { umno: '0', baru: '0', label: 'Bukan UMNO - Existing' },
+    ];
+
+    const series = statusCombinations.map(combo => ({
+      name: combo.label,
+      data: categories.map(group =>
+        cube
+          .filter(x =>
+            x.umur_group === group &&
+            x.status_umno === combo.umno &&
+            x.status_baru === combo.baru
           )
-        },
-        {
-          name: 'Bukan UMNO',
-          data: categories.map(b =>
-            cube
-              .filter(x => x.bangsa_group === b && x.status_umno === '0')
-              .reduce((s, x) => s + x.total, 0)
-          )
-        }
-      ];
+          .reduce((sum, x) => sum + x.total, 0)
+      )
+    }));
 
-      renderStackedBar(
-        document.querySelector('#bangsaChart'),
-        DashboardState.charts.bangsa,
-        categories,
-        series,
-        'Jumlah Pengundi',
-        'Bangsa',
-        [],
-        'Bangsa × Status UMNO'
-      );
-    }
+    renderStackedBar(
+      document.querySelector('#umurChart'),
+      DashboardState.charts.umur,
+      categories,
+      series,
+      'Jumlah Pengundi', // Y-axis
+      'Umur',            // X-axis
+      [],                // optional colors
+      'Umur × Status UMNO × First Time Voter'
+    );
+  }
 
 
 
-    function renderKPIs(cube, totals) {
-      document.getElementById('totalPengundi').innerHTML =
-        totals.totalPengundi.toLocaleString();
-
-      document.getElementById('totalUmno').innerHTML =
-        totals.totalUmno.toLocaleString();
-
-      document.getElementById('totalFirstTime').innerHTML =
-        totals.totalFirstTime.toLocaleString();
-    }
 
 
-    function onFilterChange() {
-      loadDashboard({
-        year1: year1Select.value,
-        year2: year2Select.value,
-        mode: modeSelect.value,
-        dun: dunSelect.value
-      });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load dashboard on first visit
-      onFilterChange();
+  function renderJantinaChart(cube) {
+    const categories = ['Lelaki', 'Perempuan'];
 
-      // Optional: attach event listeners
-      modeSelect.addEventListener('change', onFilterChange);
-      year1Select.addEventListener('change', onFilterChange);
-      year2Select.addEventListener('change', onFilterChange);
-      dunSelect.addEventListener('change', onFilterChange);
+    const series = [
+      {
+        name: 'UMNO',
+        data: categories.map(group =>
+          cube
+            .filter(x => x.jantina2 === group && x.status_umno === '1')
+            .reduce((sum, x) => sum + x.total, 0)
+        )
+      },
+      {
+        name: 'Bukan UMNO',
+        data: categories.map(group =>
+          cube
+            .filter(x => x.jantina2 === group && x.status_umno === '0')
+            .reduce((sum, x) => sum + x.total, 0)
+        )
+      }
+    ];
+
+    renderStackedBar(
+      document.querySelector('#jantinaChart'),
+      DashboardState.charts.jantina, // chart ref
+      categories,
+      series,
+      'Jumlah Pengundi', // Y-axis
+      'Jantina',            // X-axis
+      [],                // Colors optional
+      'Jantina × Status UMNO' // Chart title
+    );
+  }
+
+
+
+
+
+
+
+
+
+
+  function renderKPIs(cube, totals) {
+    document.getElementById('totalPengundi').innerHTML =
+      totals.totalPengundi.toLocaleString();
+
+    document.getElementById('totalUmno').innerHTML =
+      totals.totalUmno.toLocaleString();
+
+    document.getElementById('totalFirstTime').innerHTML =
+      totals.totalFirstTime.toLocaleString();
+  }
+
+
+  function onFilterChange() {
+    loadDashboard({
+      year1: year1Select.value,
+      year2: year2Select.value,
+      mode: modeSelect.value,
+      dun: dunSelect.value
     });
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    // Load dashboard on first visit
+    onFilterChange();
+
+    // Optional: attach event listeners
+    modeSelect.addEventListener('change', onFilterChange);
+    year1Select.addEventListener('change', onFilterChange);
+    year2Select.addEventListener('change', onFilterChange);
+    dunSelect.addEventListener('change', onFilterChange);
+  });
 
 
-  </script>
+</script>
 
 
 

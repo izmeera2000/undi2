@@ -35,7 +35,8 @@ class PengundiAnalyticsController extends Controller
             'dm_id',
             'tahun_undian',
             'jantina',
-            'status_umno'
+            'status_umno',
+            'status_baru'
         ]);
 
         $baseQuery = DB::table('pengundi');
@@ -76,9 +77,10 @@ class PengundiAnalyticsController extends Controller
             END AS umur_group,
 
             CASE
-                WHEN umur BETWEEN 18 AND 20 THEN 1
-                ELSE 0
-            END AS first_time_voter,
+                    WHEN jantina = 'L' THEN 'Lelaki'
+                    WHEN jantina = 'P' THEN 'Perempuan'
+                    ELSE jantina
+            END AS jantina2, 
 
             CASE
                 WHEN LOWER(bangsa) LIKE '%melayu%' THEN 'Melayu'
@@ -90,13 +92,14 @@ class PengundiAnalyticsController extends Controller
 
             jantina,
             status_umno,
+            status_baru,
             COUNT(*) AS total,
             tarikh_undian
 
         ")
             ->groupBy([
                 'umur_group',
-                'first_time_voter',
+                'status_baru',
                 'bangsa_group',
                 'tarikh_undian',
                 'jantina',

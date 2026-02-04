@@ -438,3 +438,181 @@
 
 
 
+    /* ===========================
+       CHART FACTORIES
+    =========================== */
+    async function renderDonut(el, chartRef, labels, series, colors = [], title = '') {
+      const options = {
+        chart: {
+          type: 'donut',
+          width: '100%',
+          height: '100%'
+        },
+        title: {
+          text: title,
+          align: 'center',
+          margin: 10,
+          style: {
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: '#263238'
+          }
+        },
+        labels,
+        series,
+        colors,
+        legend: { position: 'bottom' },
+        tooltip: { y: { formatter: v => v + ' pengundi' } },
+        responsive: [
+          {
+            breakpoint: 768,
+            options: { chart: { width: '100%', height: 250 } }
+          }
+        ]
+      };
+
+      if (chartRef.chart) {
+        chartRef.chart.updateOptions(options);
+        return chartRef.chart.render();
+      } else {
+        chartRef.chart = new ApexCharts(el, options);
+        await chartRef.chart.render();
+      }
+    }
+
+    async function renderPie(el, chartRef, labels, series, title = '') {
+      const options = {
+        chart: {
+          type: 'pie',
+          width: '100%',
+          height: 350
+        },
+        title: {
+          text: title,
+          align: 'center',
+          margin: 10,
+          style: {
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: '#263238'
+          }
+        },
+        labels,
+        series,
+        legend: {
+          position: 'bottom',
+          horizontalAlign: 'center',
+          offsetY: 0
+        },
+        tooltip: {
+          y: {
+            formatter: v => v + ' pengundi'
+          }
+        }
+      };
+
+      if (chartRef.chart) {
+        chartRef.chart.updateOptions(options);
+        return chartRef.chart.render();
+      } else {
+        chartRef.chart = new ApexCharts(el, options);
+        await chartRef.chart.render();
+      }
+    }
+
+
+    async function renderStackedBar(
+      el,
+      chartRef,
+      categories,
+      series,
+      yTitle = '',
+      xTitle = '',
+      colors = [],
+      title = ''
+    ) {
+      const options = {
+        chart: { type: 'bar', stacked: true, height: 400 },
+        plotOptions: { bar: { columnWidth: '50%' } },
+        tooltip: { shared: true, intersect: false },
+        series,
+        colors,
+        xaxis: {
+          categories,
+          title: {
+            text: xTitle
+          }
+        },
+        yaxis: {
+          title: {
+            text: yTitle
+          }
+        },
+        legend: { position: 'bottom' },
+        title: {
+          text: title,  // ✅ chart title
+          align: 'center',                        // 'left' | 'center' | 'right'
+          margin: 10,
+          style: {
+            fontSize: '18px',
+            fontWeight: 'bold',
+            color: '#263238'
+          }
+        },
+      };
+
+      if (chartRef.chart) {
+        chartRef.chart.updateOptions(options);
+        return chartRef.chart.render();
+      } else {
+        chartRef.chart = new ApexCharts(el, options);
+        await chartRef.chart.render();
+      }
+    }
+
+
+    async function renderTreemap(el, chartRef, series) {
+      const colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#ff7043'];
+      const options = {
+        chart: { type: 'treemap', height: 450, toolbar: { show: true } },
+        series,
+        legend: { show: false },
+        dataLabels: { enabled: true, style: { fontSize: '12px', colors: ['#fff'] }, offsetY: -4 },
+        plotOptions: { treemap: { distributed: true, enableShades: true, shadeIntensity: 0.5, reverseNegativeShade: true } },
+        tooltip: { y: { formatter: val => val + ' pengundi' }, x: { formatter: val => val } },
+        colors
+      };
+
+      if (chartRef.chart) {
+        chartRef.chart.updateOptions(options);
+        return chartRef.chart.render();
+      } else {
+        chartRef.chart = new ApexCharts(el, options);
+        await chartRef.chart.render();
+      }
+    }
+
+
+
+    /* ===========================
+       PAYLOAD BUILDER
+    =========================== */
+
+    function buildPayload() {
+      const mode = modeSelect.value;
+      const payload = { mode };
+
+      year2Select.classList.toggle('d-none', mode !== 'compare');
+
+      if (mode === 'compare') {
+        payload.year1 = year1Select.value;
+        payload.year2 = year2Select.value;
+      } else {
+        payload.year = year1Select.value;
+      }
+
+      return payload;
+    }
+
+
+
