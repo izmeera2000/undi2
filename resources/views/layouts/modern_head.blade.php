@@ -33,4 +33,5 @@
 
   <!-- Main CSS -->
   <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
+      {!! ToastMagic::styles() !!}
 </head>

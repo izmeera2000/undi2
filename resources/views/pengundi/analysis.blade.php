@@ -196,15 +196,14 @@
 
 
 
-    const modeSelect = document.getElementById('modeSelect');
-    const year1Select = document.getElementById('year1');
-    const year2Select = document.getElementById('year2');
-    const dunSelect = document.getElementById('dunSelect');
-
 
 
     document.getElementById('exportPdf').addEventListener('click', async () => {
-      console.log('Exporting PDF');
+      // console.log('Exporting PDF');
+
+      const toast = new ToastMagic();
+      toast.info("Exporting", "Exporting to PDF");
+
 
       if (!DashboardState.charts) {
         alert('Charts not ready');
@@ -218,13 +217,13 @@
 
       for (const { chart, title } of Object.values(DashboardState.charts)) {
         if (!chart) continue;
-        console.log(chart.core.w.config);
+        // console.log(chart.core.w.config);
 
         const originalHeight = chart.core.w.config.chart.height;
         const originalWidth = chart.core.w.config.chart.width;
         const originalAnimated = chart.core.w.config.chart.animations.enabled;
         const totalCategories = chart.w.config.xaxis.categories.length;
-        console.log(originalAnimated);
+        // console.log(originalAnimated);
 
         try {
 
@@ -282,7 +281,7 @@
         alert('No charts ready for export yet.');
         return;
       }
-      console.log("start ex  ");
+      // console.log("start ex  ");
 
       // 6️⃣ Send to backend
       fetch('/pengundi/analytics/pdf', {
@@ -297,7 +296,7 @@
         .then(blob => {
           window.open(URL.createObjectURL(blob));
         })
-        .then(() => console.log("end ex"));
+        // .then(() => console.log("end ex"));
 
 
     });
@@ -319,7 +318,7 @@
 
     async function loadDashboard(payload) {
 
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
 
       const res = await fetch('/analytics/pengundi', {
@@ -349,7 +348,7 @@
 
 
     function renderAll() {
-      
+
       renderKPIs(DashboardState.cube, DashboardState.totals);
       renderBangsaChart(DashboardState.cube);
       renderUmurChart(DashboardState.cube);
@@ -529,27 +528,34 @@
         totals.totalFirstTime.toLocaleString();
     }
 
+document.addEventListener('DOMContentLoaded', () => {
+  // Cache elements after DOM is ready
 
-    function onFilterChange() {
-      loadDashboard({
-        year1: year1Select.value,
-        year2: year2Select.value,
-        mode: modeSelect.value,
-        // dun: dunSelect.value
-      });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load dashboard on first visit
-      onFilterChange();
 
-      // Optional: attach event listeners
-      modeSelect.addEventListener('change', onFilterChange);
-      year1Select.addEventListener('change', onFilterChange);
-      year2Select.addEventListener('change', onFilterChange);
-      // dunSelect.addEventListener('change', onFilterChange);
-    });
-
+    const modeSelect = document.getElementById('modeSelect');
+    const year1Select = document.getElementById('year1');
+    const year2Select = document.getElementById('year2');
+ 
   
+
+  function onFilterChange() {
+    loadDashboard({
+      year1: year1Select.value,
+      year2: year2Select.value,
+      mode: modeSelect.value,
+    });
+  }
+
+  // Initial load
+  onFilterChange();
+
+  // Event listeners
+  modeSelect.addEventListener('change', onFilterChange);
+  year1Select.addEventListener('change', onFilterChange);
+  year2Select.addEventListener('change', onFilterChange);
+});
+
+
   </script>
 
 

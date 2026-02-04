@@ -26,8 +26,6 @@ class PengundiAnalyticsController extends Controller
         // Pass to the view
         return view('pengundi.analysis', compact('duns', 'years'));
     }
-
-
     public function index(Request $request)
     {
         $filters = $request->only([
@@ -35,16 +33,16 @@ class PengundiAnalyticsController extends Controller
             'tahun_undian',
             'jantina',
             'status_umno',
-            'status_baru'
+            'status_baru',
         ]);
 
-        $baseQuery = DB::table('pengundi')
+        $query = DB::table('pengundi')
             ->join('dm', 'pengundi.dm_id', '=', 'dm.id')
             ->join('dun', 'dm.dun_id', '=', 'dun.id')
             ->selectRaw("
             dun.namadun,
             dm.namadm,
-            
+
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -58,11 +56,12 @@ class PengundiAnalyticsController extends Controller
                 WHEN jantina = 'L' THEN 'Lelaki'
                 WHEN jantina = 'P' THEN 'Perempuan'
                 ELSE jantina
-            END AS jantina2, 
+            END AS jantina2,
 
             CASE
                 WHEN LOWER(bangsa) LIKE '%melayu%' THEN 'Melayu'
-                WHEN LOWER(bangsa) LIKE '%cina%' OR LOWER(bangsa) LIKE '%chinese%' THEN 'Cina'
+                WHEN LOWER(bangsa) LIKE '%cina%' 
+                  OR LOWER(bangsa) LIKE '%chinese%' THEN 'Cina'
                 WHEN LOWER(bangsa) LIKE '%india%' THEN 'India'
                 ELSE 'Lain-lain'
             END AS bangsa_group,
@@ -70,43 +69,54 @@ class PengundiAnalyticsController extends Controller
             jantina,
             status_umno,
             status_baru,
-            COUNT(*) AS total,
-            tarikh_undian
+            tarikh_undian,
+            COUNT(*) AS total
         ");
 
-        // Apply filters
-        foreach ($filters as $key => $value) {
-            if (!empty($value)) {
-                $baseQuery->where("pengundi.$key", $value); // make sure to prefix columns
+        // ✅ Apply filters safely
+        foreach ($filters as $column => $value) {
+            if ($value !== null && $value !== '') {
+                $query->where("pengundi.$column", $value);
             }
         }
 
-        // Group by all selected fields
-        $analytics = (clone $baseQuery)
+        // ✅ Analytics data
+        $analytics = $query
             ->groupBy([
                 'dun.namadun',
                 'dm.namadm',
                 'umur_group',
-                'status_baru',
                 'bangsa_group',
-                'tarikh_undian',
                 'jantina',
-                'status_umno'
+                'status_umno',
+                'status_baru',
+                'tarikh_undian',
             ])
             ->get();
 
-        // Totals for dashboard cards
-        $totalPengundi = DB::table('pengundi')->count();
-        $totalUmno = DB::table('pengundi')->where('status_umno', '1')->count();
-        $totalFirstTimeVoter = DB::table('pengundi')->where('status_baru', '1')->count();
+        // ✅ Reuse filters for totals
+        $totalsQuery = DB::table('pengundi');
+
+        foreach ($filters as $column => $value) {
+            if ($value !== null && $value !== '') {
+                $totalsQuery->where($column, $value);
+            }
+        }
+
+        $totals = $totalsQuery->selectRaw("
+        COUNT(*) AS total_pengundi,
+        SUM(status_umno = 1) AS total_umno,
+        SUM(status_baru = 1) AS total_first_time_voter
+    ")->first();
 
         return response()->json([
             'cube' => $analytics,
-            'total_pengundi' => $totalPengundi,
-            'total_umno' => $totalUmno,
-            'total_first_time_voter' => $totalFirstTimeVoter,
+            'total_pengundi' => (int) $totals->total_pengundi,
+            'total_umno' => (int) $totals->total_umno,
+            'total_first_time_voter' => (int) $totals->total_first_time_voter,
         ]);
     }
+
 
     public function overview(Request $request)
     {

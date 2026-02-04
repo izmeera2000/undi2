@@ -16,3 +16,4 @@
 
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
+{!! ToastMagic::scripts() !!}
