@@ -36132,3 +36132,28 @@ input:checked+.contact-priority-label.urgent {
     display: block;
   }
 }
+
+.apex-scroll-tooltip {
+  max-height: 40vh;      /* 👈 critical */
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+
+.apex-scroll-tooltip::-webkit-scrollbar {
+  width: 4px;
+}
+
+
+.tooltip-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.tooltip-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+}

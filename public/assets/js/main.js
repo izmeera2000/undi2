@@ -596,28 +596,13 @@ async function renderStackedBar(
             margin: 10,
             style: { fontSize: "18px", fontWeight: "bold", color: "#263238" },
         },
+
         responsive: [
             {
                 breakpoint: 768, // mobile screens
                 options: {
                     tooltip: {
-                        shared: true,
-                        fixed: {
-                            enabled: true,
-                            position: "top",
-                            offsetY: 70,
-                        },
-                        custom: ({ series, dataPointIndex, w }) => {
-                            return series
-                                .map((s, i) => ({
-                                    name: w.globals.seriesNames[i],
-                                    value: s[dataPointIndex],
-                                }))
-                                .sort((a, b) => b.value - a.value)
-                                .slice(0, 4)
-                                .map((i) => `${i.name}: ${i.value}`)
-                                .join("<br>");
-                        },
+                        enabledOnSeries: [0, 1, 2, 3],
                     },
                     plotOptions: {
                         bar: { horizontal: true, columnWidth: "60%" },
@@ -627,6 +612,44 @@ async function renderStackedBar(
                 },
             },
         ],
+
+        events: {
+            dataPointSelection: function (event, chartContext, config) {
+                if (window.innerWidth < 768) {
+                    const index = config.dataPointIndex;
+                    const w = config.w;
+
+                    const items = config.series
+                        .map((s, i) => ({
+                            name: w.globals.seriesNames[i],
+                            value: s[index],
+                            color: w.globals.colors[i],
+                        }))
+                        .filter((item) => item.value !== null)
+                        .sort((a, b) => b.value - a.value)
+                        .slice(0, 4);
+
+                    const html = items
+                        .map(
+                            (i) => `
+          <div class="tooltip-row">
+            <span class="tooltip-color" style="background:${i.color}"></span>
+            <span>${i.name}</span>
+            <strong class="ms-auto">${i.value}</strong>
+          </div>
+        `,
+                        )
+                        .join("");
+
+                    document.getElementById("tooltipModalBody").innerHTML =
+                        html;
+                    const tooltipModal = new bootstrap.Modal(
+                        document.getElementById("tooltipModal"),
+                    );
+                    tooltipModal.show();
+                }
+            },
+        },
     };
 
     if (chartRef.chart) {

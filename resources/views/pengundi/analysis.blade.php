@@ -119,7 +119,7 @@
 
   <div class="row   mb-4">
     <!-- First Column: Jantina Chart 1 (7 units) -->
-    <div class="col">
+    <div class="col-md-6 col-12">
       <div class="card h-100">
         <div class="card-header">
           <h5 class="card-title mb-0">Umur</h5>
@@ -131,7 +131,7 @@
     </div>
 
     <!-- Second Column: Jantina Chart 2 (5 units) -->
-    <div class="col">
+    <div class="col-md-6 col-12">
       <div class="card h-100">
         <div class="card-header">
           <h5 class="card-title mb-0">Jantina</h5>
@@ -208,6 +208,21 @@
       </div>
     </div>
   </div>
+
+
+<!-- Bootstrap Tooltip Modal -->
+<div class="modal fade" id="tooltipModal" tabindex="-1" aria-labelledby="tooltipModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tooltipModalLabel">Data Point Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="tooltipModalBody"></div>
+    </div>
+  </div>
+</div>
+
 
 
 @endsection
