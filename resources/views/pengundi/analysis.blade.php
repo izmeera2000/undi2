@@ -49,7 +49,7 @@
     <div class="card widget-stat">
       <div class="widget-stat-header">
         <div>
-          <div class="widget-stat-value">248,532</div>
+          <div class="widget-stat-value" id="totalpengundi">248,532</div>
           <div class="widget-stat-label">Jumlah Pengundi</div>
         </div>
         <div class="widget-stat-icon primary">
@@ -67,7 +67,7 @@
     <div class="card widget-stat">
       <div class="widget-stat-header">
         <div>
-          <div class="widget-stat-value">32.4%</div>
+          <div class="widget-stat-value" id="totalfirstTime">32.4%</div>
           <div class="widget-stat-label">First Time Voter</div>
         </div>
         <div class="widget-stat-icon warning">
@@ -83,7 +83,7 @@
     <div class="card widget-stat">
       <div class="widget-stat-header">
         <div>
-          <div class="widget-stat-value">4m 32s</div>
+          <div class="widget-stat-value" id="totalUMNO">4m 32s</div>
           <div class="widget-stat-label">Ahli UMNO</div>
         </div>
         <div class="widget-stat-icon info">
@@ -104,7 +104,7 @@
     <!-- Traffic Overview Chart -->
        <div class="card">
         <div class="card-header">
-          <h5 class="card-title">Overview</h5>
+          <h5 class="card-title">Bangsa</h5>
 
         </div>
         <div class="card-body">
@@ -210,6 +210,19 @@
       </div>
       <div class="card-body">
         <div class="chart-container" id="dundmChartGrouped"></div>
+      </div>
+    </div>
+  </div>
+
+
+    <div class="mb-4">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title">First Time Voters also maybe  umno/ahli umno , bukan 1st time </h5>
+ 
+      </div>
+      <div class="card-body">
+        <div class="chart-container" id="firsttimeChart"></div>
       </div>
     </div>
   </div>
@@ -690,6 +703,37 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
 
 
 
+            /* ===========================
+         First time
+      =========================== */
+
+      const firsttimeChart = {};
+
+      async function loadFirsttimeByUmur(payload) {
+        const data = await postJSON('/analytics/chart/firsttime', payload);
+
+        const umurGroups = uniq(data.map(d => d.umur_group));
+        const statusList = uniq(data.map(d => d.status_baru2));
+        const index = indexBy(data, ['umur_group', 'status_baru2']);
+
+        const series = statusList.map(s => ({
+          name: s,
+          data: umurGroups.map(u => index[`${u}|${s}`]?.total ?? 0)
+        }));
+
+
+        await renderStackedBar(
+          document.querySelector('#firsttimeChart'),
+          firsttimeChart,
+          umurGroups,
+          series,
+          'Jumlah Pengundi'
+        );
+      }
+
+
+
+
       document.getElementById('loadDunChart').addEventListener('click', () => {
         const selectedDun = document.getElementById('dunSelect').value;
 
@@ -718,7 +762,8 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
           loadAhli(payload),
           loadAhliByUmur(payload),
           // loadDunDm(payload),
-          loadDundmGrouped(payload)
+          loadDundmGrouped(payload),
+          loadFirsttimeByUmur(payload)
         ]);
 
         console.log('All charts fully rendered ✅');

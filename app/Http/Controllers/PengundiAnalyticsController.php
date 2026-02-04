@@ -17,16 +17,93 @@ class PengundiAnalyticsController extends Controller
     public function dropdowns()
     {
         // Get all DUNs
-        $duns = Dun::orderBy('namadun')->get();  
+        $duns = Dun::orderBy('namadun')->get();
 
-            $years = Pengundi::selectRaw('tarikh_undian as year')
-        ->distinct()
-        ->orderBy('year', 'desc')
-        ->pluck('year');  
+        $years = Pengundi::selectRaw('tarikh_undian as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
         // Pass to the view
-        return view('pengundi.analysis', compact('duns','years'));
+        return view('pengundi.analysis', compact('duns', 'years'));
     }
- 
+
+
+
+    public function index(Request $request)
+    {
+        $filters = $request->only([
+            'dm_id',
+            'tahun_undian',
+            'jantina',
+            'status_umno'
+        ]);
+
+        $query = DB::table('pengundi');
+
+        foreach ($filters as $key => $value) {
+            if (!empty($value)) {
+                $query->where($key, $value);
+            }
+        }
+        $totalQuery = clone $query;
+
+        $analytics = $query
+            ->selectRaw("
+            /* ======================
+               UMUR GROUP
+            ====================== */
+            CASE
+                WHEN umur BETWEEN 18 AND 20 THEN '18-20'
+                WHEN umur BETWEEN 21 AND 29 THEN '21-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END AS umur_group,
+
+            /* ======================
+               FIRST TIME VOTER
+            ====================== */
+            CASE
+                WHEN umur BETWEEN 18 AND 20 THEN 1
+                ELSE 0
+            END AS first_time_voter,
+
+            /* ======================
+               BANGSA GROUP
+            ====================== */
+            CASE
+                WHEN LOWER(bangsa) LIKE '%melayu%' THEN 'Melayu'
+                WHEN LOWER(bangsa) LIKE '%cina%' 
+                  OR LOWER(bangsa) LIKE '%chinese%' THEN 'Cina'
+                WHEN LOWER(bangsa) LIKE '%india%' THEN 'India'
+                ELSE 'Lain-lain'
+            END AS bangsa_group,
+
+            jantina,
+            status_umno,
+
+            COUNT(*) as total
+        ")
+            ->groupBy([
+                'umur_group',
+                'first_time_voter',
+                'bangsa_group',
+                'jantina',
+                'status_umno'
+            ])
+            ->get();
+
+        $grandTotal = $totalQuery->count();
+
+        return response()->json([
+            'cube' => $analytics,
+            'grand_total' => $grandTotal
+
+        ]);
+    }
+
+
 
 
     public function overview(Request $request)
@@ -454,5 +531,73 @@ class PengundiAnalyticsController extends Controller
         return response()->json($data);
     }
 
+
+
+
+
+
+
+    public function overviewByFirstTime(Request $request)
+    {
+        $query = DB::table('pengundi')
+
+            ->selectRaw("
+              CASE
+                WHEN status_baru = 1 THEN 'First Time'
+                ELSE 'Bukan First Time'
+            END AS status_baru2,
+
+                        CASE
+                WHEN umur BETWEEN 18 AND 20 THEN '18-20'
+                WHEN umur BETWEEN 21 AND 29 THEN '21-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END AS umur_group,
+
+
+            COUNT(*) AS total
+        ");
+
+        /* =======================
+            FILTERS
+        ========================*/
+
+        // NORMAL MODE
+        if ($request->mode !== 'compare' && $request->year) {
+            $query->where('pengundi.tarikh_undian', $request->year);
+        }
+
+        // COMPARE MODE
+        if ($request->mode === 'compare') {
+            $query->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        }
+
+        if ($request->year) {
+            $query->where('tarikh_undian', $request->year);
+        }
+
+
+
+        $data = $query
+            ->groupBy('umur_group', 'status_baru2')
+            ->orderByRaw("
+            CASE 
+                WHEN umur_group = '18-20' THEN 1
+                WHEN umur_group = '21-29' THEN 2
+                WHEN umur_group = '30-39' THEN 3
+                WHEN umur_group = '40-49' THEN 4
+                WHEN umur_group = '50-59' THEN 5
+                ELSE 6
+            END
+        ")
+            ->get();
+
+        return response()->json($data);
+    }
 
 }
