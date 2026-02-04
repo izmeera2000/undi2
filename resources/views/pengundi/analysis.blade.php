@@ -143,23 +143,7 @@
     </div>
   </div>
 
-  <div class="row  mb-4">
-    <!-- First Column: Ahli Umno Bar Chart (7 units) -->
-    <div class="col-md-7">
-      <div class="card h-100">
-        <div class="card-header">
-          <h5 class="card-title mb-0">
-            UmnoXUmur
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="chart-container" id="ahliChart2"></div>
-        </div>
-      </div>
-    </div>
 
-
-  </div>
 
 
 
@@ -179,23 +163,12 @@
         </div>
       </div>
       <div class="card-body">
-        <div class="chart-container" id="dunChart"></div>
+        <div class="chart-container mx-auto" id="dunChart"></div>
       </div>
     </div>
   </div>
 
 
-  <div class="mb-4">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title">First Time Voters Umur Bangsa First time</h5>
-
-      </div>
-      <div class="card-body">
-        <div class="chart-container" id="firsttimeChart"></div>
-      </div>
-    </div>
-  </div>
 
 
   <!-- Bootstrap Tooltip Modal -->
@@ -232,26 +205,48 @@
 
 
     document.getElementById('exportPdf').addEventListener('click', async () => {
-      // Map chart objects to friendly titles
-      const charts = [
-        { chart: overviewChart.chart, title: 'Overview Chart' },
-        { chart: jantinaChart.chart, title: 'Jantina Chart' },
-        { chart: jantinaChart2.chart, title: 'Jantina by Umur' },
-        { chart: ahliChart.chart, title: 'Ahli UMNO Chart' },
-        { chart: ahliChart2.chart, title: 'Ahli UMNO by Umur' },
-        // { chart: dundmChart.chart, title: 'DUN DM Treemap' },
-        { chart: dundmChartGrouped.chart, title: 'DUN DM Grouped by Umur' }
-      ];
+      console.log('Exporting PDF');
+
+      if (!DashboardState.charts) {
+        alert('Charts not ready');
+        return;
+      }
+
+
+      await new Promise(r => setTimeout(r, 300));
 
       const images = [];
 
-      for (const { chart, title } of charts) {
-        if (!chart) continue; // skip if not rendered yet
+      for (const { chart, title } of Object.values(DashboardState.charts)) {
+        if (!chart) continue;
+        console.log(chart.core.w.config.chart.height);
+
+        const originalHeight = chart.core.w.config.chart.height;
+
         try {
-          const { imgURI } = await chart.dataURI();
-          images.push({ id: chart.w.globals.chartID, image: imgURI, title }); // <-- include title
+          // 2️⃣ Temporarily resize for PDF
+await chart.updateOptions({
+  chart: {
+    background: '#fff', // forces white background
+    animations: { enabled: false },
+  }
+});
+
+
+          // 3️⃣ Wait a moment for ApexCharts to render
+          await new Promise(r => setTimeout(r, 200));
+
+          // 4️⃣ Capture image
+          const { imgURI } = await chart.dataURI({ scale: 2 });
+          images.push({
+            id: chart.w.globals.chartID,
+            image: imgURI,
+            title,
+          });
+
+
         } catch (err) {
-          console.warn('Chart not ready for export:', chart.w.globals.chartID);
+          console.warn('Chart not ready:', chart?.w?.globals?.chartID, err);
         }
       }
 
@@ -260,6 +255,7 @@
         return;
       }
 
+      // 6️⃣ Send to backend
       fetch('/pengundi/analytics/pdf', {
         method: 'POST',
         headers: {
@@ -271,10 +267,6 @@
         .then(res => res.blob())
         .then(blob => window.open(URL.createObjectURL(blob)));
     });
-
-
-
-
 
 
 
@@ -448,61 +440,38 @@
 
 
 
-
     function renderDmUmurChart(cube) {
-      // Get all unique DMs
-      const categories = [...new Set(cube.map(x => x.namadm))]; // X-axis = DM names
-      const umurGroups = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+']; // Stacks = age groups
+      // X-axis: all unique DMs
+      const categories = [...new Set(cube.map(x => x.namadm))];
 
-      // Series = UMNO / Bukan UMNO for each age group
-      const series = umurGroups.flatMap(umur => [
-        {
-          name: `UMNO - ${umur}`,
-          data: categories.map(dm =>
-            cube
-              .filter(x =>
-                x.namadm === dm &&
-                x.umur_group === umur &&
-                x.status_umno === '1'
-              )
-              .reduce((sum, x) => sum + x.total, 0)
-          )
-        },
-        {
-          name: `Bukan UMNO - ${umur}`,
-          data: categories.map(dm =>
-            cube
-              .filter(x =>
-                x.namadm === dm &&
-                x.umur_group === umur &&
-                x.status_umno === '0'
-              )
-              .reduce((sum, x) => sum + x.total, 0)
-          )
-        }
-      ]);
+      // Stacks: umur groups
+      const umurGroups = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];
 
-      // Optional: Build dynamic subtitle showing DUN name for each DM
-      const dmToDun = {};
-      cube.forEach(x => {
-        if (!dmToDun[x.namadm]) dmToDun[x.namadm] = x.namadun;
-      });
-      const subtitle = categories.map(dm => `${dmToDun[dm]} - ${dm}`).join(', ');
+      // One series per umur group
+      const series = umurGroups.map(umur => ({
+        name: umur,
+        data: categories.map(dm =>
+          cube
+            .filter(x =>
+              x.namadm === dm &&
+              x.umur_group === umur
+            )
+            .reduce((sum, x) => sum + x.total, 0)
+        )
+      }));
 
       renderStackedBar(
         document.querySelector('#dunChart'),
         DashboardState.charts.dun,
         categories,
         series,
-        'Jumlah Pengundi',           // Y-axis
-        'DM',                        // X-axis
-        [],                           // optional colors
-        `DM × Umur × Status UMNO  )`, // Chart title with DUNs
-        true
+        'Jumlah Pengundi',   // Y-axis
+        'DM',                // X-axis
+        [],
+        'DM x Umur',         // Chart title
+        true                 // horizontal
       );
     }
-
-
 
 
 

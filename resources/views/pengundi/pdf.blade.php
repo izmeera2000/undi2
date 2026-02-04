@@ -83,6 +83,27 @@
             padding: 0 0.5rem;
             box-sizing: border-box;
         }
+        .chart-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Extra safety for images */
+.chart-card img {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    display: block;
+    max-width: 100%;
+     max-height: 1000px;
+    object-fit: contain;
+}
+
+/* Force new page when card is too tall */
+.chart-card {
+    page-break-before: auto;
+}
+ 
+
     </style>
 
 </head>
@@ -94,19 +115,13 @@
     </header>
     <div class="container my-4">
         @foreach($charts as $chart)
-            <div class="container my-4">
-
+ 
                 <div class="chart-card">
-                    @if(!empty($chart['title']))
-                        <div class="chart-title">{{ $chart['title'] }}</div>
-                    @else
-                        <div class="chart-title">{{ $chart['id'] }}</div>
-                    @endif
+    
 
                     <img src="{{ $chart['image'] }}" class="img-fluid">
                 </div>
-            </div>
-
+ 
         @endforeach
     </div>
 

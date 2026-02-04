@@ -36157,3 +36157,7 @@ input:checked+.contact-priority-label.urgent {
   display: inline-block;
   margin-right: 8px;
 }
+ .apexcharts-canvas {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

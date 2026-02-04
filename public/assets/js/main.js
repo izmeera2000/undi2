@@ -565,7 +565,6 @@ async function renderPie(el, chartRef, labels, series, title = "") {
     }
 }
 
-
 async function renderStackedBar(
     el,
     chartRef,
@@ -575,14 +574,15 @@ async function renderStackedBar(
     xTitle = "",
     colors = [],
     title = "",
-    isHorizontal = false ,
-
+    isHorizontal = false,
 ) {
     const options = {
         chart: {
             type: "bar",
             stacked: true,
-            height: isHorizontal  ? 600 : 400,
+            height: isHorizontal ? 800 : 400,
+            width: isHorizontal ? 800 : undefined,
+
             events: {
                 dataPointSelection: function (event, chartContext, config) {
                     if (window.innerWidth < 768) {
@@ -640,21 +640,35 @@ async function renderStackedBar(
             },
         },
 
-    plotOptions: {
-      bar: { columnWidth: "50%", horizontal: isHorizontal }, // ✅ toggle horizontal
-    },
+        plotOptions: {
+            bar: {
+                horizontal: isHorizontal,
+            },
+        },
 
         tooltip: {
             shared: true,
             intersect: false,
             offsetY: 60, // adjust this to your header height in px
+            followCursor: false,
         },
 
         series,
         colors,
 
-        xaxis: { categories, title: { text: xTitle } },
-        yaxis: { title: { text: yTitle } },
+       xaxis: {
+  categories,
+  title: {
+    text: isHorizontal ? yTitle : xTitle,
+  },
+},
+yaxis: {
+  title: {
+    text: isHorizontal ? xTitle : yTitle,
+  },
+},
+
+
         legend: { position: "bottom" },
 
         title: {
@@ -667,18 +681,19 @@ async function renderStackedBar(
         responsive: [
             {
                 breakpoint: 768,
+
                 options: {
-                       xaxis: {
-                title: { align: 'left' },
-                labels: { align: 'left' }
-            },
-            yaxis: {
-                title: { align: 'left' }
-            },
+                    xaxis: {
+                        title: { align: "left" },
+                        labels: { align: "left" },
+                    },
+                    yaxis: {
+                        title: { align: "left" },
+                    },
                     plotOptions: {
                         bar: { horizontal: true, columnWidth: "60%" },
                     },
-                    chart: { height: isHorizontal  ? 800 : 500 },
+                    chart: { height: isHorizontal ? 800 : 500 },
                     legend: { position: "bottom" },
                 },
             },
@@ -756,4 +771,34 @@ function buildPayload() {
     }
 
     return payload;
+}
+
+const DUN_COLORS = {
+    TENDONG: "#1E88E5",
+    PENGKALAN_CHEPA: "#43A047",
+};
+
+function shadeColor(color, percent) {
+    if (!color || typeof color !== "string" || !color.startsWith("#")) {
+        color = "#757575"; // fallback gray
+    }
+
+    let f = parseInt(color.slice(1), 16),
+        t = percent < 0 ? 0 : 255,
+        p = Math.abs(percent) / 100,
+        R = f >> 16,
+        G = (f >> 8) & 0x00ff,
+        B = f & 0x0000ff;
+
+    return (
+        "#" +
+        (
+            0x1000000 +
+            (Math.round((t - R) * p) + R) * 0x10000 +
+            (Math.round((t - G) * p) + G) * 0x100 +
+            (Math.round((t - B) * p) + B)
+        )
+            .toString(16)
+            .slice(1)
+    );
 }
