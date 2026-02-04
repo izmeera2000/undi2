@@ -320,40 +320,51 @@
 
 
 
-  function renderBangsaChart(cube) {
+function renderBangsaChart(cube) {
+  const categories = ['18-20','21-29','30-39','40-49','50-59','60+']; // X-axis = Umur
+  const bangsaGroups = ['Melayu', 'Cina', 'India', 'Lain-lain'];      // Stacks within each Umur
 
-    const categories = ['Melayu', 'Cina', 'India', 'Lain-lain'];
+  // Create series for UMNO and Bukan UMNO for each Bangsa
+  const series = bangsaGroups.flatMap(bangsa => [
+    {
+      name: `UMNO - ${bangsa}`,
+      data: categories.map(umur =>
+        cube
+          .filter(x =>
+            x.umur_group === umur &&
+            x.bangsa_group === bangsa &&
+            x.status_umno === '1'
+          )
+          .reduce((sum, x) => sum + x.total, 0)
+      )
+    },
+    {
+      name: `Bukan UMNO - ${bangsa}`,
+      data: categories.map(umur =>
+        cube
+          .filter(x =>
+            x.umur_group === umur &&
+            x.bangsa_group === bangsa &&
+            x.status_umno === '0'
+          )
+          .reduce((sum, x) => sum + x.total, 0)
+      )
+    }
+  ]);
 
-    const series = [
-      {
-        name: 'UMNO',
-        data: categories.map(b =>
-          cube
-            .filter(x => x.bangsa_group === b && x.status_umno === '1')
-            .reduce((s, x) => s + x.total, 0)
-        )
-      },
-      {
-        name: 'Bukan UMNO',
-        data: categories.map(b =>
-          cube
-            .filter(x => x.bangsa_group === b && x.status_umno === '0')
-            .reduce((s, x) => s + x.total, 0)
-        )
-      }
-    ];
+  renderStackedBar(
+    document.querySelector('#bangsaChart'),
+    DashboardState.charts.bangsa,
+    categories,
+    series,
+    'Jumlah Pengundi',           // Y-axis
+    'Umur',                       // X-axis
+    [],                           // optional colors
+    'Umur × Bangsa × Status UMNO' // Chart title
+  );
+}
 
-    renderStackedBar(
-      document.querySelector('#bangsaChart'),
-      DashboardState.charts.bangsa,
-      categories,
-      series,
-      'Jumlah Pengundi',
-      'Bangsa',
-      [],
-      'Bangsa × Status UMNO'
-    );
-  }
+
 
   function renderUmurChart(cube) {
     const categories = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];

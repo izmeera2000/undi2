@@ -520,55 +520,54 @@
       }
     }
 
-
-    async function renderStackedBar(
-      el,
-      chartRef,
+async function renderStackedBar(
+  el,
+  chartRef,
+  categories,
+  series,
+  yTitle = '',
+  xTitle = '',
+  colors = [],
+  title = ''
+) {
+  const options = {
+    chart: { type: 'bar', stacked: true, height: 400 },
+    plotOptions: { bar: { columnWidth: '50%', horizontal: false } }, // default vertical
+    tooltip: { shared: true, intersect: false },
+    series,
+    colors,
+    xaxis: {
       categories,
-      series,
-      yTitle = '',
-      xTitle = '',
-      colors = [],
-      title = ''
-    ) {
-      const options = {
-        chart: { type: 'bar', stacked: true, height: 400 },
-        plotOptions: { bar: { columnWidth: '50%' } },
-        tooltip: { shared: true, intersect: false },
-        series,
-        colors,
-        xaxis: {
-          categories,
-          title: {
-            text: xTitle
-          }
-        },
-        yaxis: {
-          title: {
-            text: yTitle
-          }
-        },
-        legend: { position: 'bottom' },
-        title: {
-          text: title,  // ✅ chart title
-          align: 'center',                        // 'left' | 'center' | 'right'
-          margin: 10,
-          style: {
-            fontSize: '18px',
-            fontWeight: 'bold',
-            color: '#263238'
-          }
-        },
-      };
-
-      if (chartRef.chart) {
-        chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
-      } else {
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
+      title: { text: xTitle }
+    },
+    yaxis: { title: { text: yTitle } },
+    legend: { position: 'bottom' },
+    title: {
+      text: title,
+      align: 'center',
+      margin: 10,
+      style: { fontSize: '18px', fontWeight: 'bold', color: '#263238' }
+    },
+    responsive: [
+      {
+        breakpoint: 768, // mobile screens
+        options: {
+          plotOptions: { bar: { horizontal: true, columnWidth: '60%' } },
+          chart: { height: 500 }, // optional: increase height for horizontal bars
+          legend: { position: 'bottom' }
+        }
       }
-    }
+    ]
+  };
+
+  if (chartRef.chart) {
+    chartRef.chart.updateOptions(options);
+    return chartRef.chart.render();
+  } else {
+    chartRef.chart = new ApexCharts(el, options);
+    await chartRef.chart.render();
+  }
+}
 
 
     async function renderTreemap(el, chartRef, series) {
