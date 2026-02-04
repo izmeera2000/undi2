@@ -564,7 +564,6 @@ async function renderPie(el, chartRef, labels, series, title = "") {
         await chartRef.chart.render();
     }
 }
-
 async function renderStackedBar(
     el,
     chartRef,
@@ -576,20 +575,69 @@ async function renderStackedBar(
     title = "",
 ) {
     const options = {
-        chart: { type: "bar", stacked: true, height: 400 },
-        plotOptions: { bar: { columnWidth: "50%", horizontal: false } }, // default vertical
+        chart: {
+            type: "bar",
+            stacked: true,
+            height: 400,
+            events: {
+                dataPointSelection: function (event, chartContext, config) {
+                    if (window.innerWidth < 768) {
+                        const index = config.dataPointIndex;
+                        const w = config.w;
+
+                        // Fix: get the correct series array
+                        const seriesData =
+                            config.series || config.w.config.series || [];
+
+                        const items = seriesData
+                            .map((s, i) => ({
+                                name: w.globals.seriesNames[i],
+                                value: s.data ? s.data[index] : s[index], // handle both formats
+                                color: w.globals.colors[i],
+                            }))
+                            .filter((item) => item.value !== null)
+                            .sort((a, b) => b.value - a.value)
+                            .slice(0, 4);
+
+                        const html = items
+                            .map(
+                                (i) => `
+        <div class="tooltip-row">
+          <span class="tooltip-color" style="background:${i.color}"></span>
+          <span>${i.name}</span>
+          <strong class="ms-auto">${i.value}</strong>
+        </div>
+      `,
+                            )
+                            .join("");
+
+                        document.getElementById("tooltipModalBody").innerHTML =
+                            html;
+                        const tooltipModal = new bootstrap.Modal(
+                            document.getElementById("tooltipModal"),
+                        );
+                        tooltipModal.show();
+                    }
+                },
+            },
+        },
+
+        plotOptions: {
+            bar: { columnWidth: "50%", horizontal: false },
+        },
+
         tooltip: {
             shared: true,
             intersect: false,
         },
+
         series,
         colors,
-        xaxis: {
-            categories,
-            title: { text: xTitle },
-        },
+
+        xaxis: { categories, title: { text: xTitle } },
         yaxis: { title: { text: yTitle } },
         legend: { position: "bottom" },
+
         title: {
             text: title,
             align: "center",
@@ -599,57 +647,16 @@ async function renderStackedBar(
 
         responsive: [
             {
-                breakpoint: 768, // mobile screens
+                breakpoint: 768,
                 options: {
-                    tooltip: {
-                        enabledOnSeries: [0, 1, 2, 3],
-                    },
                     plotOptions: {
                         bar: { horizontal: true, columnWidth: "60%" },
                     },
-                    chart: { height: 500 }, // optional: increase height for horizontal bars
+                    chart: { height: 500 },
                     legend: { position: "bottom" },
                 },
             },
         ],
-
-        events: {
-            dataPointSelection: function (event, chartContext, config) {
-                if (window.innerWidth < 768) {
-                    const index = config.dataPointIndex;
-                    const w = config.w;
-
-                    const items = config.series
-                        .map((s, i) => ({
-                            name: w.globals.seriesNames[i],
-                            value: s[index],
-                            color: w.globals.colors[i],
-                        }))
-                        .filter((item) => item.value !== null)
-                        .sort((a, b) => b.value - a.value)
-                        .slice(0, 4);
-
-                    const html = items
-                        .map(
-                            (i) => `
-          <div class="tooltip-row">
-            <span class="tooltip-color" style="background:${i.color}"></span>
-            <span>${i.name}</span>
-            <strong class="ms-auto">${i.value}</strong>
-          </div>
-        `,
-                        )
-                        .join("");
-
-                    document.getElementById("tooltipModalBody").innerHTML =
-                        html;
-                    const tooltipModal = new bootstrap.Modal(
-                        document.getElementById("tooltipModal"),
-                    );
-                    tooltipModal.show();
-                }
-            },
-        },
     };
 
     if (chartRef.chart) {
