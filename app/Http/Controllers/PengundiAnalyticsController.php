@@ -28,7 +28,6 @@ class PengundiAnalyticsController extends Controller
     }
 
 
-
     public function index(Request $request)
     {
         $filters = $request->only([
@@ -39,34 +38,13 @@ class PengundiAnalyticsController extends Controller
             'status_baru'
         ]);
 
-        $baseQuery = DB::table('pengundi');
-
-        foreach ($filters as $key => $value) {
-            if (!empty($value)) {
-                $baseQuery->where($key, $value);
-            }
-        }
-
-        /* ======================
-           TOTALS (BACKEND)
-        ====================== */
-
-        $totalPengundi = (clone $baseQuery)->count();
-
-        $totalUmno = (clone $baseQuery)
-            ->where('status_umno', '1')
-            ->count();
-
-        $totalFirstTimeVoter = (clone $baseQuery)
-            ->where('status_baru', '1')
-            ->count();
-
-        /* ======================
-           ANALYTICS CUBE
-        ====================== */
-
-        $analytics = (clone $baseQuery)
+        $baseQuery = DB::table('pengundi')
+            ->join('dm', 'pengundi.dm_id', '=', 'dm.id')
+            ->join('dun', 'dm.dun_id', '=', 'dun.id')
             ->selectRaw("
+            dun.namadun,
+            dm.namadm,
+            
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -77,15 +55,14 @@ class PengundiAnalyticsController extends Controller
             END AS umur_group,
 
             CASE
-                    WHEN jantina = 'L' THEN 'Lelaki'
-                    WHEN jantina = 'P' THEN 'Perempuan'
-                    ELSE jantina
+                WHEN jantina = 'L' THEN 'Lelaki'
+                WHEN jantina = 'P' THEN 'Perempuan'
+                ELSE jantina
             END AS jantina2, 
 
             CASE
                 WHEN LOWER(bangsa) LIKE '%melayu%' THEN 'Melayu'
-                WHEN LOWER(bangsa) LIKE '%cina%' 
-                  OR LOWER(bangsa) LIKE '%chinese%' THEN 'Cina'
+                WHEN LOWER(bangsa) LIKE '%cina%' OR LOWER(bangsa) LIKE '%chinese%' THEN 'Cina'
                 WHEN LOWER(bangsa) LIKE '%india%' THEN 'India'
                 ELSE 'Lain-lain'
             END AS bangsa_group,
@@ -95,9 +72,20 @@ class PengundiAnalyticsController extends Controller
             status_baru,
             COUNT(*) AS total,
             tarikh_undian
+        ");
 
-        ")
+        // Apply filters
+        foreach ($filters as $key => $value) {
+            if (!empty($value)) {
+                $baseQuery->where("pengundi.$key", $value); // make sure to prefix columns
+            }
+        }
+
+        // Group by all selected fields
+        $analytics = (clone $baseQuery)
             ->groupBy([
+                'dun.namadun',
+                'dm.namadm',
                 'umur_group',
                 'status_baru',
                 'bangsa_group',
@@ -107,17 +95,18 @@ class PengundiAnalyticsController extends Controller
             ])
             ->get();
 
+        // Totals for dashboard cards
+        $totalPengundi = DB::table('pengundi')->count();
+        $totalUmno = DB::table('pengundi')->where('status_umno', '1')->count();
+        $totalFirstTimeVoter = DB::table('pengundi')->where('status_baru', '1')->count();
+
         return response()->json([
             'cube' => $analytics,
-
-            // 🔢 totals for dashboard cards
             'total_pengundi' => $totalPengundi,
             'total_umno' => $totalUmno,
             'total_first_time_voter' => $totalFirstTimeVoter,
         ]);
     }
-
-
 
     public function overview(Request $request)
     {

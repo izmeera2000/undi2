@@ -564,6 +564,8 @@ async function renderPie(el, chartRef, labels, series, title = "") {
         await chartRef.chart.render();
     }
 }
+
+
 async function renderStackedBar(
     el,
     chartRef,
@@ -573,17 +575,26 @@ async function renderStackedBar(
     xTitle = "",
     colors = [],
     title = "",
+    isHorizontal = false ,
+
 ) {
     const options = {
         chart: {
             type: "bar",
             stacked: true,
-            height: 400,
+            height: isHorizontal  ? 600 : 400,
             events: {
                 dataPointSelection: function (event, chartContext, config) {
                     if (window.innerWidth < 768) {
                         const index = config.dataPointIndex;
                         const w = config.w;
+
+                        // Determine clicked category for modal title
+                        const category = w.globals.labels
+                            ? w.globals.labels[index]
+                            : w.globals.categories
+                              ? w.globals.categories[index]
+                              : `Data Point ${index + 1}`;
 
                         // Fix: get the correct series array
                         const seriesData =
@@ -602,17 +613,24 @@ async function renderStackedBar(
                         const html = items
                             .map(
                                 (i) => `
-        <div class="tooltip-row">
-          <span class="tooltip-color" style="background:${i.color}"></span>
-          <span>${i.name}</span>
-          <strong class="ms-auto">${i.value}</strong>
-        </div>
-      `,
+                    <div class="tooltip-row">
+                      <span class="tooltip-color" style="background:${i.color}"></span>
+                      <span>${i.name}</span>
+                      <strong class="ms-auto">${i.value}</strong>
+                    </div>
+                  `,
                             )
                             .join("");
 
+                        // Insert modal title
+                        document.getElementById("tooltipModalLabel").innerText =
+                            category;
+
+                        // Insert modal body
                         document.getElementById("tooltipModalBody").innerHTML =
                             html;
+
+                        // Show Bootstrap modal
                         const tooltipModal = new bootstrap.Modal(
                             document.getElementById("tooltipModal"),
                         );
@@ -622,13 +640,14 @@ async function renderStackedBar(
             },
         },
 
-        plotOptions: {
-            bar: { columnWidth: "50%", horizontal: false },
-        },
+    plotOptions: {
+      bar: { columnWidth: "50%", horizontal: isHorizontal }, // ✅ toggle horizontal
+    },
 
         tooltip: {
             shared: true,
             intersect: false,
+            offsetY: 60, // adjust this to your header height in px
         },
 
         series,
@@ -649,10 +668,17 @@ async function renderStackedBar(
             {
                 breakpoint: 768,
                 options: {
+                       xaxis: {
+                title: { align: 'left' },
+                labels: { align: 'left' }
+            },
+            yaxis: {
+                title: { align: 'left' }
+            },
                     plotOptions: {
                         bar: { horizontal: true, columnWidth: "60%" },
                     },
-                    chart: { height: 500 },
+                    chart: { height: isHorizontal  ? 800 : 500 },
                     legend: { position: "bottom" },
                 },
             },
