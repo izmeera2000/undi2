@@ -123,4 +123,16 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    'providers' => [
+        // ...
+        Devrabiul\ToastMagic\ToastMagicServiceProvider::class,
+    ],
+
+
+    'aliases' => [
+        // ...
+        'ToastMagic' => Devrabiul\ToastMagic\Facades\ToastMagic::class,
+    ],
+
 ];
