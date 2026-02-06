@@ -36,10 +36,10 @@ class MailController extends Controller
         ]);
 
 
-    ToastMagic::info("Success!", "Your data has been saved!");
+        ToastMagic::info("Success!", "Your data has been saved!");
 
         return redirect()
             ->back()
-             ;
+        ;
     }
 }

@@ -1,7 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Undi - Dashboard')
+@section('title', 'List')
 
+@section('breadcrumb')
+  @php
+    // Build dynamic crumbs based on request
+    $crumbs = [
+      ['label' => 'Staff', 'url' => route('user.list')],
+      ['label' => 'List', 'url' => route('user.list')],
+    ];
+
+  @endphp
+
+@endsection
 
 @section('content')
   <!-- Welcome & Stats Row -->

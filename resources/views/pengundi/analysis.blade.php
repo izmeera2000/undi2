@@ -1,9 +1,25 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard')
+@section('title', 'Analytics')
+
+
+
+@section('breadcrumb')
+  @php
+    // Build dynamic crumbs based on request
+    $crumbs = [
+      ['label' => 'Pengundi', 'url' => route('pengundi.analysis')],
+      ['label' => 'Analytics', 'url' => route('pengundi.analysis')],
+    ];
+
+  @endphp
+
+@endsection
 
 
 @section('content')
+
+
 
   <div class="mb-4">
     <div class="card">
@@ -326,11 +342,24 @@
     };
 
 
-
     async function loadDashboard(payload) {
+      const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
+      const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+      // 1️⃣ Try cache
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const { data, expires } = JSON.parse(cached);
+        if (Date.now() < expires) {
+          console.log('using cache');
+          applyDashboardData(data);
+          return;
+        }
+        sessionStorage.removeItem(cacheKey);
+      }
+
+      // 2️⃣ Fetch if no cache
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
 
       const res = await fetch('/analytics/pengundi', {
         method: 'POST',
@@ -342,8 +371,18 @@
       });
 
       const data = await res.json();
-      console.log("rendering");
+      console.log('rendering (fresh)');
 
+      // 3️⃣ Save cache
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        expires: Date.now() + CACHE_TTL
+      }));
+
+      applyDashboardData(data);
+    }
+
+    function applyDashboardData(data) {
       DashboardState.cube = data.cube;
       DashboardState.totals = {
         totalPengundi: data.total_pengundi,
