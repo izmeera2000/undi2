@@ -168,6 +168,17 @@
     </div>
   </div>
 
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Negeri by UMNO and First Time</h5>
+      </div>
+      <div class="card-body  overflow-auto">
+        <div class="chart-container" id="test"></div>
+      </div>
+    </div>
+  </div>
+
 
 
 
@@ -296,7 +307,7 @@
         .then(blob => {
           window.open(URL.createObjectURL(blob));
         })
-        // .then(() => console.log("end ex"));
+      // .then(() => console.log("end ex"));
 
 
     });
@@ -528,32 +539,32 @@
         totals.totalFirstTime.toLocaleString();
     }
 
-document.addEventListener('DOMContentLoaded', () => {
-  // Cache elements after DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      // Cache elements after DOM is ready
 
 
-    const modeSelect = document.getElementById('modeSelect');
-    const year1Select = document.getElementById('year1');
-    const year2Select = document.getElementById('year2');
- 
-  
+      const modeSelect = document.getElementById('modeSelect');
+      const year1Select = document.getElementById('year1');
+      const year2Select = document.getElementById('year2');
 
-  function onFilterChange() {
-    loadDashboard({
-      year1: year1Select.value,
-      year2: year2Select.value,
-      mode: modeSelect.value,
+
+
+      function onFilterChange() {
+        loadDashboard({
+          year1: year1Select.value,
+          year2: year2Select.value,
+          mode: modeSelect.value,
+        });
+      }
+
+      // Initial load
+      onFilterChange();
+
+      // Event listeners
+      modeSelect.addEventListener('change', onFilterChange);
+      year1Select.addEventListener('change', onFilterChange);
+      year2Select.addEventListener('change', onFilterChange);
     });
-  }
-
-  // Initial load
-  onFilterChange();
-
-  // Event listeners
-  modeSelect.addEventListener('change', onFilterChange);
-  year1Select.addEventListener('change', onFilterChange);
-  year2Select.addEventListener('change', onFilterChange);
-});
 
 
   </script>

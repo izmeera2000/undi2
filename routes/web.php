@@ -8,7 +8,7 @@ use App\Http\Controllers\MembersUploadController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PengundiAnalyticsController;
 use Barryvdh\DomPDF\Facade\Pdf;
-
+use App\Http\Controllers\MailController;
 use Illuminate\Http\Request; // ✅ correct
 
 
@@ -24,6 +24,12 @@ Route::get('/dashboard', function () {
 Route::get('/testimport', function () {
     return view('testimport');
 })->middleware(['auth', 'verified'])->name('testimport');
+
+
+
+
+
+
 
 Route::middleware('auth')->group(function () {
 
@@ -43,11 +49,23 @@ Route::get('/event', function () {
 })->middleware(['auth', 'verified'])->name('event');
 
 
+//////////////////////////////////////////////////////////////////
+
+
+Route::get('/users/list', function () {
+    return view('users.list');
+})->middleware(['auth', 'verified'])->name('user.list');
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 Route::get('/pengundi/analytics', [PengundiAnalyticsController::class, 'dropdowns'])
     ->middleware(['auth', 'verified'])
     ->name('pengundi.analysis');
+
 
 
 Route::get('/pengundi/transfer', [PengundiTransferController::class, 'transfer']);
@@ -64,7 +82,7 @@ Route::post('/pengundi/analytics/pdf', function (Request $request) {
 
         ->stream('pengundi-analytics.pdf');
 });
-
+//////////////////////////////////////////////////////////////////////////
 
 Route::post('/members/upload', [MembersUploadController::class, 'upload'])
     ->name('members.upload');
@@ -72,6 +90,11 @@ Route::post('/members/upload', [MembersUploadController::class, 'upload'])
 
 Route::get('/members/transfer', [MembersTransferController::class, 'transfer']);
 
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -92,6 +115,16 @@ Route::post('/analytics/chart/firsttime', [PengundiAnalyticsController::class, '
 
 Route::post('/analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
 Route::get('/analytics/pengundi2', [PengundiAnalyticsController::class, 'index']);
+
+
+
+
+
+
+
+////////////////////////
+
+Route::post('/mail/send', [MailController::class, 'sendEmail'])->name('mail.send');
 
 
 require __DIR__ . '/auth.php';

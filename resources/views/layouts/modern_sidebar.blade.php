@@ -43,7 +43,7 @@
             <i class="ph-light ph-caret-down nav-arrow"></i>
           </a>
           <ul class="nav-submenu ">
-            <li><a class="nav-link " href="users.html">List</a></li>
+            <li><a class="nav-link " href="{{ route('user.list') }}">List</a></li>
              {{-- <li><a class="nav-link " href="users-edit.html">User Edit</a></li>
              <li><a class="nav-link " href="users-view.html">User View</a></li> --}}
             {{-- <li><a class="nav-link " href="profile.html">Profile</a></li> --}}

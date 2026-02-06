@@ -35,6 +35,19 @@
 
 
 
+
+
+<form action="{{ route('mail.send') }}" method="POST">
+    @csrf
+    <input type="email" name="to" placeholder="Recipient Email">
+    <input type="text" name="subject" placeholder="Subject">
+    <textarea name="body" placeholder="Email Body"></textarea>
+    <button type="submit">Send Email</button>
+</form>
+
+
+
+
   </div>
  
 
