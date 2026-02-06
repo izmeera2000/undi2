@@ -35,5 +35,5 @@
   <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
 
   
-      {{-- {!! ToastMagic::styles() !!} --}}
+      {!! ToastMagic::styles() !!}
 </head>
