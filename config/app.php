@@ -124,15 +124,5 @@ return [
     ],
 
 
-    'providers' => [
-        // ...
-        Devrabiul\ToastMagic\ToastMagicServiceProvider::class,
-    ],
-
-
-    'aliases' => [
-        // ...
-        'ToastMagic' => Devrabiul\ToastMagic\Facades\ToastMagic::class,
-    ],
-
+    
 ];
