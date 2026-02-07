@@ -196,6 +196,16 @@
   </div>
 
 
+  <div class="col">
+    <div class="card h-100">
+      <div class="card-header">
+        <h5 class="card-title mb-0">Negeri From by UMNO and By geochart </h5>
+      </div>
+      <div class="card-body  overflow-auto">
+        <div class="chart-container" id="test"></div>
+      </div>
+    </div>
+  </div>
 
 
   <!-- Bootstrap Tooltip Modal -->
