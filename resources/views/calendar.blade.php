@@ -2,39 +2,53 @@
 
 @section('title', 'Dashboard')
 
+@push('styles')
+ 
 
-@section('content')
-  <!-- Welcome & Stats Row -->
-       <div class="calendar-app">
-        <!-- Mobile Sidebar Toggle Button -->
+@endpush
+
+
+
+
+@push('scripts')
+
+
+<script src="{{ asset('assets/vendors/fullcalendar/fullcalendar.min.js') }}"></script>
+
+
+
+
+  @section('content')
+
+    <div class="calendar-app">
+      <!-- Sidebar -->
+       
+
         <button class="calendar-sidebar-toggle" id="calendarSidebarToggle" aria-label="Toggle calendar sidebar">
           <i class="bi bi-calendar3"></i>
           <span>Mini Calendar &amp; Events</span>
         </button>
 
-        <!-- Mobile Sidebar Overlay -->
         <div class="calendar-sidebar-overlay" id="calendarSidebarOverlay"></div>
 
-        <!-- Sidebar -->
-        <div class="calendar-sidebar" id="calendarSidebar">
-          <!-- Mobile Close Button -->
-          <button class="calendar-sidebar-close" id="calendarSidebarClose" aria-label="Close sidebar">
-            <i class="bi bi-x-lg"></i>
-          </button>
 
+        <div class="calendar-sidebar" id="calendarSidebar">
           <!-- Create Event Button -->
-          <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#createEventModal">
+          <button class="btn btn-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#createEventModal">
             <i class="bi bi-plus-lg me-2"></i> Create Event
           </button>
 
-          <!-- Mini Calendar -->
           <div class="card">
             <div class="card-body mini-calendar">
               <div class="mini-calendar-header">
                 <span class="mini-calendar-title" id="miniCalendarTitle">January 2026</span>
                 <div class="mini-calendar-nav">
-                  <button id="miniCalendarPrev"><i class="bi bi-chevron-left"></i></button>
-                  <button id="miniCalendarNext"><i class="bi bi-chevron-right"></i></button>
+                  <button id="miniCalendarPrev">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <button id="miniCalendarNext">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
                 </div>
               </div>
               <div class="mini-calendar-grid" id="miniCalendarGrid">
@@ -43,764 +57,136 @@
             </div>
           </div>
 
-          <!-- Event Categories -->
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title">Categories</h5>
-            </div>
-            <div class="card-body p-0 event-categories">
-              <div class="event-category-item">
-                <div class="event-category-color" style="background: var(--accent-color);"></div>
-                <span class="event-category-name">Meetings</span>
-                <span class="event-category-count">5</span>
-              </div>
-              <div class="event-category-item">
-                <div class="event-category-color" style="background: var(--success-color);"></div>
-                <span class="event-category-name">Tasks</span>
-                <span class="event-category-count">8</span>
-              </div>
-              <div class="event-category-item">
-                <div class="event-category-color" style="background: var(--warning-color);"></div>
-                <span class="event-category-name">Reminders</span>
-                <span class="event-category-count">3</span>
-              </div>
-              <div class="event-category-item">
-                <div class="event-category-color" style="background: var(--danger-color);"></div>
-                <span class="event-category-name">Deadlines</span>
-                <span class="event-category-count">2</span>
-              </div>
-              <div class="event-category-item">
-                <div class="event-category-color" style="background: var(--info-color);"></div>
-                <span class="event-category-name">Personal</span>
-                <span class="event-category-count">4</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Upcoming Events -->
-          <div class="card">
-            <div class="card-header">
-              <h5 class="card-title">Upcoming Events</h5>
-            </div>
-            <div class="card-body p-0 upcoming-events">
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color" style="background: var(--accent-color);"></div>
-                <div class="upcoming-event-date">
-                  <div class="upcoming-event-day">20</div>
-                  <div class="upcoming-event-month">Jan</div>
-                </div>
-                <div class="upcoming-event-details">
-                  <div class="upcoming-event-title">Team Standup Meeting</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>09:00 - 09:30</div>
-                </div>
-              </div>
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color" style="background: var(--success-color);"></div>
-                <div class="upcoming-event-date">
-                  <div class="upcoming-event-day">21</div>
-                  <div class="upcoming-event-month">Jan</div>
-                </div>
-                <div class="upcoming-event-details">
-                  <div class="upcoming-event-title">Project Review</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>14:00 - 15:00</div>
-                </div>
-              </div>
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color" style="background: var(--danger-color);"></div>
-                <div class="upcoming-event-date">
-                  <div class="upcoming-event-day">23</div>
-                  <div class="upcoming-event-month">Jan</div>
-                </div>
-                <div class="upcoming-event-details">
-                  <div class="upcoming-event-title">Sprint Deadline</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>All Day</div>
-                </div>
-              </div>
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color" style="background: var(--warning-color);"></div>
-                <div class="upcoming-event-date">
-                  <div class="upcoming-event-day">25</div>
-                  <div class="upcoming-event-month">Jan</div>
-                </div>
-                <div class="upcoming-event-details">
-                  <div class="upcoming-event-title">Client Presentation</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>10:00 - 11:30</div>
-                </div>
-              </div>
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color" style="background: var(--info-color);"></div>
-                <div class="upcoming-event-date">
-                  <div class="upcoming-event-day">28</div>
-                  <div class="upcoming-event-month">Jan</div>
-                </div>
-                <div class="upcoming-event-details">
-                  <div class="upcoming-event-title">Team Building</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>15:00 - 18:00</div>
-                </div>
-              </div>
+          <div class="card mb-3">
+            <div class="card-header">Upcoming Events</div>
+            <div class="card-body p-2" id="upcomingEvents">
+              <!-- JS will populate this -->
             </div>
           </div>
         </div>
 
-        <!-- Main Calendar -->
-        <div class="calendar-main">
-          <div class="card h-100">
-            <div class="card-header calendar-header">
-              <div class="d-flex align-items-center gap-3">
-                <div class="calendar-nav">
-                  <button class="calendar-nav-btn" id="calendarPrev"><i class="bi bi-chevron-left"></i></button>
-                  <button class="calendar-nav-btn calendar-today-btn" id="calendarToday">Today</button>
-                  <button class="calendar-nav-btn" id="calendarNext"><i class="bi bi-chevron-right"></i></button>
-                </div>
-                <h2 class="calendar-title" id="calendarTitle">January 2026</h2>
-              </div>
-              <!-- Bootstrap Nav Tabs for Views -->
-              <ul class="nav calendar-views-nav" role="tablist">
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="day-tab" data-bs-toggle="tab" data-bs-target="#dayView" type="button" role="tab">Day</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link" id="week-tab" data-bs-toggle="tab" data-bs-target="#weekView" type="button" role="tab">Week</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                  <button class="nav-link active" id="month-tab" data-bs-toggle="tab" data-bs-target="#monthView" type="button" role="tab">Month</button>
-                </li>
-              </ul>
-            </div>
-            <div class="card-body">
-              <!-- Scroll wrapper for horizontal scroll on small screens -->
-              <div class="calendar-scroll-wrapper">
-                <!-- Tab Content -->
-                <div class="tab-content">
-                  <!-- Day View -->
-                  <div class="tab-pane fade" id="dayView" role="tabpanel">
-                    <div class="day-view" id="dayViewContent">
-                      <!-- Day view will be generated by JS -->
-                    </div>
-                  </div>
+       
 
-                  <!-- Week View -->
-                  <div class="tab-pane fade" id="weekView" role="tabpanel">
-                    <div class="week-view" id="weekViewContent">
-                      <!-- Week view will be generated by JS -->
-                    </div>
-                  </div>
 
-                  <!-- Month View -->
-                  <div class="tab-pane fade show active" id="monthView" role="tabpanel">
-                    <div class="calendar-grid" id="calendarGrid">
-                      <!-- Day headers -->
-                      <div class="calendar-day-header">Sun</div>
-                      <div class="calendar-day-header">Mon</div>
-                      <div class="calendar-day-header">Tue</div>
-                      <div class="calendar-day-header">Wed</div>
-                      <div class="calendar-day-header">Thu</div>
-                      <div class="calendar-day-header">Fri</div>
-                      <div class="calendar-day-header">Sat</div>
-                      <!-- Calendar days will be generated by JS -->
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Main Calendar -->
+      <div class="flex-grow-1 p-3">
+        <div id="calendar"></div>
       </div>
 
-      <!-- Create Event Modal -->
-      <div class="modal fade event-modal" id="createEventModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Create Event</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <form id="createEventForm">
-                <div class="mb-3">
-                  <label for="eventTitle" class="form-label">Event Title</label>
-                  <input type="text" class="form-control" id="eventTitle" placeholder="Enter event title" required>
-                </div>
-                <div class="row mb-3">
-                  <div class="col-6">
-                    <label for="eventDate" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="eventDate" required>
-                  </div>
-                  <div class="col-6">
-                    <label for="eventTime" class="form-label">Time</label>
-                    <input type="time" class="form-control" id="eventTime">
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="eventCategory" class="form-label">Category</label>
-                  <select class="form-select" id="eventCategory">
-                    <option value="primary">Meetings</option>
-                    <option value="success">Tasks</option>
-                    <option value="warning">Reminders</option>
-                    <option value="danger">Deadlines</option>
-                    <option value="info">Personal</option>
-                  </select>
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Color</label>
-                  <div class="event-color-picker">
-                    <div class="event-color-option selected" style="background: var(--accent-color);" data-color="primary"></div>
-                    <div class="event-color-option" style="background: var(--success-color);" data-color="success"></div>
-                    <div class="event-color-option" style="background: var(--warning-color);" data-color="warning"></div>
-                    <div class="event-color-option" style="background: var(--danger-color);" data-color="danger"></div>
-                    <div class="event-color-option" style="background: var(--info-color);" data-color="info"></div>
-                  </div>
-                </div>
-                <div class="mb-3">
-                  <label for="eventDescription" class="form-label">Description</label>
-                  <textarea class="form-control" id="eventDescription" rows="3" placeholder="Add a description (optional)"></textarea>
-                </div>
-                <div class="form-check mb-3">
-                  <input class="form-check-input" type="checkbox" id="eventAllDay">
-                  <label class="form-check-label" for="eventAllDay">All day event</label>
-                </div>
-              </form>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary" id="saveEventBtn">Create Event</button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Event Details Modal -->
-      <div class="modal fade event-modal" id="eventDetailsModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="eventDetailsTitle">Event Details</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <i class="bi bi-calendar3 text-muted"></i>
-                  <span id="eventDetailsDate">January 20, 2026</span>
-                </div>
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <i class="bi bi-clock text-muted"></i>
-                  <span id="eventDetailsTime">09:00 - 09:30</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-tag text-muted"></i>
-                  <span class="badge bg-primary" id="eventDetailsCategory">Meetings</span>
-                </div>
-              </div>
-              <hr>
-              <p class="text-muted mb-0" id="eventDetailsDescription">No description provided.</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-outline-danger" id="deleteEventBtn">
-                <i class="bi bi-trash me-1"></i> Delete
-              </button>
-              <button type="button" class="btn btn-primary" id="editEventBtn">
-                <i class="bi bi-pencil me-1"></i> Edit
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-@endsection
 
-@push('scripts')
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Calendar state
-      let currentDate = new Date();
-      let selectedDate = new Date();
-      let currentView = 'month';
-      // Sample events data
-      const events = [{
-          id: 1,
-          title: 'Team Standup Meeting',
-          date: '2026-01-20',
-          time: '09:00',
-          duration: 30,
-          category: 'primary',
-          description: 'Daily team sync-up meeting to discuss progress and blockers.'
-        },
-        {
-          id: 2,
-          title: 'Project Review',
-          date: '2026-01-21',
-          time: '14:00',
-          duration: 60,
-          category: 'success',
-          description: 'Review project milestones and deliverables.'
-        },
-        {
-          id: 3,
-          title: 'Sprint Deadline',
-          date: '2026-01-23',
-          time: null,
-          duration: null,
-          category: 'danger',
-          description: 'End of Sprint 4 - all tasks must be completed.'
-        },
-        {
-          id: 4,
-          title: 'Client Presentation',
-          date: '2026-01-25',
-          time: '10:00',
-          duration: 90,
-          category: 'warning',
-          description: 'Present Q4 results to stakeholders.'
-        },
-        {
-          id: 5,
-          title: 'Team Building',
-          date: '2026-01-28',
-          time: '15:00',
-          duration: 180,
-          category: 'info',
-          description: 'Off-site team building activity.'
-        },
-        {
-          id: 6,
-          title: 'Weekly Report',
-          date: '2026-01-20',
-          time: '16:00',
-          duration: 30,
-          category: 'success',
-          description: 'Submit weekly progress report.'
-        },
-        {
-          id: 7,
-          title: 'Budget Meeting',
-          date: '2026-01-22',
-          time: '11:00',
-          duration: 60,
-          category: 'primary',
-          description: 'Discuss Q1 budget allocations.'
-        },
-        {
-          id: 8,
-          title: 'Code Review',
-          date: '2026-01-24',
-          time: '13:00',
-          duration: 60,
-          category: 'success',
-          description: 'Review pull requests for feature branch.'
-        },
-        {
-          id: 9,
-          title: 'Design Review',
-          date: '2026-01-19',
-          time: '10:00',
-          duration: 60,
-          category: 'info',
-          description: 'Review new UI designs with the team.'
-        },
-        {
-          id: 10,
-          title: 'Marketing Sync',
-          date: '2026-01-27',
-          time: '09:30',
-          duration: 45,
-          category: 'warning',
-          description: 'Coordinate marketing campaign launch.'
-        }
-      ];
-      // Constants
-      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const shortDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const miniDayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-      // DOM elements
-      const calendarGrid = document.getElementById('calendarGrid');
-      const calendarTitle = document.getElementById('calendarTitle');
-      const miniCalendarGrid = document.getElementById('miniCalendarGrid');
-      const miniCalendarTitle = document.getElementById('miniCalendarTitle');
-      const dayViewContent = document.getElementById('dayViewContent');
-      const weekViewContent = document.getElementById('weekViewContent');
-      // Utility functions
-      function getEventsForDate(dateStr) {
-        return events.filter(event => event.date === dateStr);
-      }
+    </div>
 
-      function formatDate(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
+    @include('calendar.partials.modals') <!-- Include your modals here -->
 
-      function isSameDay(date1, date2) {
-        return date1.getDate() === date2.getDate() &&
-          date1.getMonth() === date2.getMonth() &&
-          date1.getFullYear() === date2.getFullYear();
-      }
+  @endsection
 
-      function getWeekStart(date) {
-        const d = new Date(date);
-        const day = d.getDay();
-        d.setDate(d.getDate() - day);
-        return d;
-      }
-      // Render mini calendar
-      function renderMiniCalendar() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        miniCalendarTitle.textContent = `${monthNames[month]} ${year}`;
-        miniCalendarGrid.innerHTML = '';
-        // Add day headers
-        miniDayNames.forEach(day => {
-          const header = document.createElement('div');
-          header.className = 'mini-calendar-day-header';
-          header.textContent = day;
-          miniCalendarGrid.appendChild(header);
+  @push('scripts')
+ 
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+    <script>
+
+
+
+      document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        const calendarEl = document.getElementById('calendar');
+        const upcomingEl = document.getElementById('upcomingEvents');
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          height: 750,
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          },
+          selectable: true,
+          editable: true,
+          events: "{{ route('events.index') }}",
+
+          select: function (info) {
+            // Open create modal and prefill date
+            const modal = new bootstrap.Modal(document.getElementById('createEventModal'));
+            document.getElementById('eventDate').value = info.startStr;
+            modal.show();
+            calendar.unselect();
+          },
+
+          eventClick: function (info) {
+            const modal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
+            document.getElementById('eventDetailsTitle').innerText = info.event.title;
+            document.getElementById('eventDetailsDate').innerText = info.event.start.toLocaleDateString();
+            document.getElementById('eventDetailsTime').innerText = info.event.allDay ? 'All Day' : info.event.start.toLocaleTimeString() + ' - ' + info.event.end?.toLocaleTimeString();
+            document.getElementById('eventDetailsCategory').className = 'badge bg-' + (info.event.extendedProps.color || 'primary');
+            document.getElementById('eventDetailsDescription').innerText = info.event.extendedProps.description || 'No description provided.';
+
+            document.getElementById('deleteEventBtn').onclick = function () {
+              if (confirm('Delete this event?')) {
+                fetch(`/events/${info.event.id}`, {
+                  method: 'DELETE',
+                  headers: { 'X-CSRF-TOKEN': csrfToken }
+                }).then(() => {
+                  info.event.remove();
+                  modal.hide();
+                });
+              }
+            };
+            modal.show();
+          },
+
+          eventDrop: function (info) {
+            fetch(`/events/${info.event.id}`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+              },
+              body: JSON.stringify({
+                start_date: info.event.start.toISOString(),
+                end_date: info.event.end ? info.event.end.toISOString() : info.event.start.toISOString()
+              })
+            });
+          }
         });
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const daysInPrevMonth = new Date(year, month, 0).getDate();
-        const today = new Date();
-        // Previous month days
-        for (let i = firstDay - 1; i >= 0; i--) {
-          const day = document.createElement('div');
-          day.className = 'mini-calendar-day other-month';
-          day.textContent = daysInPrevMonth - i;
-          miniCalendarGrid.appendChild(day);
-        }
-        // Current month days
-        for (let i = 1; i <= daysInMonth; i++) {
-          const day = document.createElement('div');
-          day.className = 'mini-calendar-day';
-          day.textContent = i;
-          const thisDate = new Date(year, month, i);
-          const dateStr = formatDate(thisDate);
-          if (isSameDay(thisDate, today)) {
-            day.classList.add('today');
-          }
-          if (isSameDay(thisDate, selectedDate)) {
-            day.classList.add('selected');
-          }
-          if (getEventsForDate(dateStr).length > 0) {
-            day.classList.add('has-event');
-          }
-          day.addEventListener('click', () => {
-            selectedDate = thisDate;
-            currentDate = new Date(thisDate);
-            renderAll();
-          });
-          miniCalendarGrid.appendChild(day);
-        }
-        // Next month days
-        const totalCells = miniCalendarGrid.children.length;
-        const remainingCells = 49 - totalCells;
-        for (let i = 1; i <= remainingCells && totalCells + i <= 49; i++) {
-          const day = document.createElement('div');
-          day.className = 'mini-calendar-day other-month';
-          day.textContent = i;
-          miniCalendarGrid.appendChild(day);
-        }
-      }
-      // Render month view
-      function renderMonthView() {
-        const year = currentDate.getFullYear();
-        const month = currentDate.getMonth();
-        calendarTitle.textContent = `${monthNames[month]} ${year}`;
-        while (calendarGrid.children.length > 7) {
-          calendarGrid.removeChild(calendarGrid.lastChild);
-        }
-        const firstDay = new Date(year, month, 1).getDay();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const daysInPrevMonth = new Date(year, month, 0).getDate();
-        const today = new Date();
-        // Previous month days
-        for (let i = firstDay - 1; i >= 0; i--) {
-          const dayCell = createMonthDayCell(daysInPrevMonth - i, true, new Date(year, month - 1, daysInPrevMonth - i));
-          calendarGrid.appendChild(dayCell);
-        }
-        // Current month days
-        for (let i = 1; i <= daysInMonth; i++) {
-          const thisDate = new Date(year, month, i);
-          const dayCell = createMonthDayCell(i, false, thisDate, isSameDay(thisDate, today));
-          calendarGrid.appendChild(dayCell);
-        }
-        // Next month days
-        const totalCells = calendarGrid.children.length;
-        const remainingCells = 42 + 7 - totalCells;
-        for (let i = 1; i <= remainingCells; i++) {
-          const dayCell = createMonthDayCell(i, true, new Date(year, month + 1, i));
-          calendarGrid.appendChild(dayCell);
-        }
-      }
 
-      function createMonthDayCell(dayNumber, isOtherMonth, date, isToday = false) {
-        const cell = document.createElement('div');
-        cell.className = 'calendar-day';
-        if (isOtherMonth) cell.classList.add('other-month');
-        if (isToday) cell.classList.add('today');
-        const dayNum = document.createElement('div');
-        dayNum.className = 'day-number';
-        dayNum.textContent = dayNumber;
-        cell.appendChild(dayNum);
-        const eventsContainer = document.createElement('div');
-        eventsContainer.className = 'day-events';
-        const dateStr = formatDate(date);
-        const dayEvents = getEventsForDate(dateStr);
-        const maxVisible = 3;
-        dayEvents.slice(0, maxVisible).forEach(event => {
-          const eventEl = document.createElement('div');
-          eventEl.className = `calendar-event event-${event.category}`;
-          eventEl.textContent = event.title;
-          eventEl.addEventListener('click', (e) => {
-            e.stopPropagation();
-            showEventDetails(event);
-          });
-          eventsContainer.appendChild(eventEl);
-        });
-        if (dayEvents.length > maxVisible) {
-          const moreEl = document.createElement('div');
-          moreEl.className = 'more-events';
-          moreEl.textContent = `+${dayEvents.length - maxVisible} more`;
-          eventsContainer.appendChild(moreEl);
-        }
-        cell.appendChild(eventsContainer);
-        cell.addEventListener('click', () => {
-          document.getElementById('eventDate').value = dateStr;
-          const modal = new bootstrap.Modal(document.getElementById('createEventModal'));
-          modal.show();
-        });
-        return cell;
-      }
-      // Render week view
-      function renderWeekView() {
-        const weekStart = getWeekStart(currentDate);
-        const today = new Date();
-        // Update title
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-        if (weekStart.getMonth() === weekEnd.getMonth()) {
-          calendarTitle.textContent = `${monthNames[weekStart.getMonth()]} ${weekStart.getDate()} - ${weekEnd.getDate()}, ${weekStart.getFullYear()}`;
-        } else {
-          calendarTitle.textContent = `${monthNames[weekStart.getMonth()]} ${weekStart.getDate()} - ${monthNames[weekEnd.getMonth()]} ${weekEnd.getDate()}, ${weekStart.getFullYear()}`;
-        }
-        let html = '<div class="week-header"><div class="week-header-time"></div>';
-        // Week header days
-        for (let i = 0; i < 7; i++) {
-          const day = new Date(weekStart);
-          day.setDate(day.getDate() + i);
-          const isToday = isSameDay(day, today);
-          html += `
-        <div class="week-header-day ${isToday ? 'today' : ''}">
-          <div class="day-name">${shortDayNames[i]}</div>
-          <div class="day-num">${day.getDate()}</div>
-        </div>
-      `;
-        }
-        html += '</div>';
-        // Week body
-        html += '<div class="week-body"><div class="week-time-col">';
-        for (let hour = 0; hour < 24; hour++) {
-          const timeLabel = hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-          html += `<div class="week-time-slot">${timeLabel}</div>`;
-        }
-        html += '</div>';
-        // Day columns
-        for (let i = 0; i < 7; i++) {
-          const day = new Date(weekStart);
-          day.setDate(day.getDate() + i);
-          const dateStr = formatDate(day);
-          const dayEvents = getEventsForDate(dateStr);
-          html += '<div class="week-day-col">';
-          for (let hour = 0; hour < 24; hour++) {
-            html += '<div class="week-day-slot"></div>';
-          }
-          // Add events
-          dayEvents.forEach(event => {
-            if (event.time) {
-              const [hours, minutes] = event.time.split(':').map(Number);
-              const top = hours * 60 + minutes;
-              const height = event.duration || 60;
-              html += `
-            <div class="week-event event-${event.category}" style="top: ${top}px; height: ${height}px;" onclick="showEventDetails(${JSON.stringify(event).replace(/"/g, '&quot;')})">
-              ${event.title}
-            </div>
-          `;
+        calendar.render();
+
+        // Handle create modal save button
+        document.getElementById('saveEventBtn').onclick = function () {
+          const title = document.getElementById('eventTitle').value;
+          const start_date = document.getElementById('eventDate').value;
+          const time = document.getElementById('eventTime').value;
+          const color = document.getElementById('eventCategory').value;
+          const description = document.getElementById('eventDescription').value;
+          const all_day = document.getElementById('eventAllDay').checked;
+
+          if (!title) return alert('Title required');
+
+          fetch("{{ route('events.store') }}", {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+              title, start_date, time, color, description, all_day
+            })
+          }).then(res => res.json()).then(data => {
+            if (data.success) {
+              calendar.refetchEvents();
+              bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
             }
           });
-          html += '</div>';
-        }
-        html += '</div>';
-        weekViewContent.innerHTML = html;
-      }
-      // Render day view
-      function renderDayView() {
-        const today = new Date();
-        const isToday = isSameDay(selectedDate, today);
-        const dateStr = formatDate(selectedDate);
-        const dayEvents = getEventsForDate(dateStr);
-        calendarTitle.textContent = `${dayNames[selectedDate.getDay()]}, ${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
-        let html = `
-      <div class="day-view-header">
-        <div class="day-view-header-time"></div>
-        <div class="day-view-header-info ${isToday ? 'today' : ''}">
-          <div class="day-name">${dayNames[selectedDate.getDay()]}</div>
-          <div class="day-num">${selectedDate.getDate()}</div>
-        </div>
-      </div>
-      <div class="day-view-body">
-        <div class="day-view-time-col">
-    `;
-        for (let hour = 0; hour < 24; hour++) {
-          const timeLabel = hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-          html += `<div class="day-view-time-slot">${timeLabel}</div>`;
-        }
-        html += '</div><div class="day-view-events-col">';
-        for (let hour = 0; hour < 24; hour++) {
-          html += '<div class="day-view-slot"></div>';
-        }
-        // Add events
-        dayEvents.forEach(event => {
-          if (event.time) {
-            const [hours, minutes] = event.time.split(':').map(Number);
-            const top = hours * 60 + minutes;
-            const height = event.duration || 60;
-            const endHour = hours + Math.floor((minutes + (event.duration || 60)) / 60);
-            const endMinutes = (minutes + (event.duration || 60)) % 60;
-            const endTime = `${String(endHour).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
-            html += `
-          <div class="day-event event-${event.category}" style="top: ${top}px; height: ${height}px;">
-            <div class="event-title">${event.title}</div>
-            <div class="event-time">${event.time} - ${endTime}</div>
-          </div>
-        `;
-          }
-        });
-        html += '</div></div>';
-        dayViewContent.innerHTML = html;
-      }
-      // Render all views
-      function renderAll() {
-        renderMiniCalendar();
-        renderMonthView();
-        renderWeekView();
-        renderDayView();
-      }
-      // Show event details
-      function showEventDetails(event) {
-        document.getElementById('eventDetailsTitle').textContent = event.title;
-        const date = new Date(event.date + 'T00:00:00');
-        document.getElementById('eventDetailsDate').textContent = date.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        });
-        document.getElementById('eventDetailsTime').textContent = event.time || 'All Day';
-        const categoryBadge = document.getElementById('eventDetailsCategory');
-        categoryBadge.className = `badge bg-${event.category}`;
-        const categoryNames = {
-          primary: 'Meetings',
-          success: 'Tasks',
-          warning: 'Reminders',
-          danger: 'Deadlines',
-          info: 'Personal'
         };
-        categoryBadge.textContent = categoryNames[event.category] || event.category;
-        document.getElementById('eventDetailsDescription').textContent = event.description || 'No description provided.';
-        const modal = new bootstrap.Modal(document.getElementById('eventDetailsModal'));
-        modal.show();
-      }
-      // Make showEventDetails global for onclick handlers
-      window.showEventDetails = showEventDetails;
-      // Navigation
-      document.getElementById('calendarPrev').addEventListener('click', () => {
-        if (currentView === 'month') {
-          currentDate.setMonth(currentDate.getMonth() - 1);
-        } else if (currentView === 'week') {
-          currentDate.setDate(currentDate.getDate() - 7);
-        } else {
-          selectedDate.setDate(selectedDate.getDate() - 1);
-          currentDate = new Date(selectedDate);
-        }
-        renderAll();
       });
-      document.getElementById('calendarNext').addEventListener('click', () => {
-        if (currentView === 'month') {
-          currentDate.setMonth(currentDate.getMonth() + 1);
-        } else if (currentView === 'week') {
-          currentDate.setDate(currentDate.getDate() + 7);
-        } else {
-          selectedDate.setDate(selectedDate.getDate() + 1);
-          currentDate = new Date(selectedDate);
-        }
-        renderAll();
-      });
-      document.getElementById('calendarToday').addEventListener('click', () => {
-        currentDate = new Date();
-        selectedDate = new Date();
-        renderAll();
-      });
-      document.getElementById('miniCalendarPrev').addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
-        renderAll();
-      });
-      document.getElementById('miniCalendarNext').addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
-        renderAll();
-      });
-      // Tab change handlers
-      document.getElementById('day-tab').addEventListener('shown.bs.tab', () => {
-        currentView = 'day';
-        renderDayView();
-      });
-      document.getElementById('week-tab').addEventListener('shown.bs.tab', () => {
-        currentView = 'week';
-        renderWeekView();
-      });
-      document.getElementById('month-tab').addEventListener('shown.bs.tab', () => {
-        currentView = 'month';
-        renderMonthView();
-      });
-      // Color picker
-      document.querySelectorAll('.event-color-option').forEach(option => {
-        option.addEventListener('click', () => {
-          document.querySelectorAll('.event-color-option').forEach(o => o.classList.remove('selected'));
-          option.classList.add('selected');
-          document.getElementById('eventCategory').value = option.dataset.color;
-        });
-      });
-      // Category select sync
-      document.getElementById('eventCategory').addEventListener('change', (e) => {
-        document.querySelectorAll('.event-color-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.color === e.target.value);
-        });
-      });
-      // Save event
-      document.getElementById('saveEventBtn').addEventListener('click', () => {
-        const form = document.getElementById('createEventForm');
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-        const newEvent = {
-          id: events.length + 1,
-          title: document.getElementById('eventTitle').value,
-          date: document.getElementById('eventDate').value,
-          time: document.getElementById('eventAllDay').checked ? null : document.getElementById('eventTime').value,
-          duration: 60,
-          category: document.getElementById('eventCategory').value,
-          description: document.getElementById('eventDescription').value
-        };
-        events.push(newEvent);
-        renderAll();
-        form.reset();
-        document.querySelectorAll('.event-color-option').forEach(o => {
-          o.classList.toggle('selected', o.dataset.color === 'primary');
-        });
-        bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
-      });
-      // Initial render
-      renderAll();
-    });
-  </script>
+    </script>
+  @endpush
+
+
+
 @endpush

@@ -14,7 +14,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',  
+        'role',
     ];
 
     protected $hidden = [
@@ -44,6 +44,19 @@ class User extends Authenticatable
         return $this->role === 'moderator';
     }
 
- 
+
+    // Events created by user
+    public function createdEvents()
+    {
+        return $this->hasMany(Event::class, 'created_by');
+    }
+
+    // Events user participates in
+    public function events()
+    {
+        return $this->belongsToMany(Event::class);
+    }
+
+
 
 }

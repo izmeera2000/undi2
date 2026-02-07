@@ -7,6 +7,7 @@ use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PengundiAnalyticsController;
+use App\Http\Controllers\EventController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\MailController;
 use Illuminate\Http\Request; // ✅ correct
@@ -39,6 +40,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    
+
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
+    Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
+    Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
+
+
 
 
 });

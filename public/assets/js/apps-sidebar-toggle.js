@@ -74,10 +74,13 @@
     const sidebarClose = document.getElementById(`${prefix}SidebarClose`);
 
     if (!sidebar) {
-      return; // No sidebar found
+      console.log(` ${prefix} not found`)
+      // return; // No sidebar found
     }
 
     function openSidebar() {
+      // console.log(` ${prefix} opening`)
+
       sidebar.classList.add('show');
       if (sidebarOverlay) {
         sidebarOverlay.classList.add('show');
@@ -86,6 +89,8 @@
     }
 
     function closeSidebar() {
+      // console.log(` ${prefix} closing`)
+
       sidebar.classList.remove('show');
       if (sidebarOverlay) {
         sidebarOverlay.classList.remove('show');

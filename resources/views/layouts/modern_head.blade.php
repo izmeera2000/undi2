@@ -36,4 +36,7 @@
 
   
       {!! ToastMagic::styles() !!}
+
+  @stack('styles')
+
 </head>
