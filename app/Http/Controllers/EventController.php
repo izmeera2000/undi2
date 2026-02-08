@@ -5,35 +5,56 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class EventController extends Controller
 {
     /**
      * Return events for calendar (JSON)
      */
-    public function index()
+
+    public function index(Request $request)
     {
+
+        $start = Carbon::parse($request->query('start'));
+        $end = Carbon::parse($request->query('end'));
+
         $events = Event::with('participants')
             ->where(function ($query) {
                 $query->where('created_by', Auth::id())
-                      ->orWhereHas('participants', function ($q) {
-                          $q->where('user_id', Auth::id());
-                      });
+                    ->orWhereHas('participants', function ($q) {
+                        $q->where('user_id', Auth::id());
+                    });
             })
+            ->whereNotNull('start_date')
+            ->whereBetween('start_date', [$start, $end])
             ->get()
             ->map(function ($event) {
                 return [
                     'id' => $event->id,
                     'title' => $event->title,
-                    'start' => $event->start_date,
-                    'end'   => $event->end_date,
-                    'allDay'=> $event->all_day,
-                    'color' => $event->color,
+                    'start' => $event->start_date?->toIso8601String(),
+                    'end' => $event->end_date
+                        ? $event->end_date->toIso8601String()
+                        : null,
+                    'allDay' => (bool) $event->all_day,
+                    'backgroundColor' => $event->color ?? '#0d6efd',
+
+                    'extendedProps' => [
+                        'description' => $event->description,
+                        'participants' => $event->participants->map(fn($u) => [
+                            'id' => $u->id,
+                            'name' => $u->name,
+                        ]),
+                        'created_by' => $event->created_by,
+                    ],
                 ];
             });
 
-        return response()->json($events);
+    return response()->json($events);
+
     }
+
 
     /**
      * Store new event
@@ -135,7 +156,7 @@ class EventController extends Controller
     {
         if (
             $event->created_by !== Auth::id() &&
-            !$event->participants->contains(Auth::id())
+            !$event->participants->contains('id', Auth::id())
         ) {
             abort(403, 'Unauthorized');
         }

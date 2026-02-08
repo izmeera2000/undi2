@@ -10,7 +10,9 @@ use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\EventController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\MailController;
-use Illuminate\Http\Request; // ✅ correct
+use Illuminate\Http\Request;  
+use App\Models\User;
+use App\Http\Controllers\StaffController;
 
 
 Route::get('/', function () {
@@ -41,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    
+
 
     Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
@@ -49,23 +51,40 @@ Route::middleware('auth')->group(function () {
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 
+ 
+  
+ 
+});
 
 
+Route::middleware(['auth', 'verified'])->group(function () {
+
+    // Staff list page (view only)
+    Route::view('/staff/list', 'staff.list')->name('staff.list');
+
+    // Staff page
+    Route::get('/staff/data', [StaffController::class, 'getStaff'])->name('staff.data');
+
+    Route::resource('staff', StaffController::class)
+        ->except(['index']);
 
 });
 
 
 Route::get('/event', function () {
-    return view('calendar');
+    $users = User::where('id', '!=', auth()->id())
+                 ->select('id', 'name')
+                 ->get();
+
+    return view('calendar', compact('users'));
 })->middleware(['auth', 'verified'])->name('event');
+
 
 
 //////////////////////////////////////////////////////////////////
 
 
-Route::get('/users/list', function () {
-    return view('users.list');
-})->middleware(['auth', 'verified'])->name('user.list');
+ 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
