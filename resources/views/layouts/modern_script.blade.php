@@ -1,4 +1,6 @@
 <!-- Vendor JS Files -->
+<script src="{{ asset('assets/vendors/jquery/jquery-3.7.1.js') }}"></script>
+
 <script src="{{ asset('assets/vendors/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/chart.js/chart.umd.js') }}"></script>

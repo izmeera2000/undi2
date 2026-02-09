@@ -5,16 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
+    use SoftDeletes;
 
+    protected $dates = ['deleted_at'];
     protected $fillable = [
         'name',
         'email',
+        'profile_picture',
         'password',
         'role',
+        'status',
     ];
 
     protected $hidden = [
@@ -57,6 +62,54 @@ class User extends Authenticatable
         return $this->belongsToMany(Event::class);
     }
 
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
 
 
+
+
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isSuspended()
+    {
+        return $this->status === 'suspended';
+    }
+
+    public function isPending()
+    {
+        return $this->status === 'pending';
+    }
+
+
+
+    public function getStatusBadgeAttribute()
+    {
+        return match ($this->status) {
+            'active' => '<span class="badge bg-success">Active</span>',
+            'suspended' => '<span class="badge bg-danger">Suspended</span>',
+            'inactive' => '<span class="badge bg-secondary">Inactive</span>',
+            'pending' => '<span class="badge bg-warning text-dark">First Login</span>',
+            default => '<span class="badge bg-light text-dark">Unknown</span>',
+        };
+    }
+
+    public function getRoleBadgeAttribute()
+    {
+        return match ($this->role) {
+            'admin' => '<span class="badge bg-primary-light text-primary">Admin</span>',
+            'moderator' => '<span class="badge bg-info-light text-info">Moderator</span>',
+            'user' => '<span class="badge bg-secondary-light text-secondary">User</span>',
+            default => '<span class="badge bg-light text-dark">Unknown</span>',
+        };
+    }
+
+
+
+
+    
 }

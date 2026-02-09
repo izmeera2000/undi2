@@ -107,14 +107,14 @@
       <!-- User Dropdown -->
       <div class="header-action dropdown user-dropdown">
         <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="avatar">
+          <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="avatar"  data-avatar>
         </button>
         <div class="dropdown-menu dropdown-menu-end">
           <div class="user-dropdown-header">
-            <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="user-dropdown-avatar">
+            <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="user-dropdown-avatar"  data-avatar>
             <div class="user-dropdown-info">
-              <div class="user-dropdown-name">{{ auth()->user()->name }}</div>
-              <div class="user-dropdown-role">Administrator</div>
+              <div class="user-dropdown-name">{{auth()->user()->name}}</div>
+              <div class="user-dropdown-role">{{auth()->user()->role}}</div>
             </div>
           </div>
           <div class="user-dropdown-body">

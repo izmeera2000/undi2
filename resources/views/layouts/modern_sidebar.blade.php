@@ -43,14 +43,27 @@
           <i class="ph-light ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu ">
-          <li><a class="nav-link " href="{{ route('user.list') }}">List</a></li>
-          {{-- <li><a class="nav-link " href="users-edit.html">User Edit</a></li>
-          <li><a class="nav-link " href="users-view.html">User View</a></li> --}}
-          {{-- <li><a class="nav-link " href="profile.html">Profile</a></li> --}}
+          <li><a class="nav-link " href="{{ route('staff.list') }}">List</a></li>
 
-          <li><a class="nav-link " href="roles.html">Roles & Permissions</a></li>
+
         </ul>
       </li>
+
+
+      <li class="nav-item has-submenu ">
+        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
+          <i class="ph-light ph-users"></i>
+          <span>Members</span>
+          <i class="ph-light ph-caret-down nav-arrow"></i>
+        </a>
+        <ul class="nav-submenu ">
+          <li><a class="nav-link " href=" ">List</a></li>
+
+
+          <li><a class="nav-link " href="roles.html">Groups</a></li>
+        </ul>
+      </li>
+
 
 
       <li class="nav-item">
@@ -118,10 +131,11 @@
   <div class="sidebar-footer">
     <div class="sidebar-footer-user">
       <a href="profile.html" class="sidebar-footer-profile">
-        <img src="{{ asset('assets/img/profile-img.webp') }}" alt="User" class="sidebar-footer-avatar">
+        <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="sidebar-footer-avatar"
+          data-avatar>
         <div class="sidebar-footer-info">
           <div class="sidebar-footer-name">{{ auth()->user()->name }}</div>
-          <div class="sidebar-footer-role">Administrator</div>
+          <div class="sidebar-footer-role">{{auth()->user()->role}}</div>
         </div>
       </a>
       <div class="sidebar-footer-actions">

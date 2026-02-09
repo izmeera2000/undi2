@@ -10,7 +10,7 @@ use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\EventController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\MailController;
-use Illuminate\Http\Request;  
+use Illuminate\Http\Request;
 use App\Models\User;
 use App\Http\Controllers\StaffController;
 
@@ -51,9 +51,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
     Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
 
- 
-  
- 
+
+
+
 });
 
 
@@ -67,14 +67,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('staff', StaffController::class)
         ->except(['index']);
+    Route::get('/staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
+
+
+    Route::post('/staff/{user}/suspend', [StaffController::class, 'suspend'])->name('staff.suspend');
+    Route::post('/staff/{user}/activate', [StaffController::class, 'activate'])->name('staff.activate');
+    Route::post('/staff/{user}/role', [StaffController::class, 'changeRole'])->name('staff.changeRole');
+
+    Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])->name('staff.destroy');
+
+
+    Route::post('/staff/{user}/profile', [StaffController::class, 'updateProfile'])
+        ->name('staff.profile.update');
+    Route::post('/staff/{user}/change-password', [StaffController::class, 'changePassword'])
+        ->name('staff.changePassword');
+        
+
+
+        Route::post('/staff/{user}/avatar', [StaffController::class, 'updateAvatar']);
+
 
 });
 
 
 Route::get('/event', function () {
     $users = User::where('id', '!=', auth()->id())
-                 ->select('id', 'name')
-                 ->get();
+        ->select('id', 'name')
+        ->get();
 
     return view('calendar', compact('users'));
 })->middleware(['auth', 'verified'])->name('event');
@@ -84,7 +103,7 @@ Route::get('/event', function () {
 //////////////////////////////////////////////////////////////////
 
 
- 
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
