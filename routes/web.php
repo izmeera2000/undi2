@@ -5,187 +5,125 @@ use App\Http\Controllers\PengundiImportController;
 use App\Http\Controllers\PengundiTransferController;
 use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\EventController;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Http\Controllers\StaffController;
 use App\Http\Controllers\MailController;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Http\Controllers\StaffController;
 
+// --------------------------------------------------
+// Public / Auth Routes
+// --------------------------------------------------
 
-Route::get('/', function () {
-    return view('auth.login');
-});
+Route::get('/', fn() => view('auth.login'));
 
+Route::get('/testimport', fn() => view('testimport'))
+    ->middleware(['auth', 'verified'])
+    ->name('testimport');
 
-
-Route::get('/testimport', function () {
-    return view('testimport');
-})->middleware(['auth', 'verified'])->name('testimport');
-
-
-
-
-
-
+// --------------------------------------------------
+// Authenticated Routes
+// --------------------------------------------------
 
 Route::middleware('auth')->group(function () {
 
+    // Profile
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
+        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    });
 
+    // Events
+    Route::prefix('events')->group(function () {
+        Route::get('/', [EventController::class, 'index'])->name('events.index');
+        Route::post('/', [EventController::class, 'store'])->name('events.store');
+        Route::get('{event}', [EventController::class, 'show'])->name('events.show');
+        Route::put('{event}', [EventController::class, 'update'])->name('events.update');
+        Route::delete('{event}', [EventController::class, 'destroy'])->name('events.destroy');
+    });
 
-
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-
-
-    Route::get('/events', [EventController::class, 'index'])->name('events.index');
-    Route::post('/events', [EventController::class, 'store'])->name('events.store');
-    Route::get('/events/{event}', [EventController::class, 'show'])->name('events.show');
-    Route::put('/events/{event}', [EventController::class, 'update'])->name('events.update');
-    Route::delete('/events/{event}', [EventController::class, 'destroy'])->name('events.destroy');
-
-
-
+    // Calendar
+    Route::get('/event', function () {
+        $users = User::where('id', '!=', auth()->id())
+            ->select('id', 'name')
+            ->get();
+        return view('calendar', compact('users'));
+    })->middleware(['verified'])->name('event');
 
 });
 
+// --------------------------------------------------
+// Verified Routes (Dashboard + Staff + Protected Features)
+// --------------------------------------------------
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
-
-
-
- 
-
+    // Dashboard
     Route::view('/dashboard', 'dashboard')->name('dashboard');
 
+    // Staff
+    Route::prefix('staff')->name('staff.')->group(function () {
+        Route::view('list', 'staff.list')->name('list');
+        Route::get('data', [StaffController::class, 'getStaff'])->name('data');
+        Route::resource('/', StaffController::class)->except(['index']);
+        Route::get('{staff}', [StaffController::class, 'show'])->name('show');
+        Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
+        Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
+        Route::post('{user}/role', [StaffController::class, 'changeRole'])->name('changeRole');
+        Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
+        Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
+        Route::post('{user}/avatar', [StaffController::class, 'updateAvatar']);
+        Route::delete('{staff}', [StaffController::class, 'destroy'])->name('destroy');
+    });
 
+    // Pengundi Analytics
+    Route::prefix('pengundi')->name('pengundi.')->group(function () {
+        Route::get('analytics', [PengundiAnalyticsController::class, 'dropdowns'])->name('analysis');
+ 
 
+        Route::view('bulkimport', 'pengundi.bulkimport')->name('bulkimport');
 
+    Route::get('import/progress', [PengundiImportController::class, 'progress'])
+        ->name('import.progress');
 
+        Route::post('import', [PengundiImportController::class, 'import'])->name('import');
+        Route::get('transfer', [PengundiTransferController::class, 'transfer']);
+        Route::post('analytics/pdf', function (Request $request) {
+            $charts = $request->input('charts');
+            return Pdf::loadView('pengundi.pdf', ['charts' => $charts])
+                ->setPaper('a4', 'portrait')
+                ->stream('pengundi-analytics.pdf');
+        });
+    });
 
+    // Members
+    Route::prefix('members')->name('members.')->group(function () {
+        Route::post('upload', [MembersUploadController::class, 'upload'])->name('upload');
+        Route::get('transfer', [MembersTransferController::class, 'transfer']);
+    });
 
+    // Analytics AJAX Charts
+    Route::prefix('analytics/chart')->group(function () {
+        Route::post('overview', [PengundiAnalyticsController::class, 'overview']);
+        Route::post('jantina', [PengundiAnalyticsController::class, 'jantina']);
+        Route::post('jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
+        Route::post('ahliumno', [PengundiAnalyticsController::class, 'ahliumno']);
+        Route::post('ahliumno2', [PengundiAnalyticsController::class, 'overviewByAhliumno']);
+        Route::post('dundm', [PengundiAnalyticsController::class, 'dundm']);
+        Route::post('dundm2', [PengundiAnalyticsController::class, 'overviewByDundm']);
+        Route::post('dundm2spec', [PengundiAnalyticsController::class, 'overviewByDundmSpecDun']);
+        Route::post('firsttime', [PengundiAnalyticsController::class, 'overviewByFirstTime']);
+    });
 
+    Route::post('analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
+    Route::get('analytics/pengundi2', [PengundiAnalyticsController::class, 'index']);
 
-    // Staff list page (view only)
-    Route::view('/staff/list', 'staff.list')->name('staff.list');
-
-    // Staff page
-    Route::get('/staff/data', [StaffController::class, 'getStaff'])->name('staff.data');
-
-    Route::resource('staff', StaffController::class)
-        ->except(['index']);
-    Route::get('/staff/{staff}', [StaffController::class, 'show'])->name('staff.show');
-
-
-    Route::post('/staff/{user}/suspend', [StaffController::class, 'suspend'])->name('staff.suspend');
-    Route::post('/staff/{user}/activate', [StaffController::class, 'activate'])->name('staff.activate');
-    Route::post('/staff/{user}/role', [StaffController::class, 'changeRole'])->name('staff.changeRole');
-
-    Route::delete('/staff/{staff}', [StaffController::class, 'destroy'])->name('staff.destroy');
-
-
-    Route::post('/staff/{user}/profile', [StaffController::class, 'updateProfile'])
-        ->name('staff.profile.update');
-    Route::post('/staff/{user}/change-password', [StaffController::class, 'changePassword'])
-        ->name('staff.changePassword');
-        
-
-
-        Route::post('/staff/{user}/avatar', [StaffController::class, 'updateAvatar']);
-
-
+    // Mail
+    Route::post('mail/send', [MailController::class, 'sendEmail'])->name('mail.send');
 });
-
-
-Route::get('/event', function () {
-    $users = User::where('id', '!=', auth()->id())
-        ->select('id', 'name')
-        ->get();
-
-    return view('calendar', compact('users'));
-})->middleware(['auth', 'verified'])->name('event');
-
-
-
-//////////////////////////////////////////////////////////////////
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-Route::get('/pengundi/analytics', [PengundiAnalyticsController::class, 'dropdowns'])
-    ->middleware(['auth', 'verified'])
-    ->name('pengundi.analysis');
-
-
-
-Route::get('/pengundi/transfer', [PengundiTransferController::class, 'transfer']);
-
-
-Route::post('/pengundi/import', [PengundiImportController::class, 'import']);
-
-
-Route::post('/pengundi/analytics/pdf', function (Request $request) {
-    $charts = $request->input('charts'); // full array with id, image, title
-
-    return Pdf::loadView('pengundi.pdf', ['charts' => $charts])
-        ->setPaper('a4', 'portrait')
-
-        ->stream('pengundi-analytics.pdf');
-});
-//////////////////////////////////////////////////////////////////////////
-
-Route::post('/members/upload', [MembersUploadController::class, 'upload'])
-    ->name('members.upload');
-
-
-Route::get('/members/transfer', [MembersTransferController::class, 'transfer']);
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
-
-
-
-Route::post('/analytics/chart/overview', [PengundiAnalyticsController::class, 'overview']);
-Route::post('/analytics/chart/jantina', [PengundiAnalyticsController::class, 'jantina']);
-Route::post('/analytics/chart/jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
-
-Route::post('/analytics/chart/ahliumno', [PengundiAnalyticsController::class, 'ahliumno']);
-Route::post('/analytics/chart/ahliumno2', [PengundiAnalyticsController::class, 'overviewByAhliumno']);
-
-
-Route::post('/analytics/chart/dundm', [PengundiAnalyticsController::class, 'dundm']);
-Route::post('/analytics/chart/dundm2', [PengundiAnalyticsController::class, 'overviewByDundm']);
-Route::post('/analytics/chart/dundm2spec', [PengundiAnalyticsController::class, 'overviewByDundmSpecDun']);
-
-
-Route::post('/analytics/chart/firsttime', [PengundiAnalyticsController::class, 'overviewByFirstTime']);
-
-Route::post('/analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
-Route::get('/analytics/pengundi2', [PengundiAnalyticsController::class, 'index']);
-
-
-
-
-
-
-
-////////////////////////
-
-Route::post('/mail/send', [MailController::class, 'sendEmail'])->name('mail.send');
-
 
 require __DIR__ . '/auth.php';

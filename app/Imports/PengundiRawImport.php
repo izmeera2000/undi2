@@ -51,12 +51,12 @@ class PengundiRawImport implements
 
     public function chunkSize(): int
     {
-        return 1000;
+    return 300;
     }
 
     public function batchSize(): int
     {
-        return 1000;
+    return 300;
     }
 }
 
