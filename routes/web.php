@@ -19,9 +19,6 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 
 Route::get('/testimport', function () {
@@ -58,6 +55,21 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+
+
+
+ 
+
+    Route::view('/dashboard', 'dashboard')->name('dashboard');
+
+
+
+
+
+
+
+
 
     // Staff list page (view only)
     Route::view('/staff/list', 'staff.list')->name('staff.list');

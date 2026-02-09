@@ -646,15 +646,18 @@ async function renderStackedBar(
         plotOptions: {
             bar: {
                 horizontal: isHorizontal,
- 
             },
         },
 
         tooltip: {
             shared: true,
             intersect: false,
-            offsetY: 60, // adjust this to your header height in px
-            followCursor: false,
+            fixed: {
+                enabled: true,
+                position: "topRight", // or topLeft
+                offsetX: 0,
+                offsetY: 0,
+            },
         },
 
         series,

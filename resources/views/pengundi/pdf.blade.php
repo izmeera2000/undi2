@@ -114,11 +114,7 @@
             <div class="  my-4">
 
                 <div class="chart-card">
-                    {{-- @if(!empty($chart['title']))
-                        <div class="chart-title">{{ $chart['title'] }}</div>
-                    @else
-                        <div class="chart-title">{{ $chart['id'] }}</div>
-                    @endif --}}
+ 
 
                     <img src="{{ $chart['image'] }}" class="img-fluid">
                 </div>

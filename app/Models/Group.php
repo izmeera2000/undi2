@@ -9,11 +9,21 @@ class Group extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description'];
+    protected $fillable = [
+        'name',
+        'description',
+    ];
 
-    // Many-to-many inverse relationship
+    /**
+     * Users that belong to this group
+     */
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_groups');
+        return $this->belongsToMany(
+            User::class,
+            'user_groups',
+            'group_id',
+            'user_id'
+        )->withTimestamps();
     }
 }

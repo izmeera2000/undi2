@@ -9,14 +9,13 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
-use Illuminate\Contracts\Queue\ShouldQueue;
+// use Illuminate\Contracts\Queue\ShouldQueue;
 
 class PengundiRawImport implements
     ToModel,
     WithHeadingRow,
     WithChunkReading,
-    WithBatchInserts,
-    ShouldQueue
+    WithBatchInserts 
 {
     public function model(array $row)
     {

@@ -32,9 +32,13 @@
                                     <span>Contact Details</span>
                                 </a>
 
-                                <a href="#section-access" class="edit-nav-item">
-                                    <i class="bi bi-shield-lock"></i>
-                                    <span>Access &amp; Security</span>
+                                @if (auth()->id() == $staff->id)
+
+                                    <a href="#section-access" class="edit-nav-item">
+                                        <i class="bi bi-shield-lock"></i>
+                                        <span>Access &amp; Security</span>
+
+                                @endif
                                 </a>
                                 @if (auth()->user()->isAdmin() && auth()->id() !== $staff->id)
                                     <a href="#section-danger" class="edit-nav-item text-danger">
@@ -67,10 +71,15 @@
                                                 id="avatarPreview">
 
                                         </div>
-                                        <label class="avatar-upload-btn" for="avatarInput">
-                                            <i class="bi bi-camera"></i>
-                                        </label>
-                                        <input type="file" id="avatarInput" name="avatar" class="d-none" accept="image/*">
+                                        @if (auth()->id() == $staff->id)
+
+                                            <label class="avatar-upload-btn" for="avatarInput">
+                                                <i class="bi bi-camera"></i>
+                                            </label>
+
+
+                                            <input type="file" id="avatarInput" name="avatar" class="d-none" accept="image/*">
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="col">
@@ -83,7 +92,7 @@
                                 </div>
 
                             </div>
-
+ 
                         </div>
                     </div>
 
@@ -127,12 +136,14 @@
 
                                 <div class="col-md-6">
                                     <label class="form-label">Phone Number</label>
-                                    <input type="tel" name="phone" class="form-control" value="{{ $staff->profile->phone }}">
+                                    <input type="tel" name="phone" class="form-control"
+                                        value="{{ $staff->profile->phone }}">
                                 </div>
 
                                 <div class="col-12">
                                     <label class="form-label">Address</label>
-                                    <input type="text" name="address" class="form-control" value="{{ $staff->profile->address }}">
+                                    <input type="text" name="address" class="form-control"
+                                        value="{{ $staff->profile->address }}">
                                 </div>
                             </div>
                         </div>
@@ -150,64 +161,69 @@
                     </div>
 
                     <!-- Access & Security Section -->
-                    <div class="card" id="section-access">
-                        <div class="card-header">
-                            <h5 class="card-title mb-0"><i class="bi bi-shield-lock me-2"></i>Access &amp; Security</h5>
-                        </div>
-                        <div class="card-body">
-                            <!-- Role Assignment -->
-                            <div class="row g-3 mb-4">
 
+                    @if (auth()->id() == $staff->id)
 
+                        <div class="card" id="section-access">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0"><i class="bi bi-shield-lock me-2"></i>Access &amp; Security</h5>
                             </div>
+                            <div class="card-body">
+                                <!-- Role Assignment -->
+                                <div class="row g-3 mb-4">
+
+
+                                </div>
 
 
 
-                            <h6 class="mb-3">Change Password</h6>
-                            <div class="alert alert-info d-flex gap-2 mb-3">
-                                <i class="bi bi-info-circle flex-shrink-0"></i>
-                                <div>Leave password fields empty to keep the current password.</div>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label">New Password</label>
-                                    <div class="input-group">
-                                        <input type="password" class="form-control password-field" id="newPassword"
-                                            placeholder="Enter new password" autocomplete="new-password">
-                                        <button class="btn btn-outline-secondary toggle-password" type="button">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
+                                <h6 class="mb-3">Change Password</h6>
+                                <div class="alert alert-info d-flex gap-2 mb-3">
+                                    <i class="bi bi-info-circle flex-shrink-0"></i>
+                                    <div>Leave password fields empty to keep the current password.</div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">New Password</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control password-field" id="newPassword"
+                                                placeholder="Enter new password" autocomplete="new-password">
+                                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Confirm Password</label>
+                                        <div class="input-group">
+
+                                            <input type="password" class="form-control password-field"
+                                                placeholder="Confirm new password" autocomplete="new-password"
+                                                id="confirmPassword">
+                                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                                <i class="bi bi-eye"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
-                                    <label class="form-label">Confirm Password</label>
-                                    <div class="input-group">
-
-                                        <input type="password" class="form-control password-field"
-                                            placeholder="Confirm new password" autocomplete="new-password"
-                                            id="confirmPassword">
-                                        <button class="btn btn-outline-secondary toggle-password" type="button">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                    </div>
-                                </div>
                             </div>
-
                         </div>
-                    </div>
 
 
-                    <div class="form-actions-bar  mb-4">
-                        <div class="form-actions-info">
-                            {{-- <span class="text-muted">Last updated: May 10, 2024 at 3:45 PM</span> --}}
+                        <div class="form-actions-bar  mb-4">
+                            <div class="form-actions-info">
+                                {{-- <span class="text-muted">Last updated: May 10, 2024 at 3:45 PM</span> --}}
+                            </div>
+                            <div class="form-actions-buttons">
+                                <button type="submit" class="btn btn-primary" id="savePasswordBtn">
+                                    <i class="bi bi-check-lg me-1"></i> Save Changes
+                                </button>
+                            </div>
                         </div>
-                        <div class="form-actions-buttons">
-                            <button type="submit" class="btn btn-primary" id="savePasswordBtn">
-                                <i class="bi bi-check-lg me-1"></i> Save Changes
-                            </button>
-                        </div>
-                    </div>
+                    @endif
+
 
                     @if (auth()->user()->isAdmin() && auth()->id() !== $staff->id)
                         <!-- Danger Zone Section -->
@@ -432,9 +448,9 @@
 
                             // Check if the fields are being updated in the DOM
                             console.log(formData);
- 
 
-                         
+
+
                             alert('Profile updated successfully!');
                         } else {
                             alert('Failed to update profile. Invalid response data.');

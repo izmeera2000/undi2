@@ -28,24 +28,24 @@ class PengundiAnalyticsController extends Controller
     }
 
     public function index(Request $request)
-{
-    $filters = $request->only([
-        'dm_id',
-        'tahun_undian',
-        'jantina',
-        'status_umno',
-        'status_baru',
-        'negeri', // ✅ now from pengundi table
-    ]);
+    {
+        $filters = $request->only([
+            'dm_id',
+            'tahun_undian',
+            'jantina',
+            'status_umno',
+            'status_baru',
+            'negeri',  
+        ]);
 
-    // Base query with joins
-    $query = DB::table('pengundi')
-        ->join('dm', 'pengundi.dm_id', '=', 'dm.id')
-        ->join('dun', 'dm.dun_id', '=', 'dun.id')
-        ->selectRaw("
+        // Base query with joins
+        $query = DB::table('pengundi')
+            ->join('dm', 'pengundi.dm_id', '=', 'dm.id')
+            ->join('dun', 'dm.dun_id', '=', 'dun.id')
+            ->selectRaw("
             dun.namadun,
             dm.namadm,
-            pengundi.negeri,  -- ✅ now from pengundi table
+            pengundi.negeri,  
             CASE
                 WHEN umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN umur BETWEEN 21 AND 29 THEN '21-29'
@@ -72,50 +72,50 @@ class PengundiAnalyticsController extends Controller
             COUNT(*) AS total
         ");
 
-    // Apply filters safely
-    foreach ($filters as $column => $value) {
-        if ($value !== null && $value !== '') {
-            $query->where("pengundi.$column", $value); // ✅ all filters now on pengundi table
+        // Apply filters safely
+        foreach ($filters as $column => $value) {
+            if ($value !== null && $value !== '') {
+                $query->where("pengundi.$column", $value); 
+            }
         }
-    }
 
-    // Analytics data
-    $analytics = $query
-        ->groupBy([
-            'dun.namadun',
-            'dm.namadm',
-            'pengundi.negeri', // ✅ group by pengundi.negeri
-            'umur_group',
-            'bangsa_group',
-            'jantina',
-            'status_umno',
-            'status_baru',
-            'tarikh_undian',
-        ])
-        ->get();
+        // Analytics data
+        $analytics = $query
+            ->groupBy([
+                'dun.namadun',
+                'dm.namadm',
+                'pengundi.negeri',  
+                'umur_group',
+                'bangsa_group',
+                'jantina',
+                'status_umno',
+                'status_baru',
+                'tarikh_undian',
+            ])
+            ->get();
 
-    // Totals (reuse filters)
-    $totalsQuery = DB::table('pengundi');
+        // Totals (reuse filters)
+        $totalsQuery = DB::table('pengundi');
 
-    foreach ($filters as $column => $value) {
-        if ($value !== null && $value !== '') {
-            $totalsQuery->where("pengundi.$column", $value);
+        foreach ($filters as $column => $value) {
+            if ($value !== null && $value !== '') {
+                $totalsQuery->where("pengundi.$column", $value);
+            }
         }
-    }
 
-    $totals = $totalsQuery->selectRaw("
+        $totals = $totalsQuery->selectRaw("
         COUNT(*) AS total_pengundi,
         SUM(status_umno = 1) AS total_umno,
         SUM(status_baru = 1) AS total_first_time_voter
     ")->first();
 
-    return response()->json([
-        'cube' => $analytics,
-        'total_pengundi' => (int) $totals->total_pengundi,
-        'total_umno' => (int) $totals->total_umno,
-        'total_first_time_voter' => (int) $totals->total_first_time_voter,
-    ]);
-}
+        return response()->json([
+            'cube' => $analytics,
+            'total_pengundi' => (int) $totals->total_pengundi,
+            'total_umno' => (int) $totals->total_umno,
+            'total_first_time_voter' => (int) $totals->total_first_time_voter,
+        ]);
+    }
 
     public function overview(Request $request)
     {

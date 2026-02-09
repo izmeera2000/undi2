@@ -113,8 +113,8 @@
           <div class="user-dropdown-header">
             <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="user-dropdown-avatar"  data-avatar>
             <div class="user-dropdown-info">
-              <div class="user-dropdown-name">{{auth()->user()->name}}</div>
-              <div class="user-dropdown-role">{{auth()->user()->role}}</div>
+              <div class="user-dropdown-name">{{ucfirst(auth()->user()->name)}}</div>
+              <div class="user-dropdown-role">{{ucfirst(auth()->user()->role)}}</div>
             </div>
           </div>
           <div class="user-dropdown-body">

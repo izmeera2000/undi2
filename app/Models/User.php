@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Group;
 
 class User extends Authenticatable
 {
@@ -19,6 +20,7 @@ class User extends Authenticatable
         'profile_picture',
         'password',
         'role',
+        'members_id',
         'status',
     ];
 
@@ -108,8 +110,16 @@ class User extends Authenticatable
         };
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(
+            Group::class,
+            'user_groups',
+            'user_id',
+            'group_id'
+        )->withTimestamps();
+    }
 
 
 
-    
 }

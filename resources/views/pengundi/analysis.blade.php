@@ -190,22 +190,22 @@
         <h5 class="card-title mb-0">Negeri by UMNO and First Time</h5>
       </div>
       <div class="card-body  overflow-auto">
-        <div class="chart-container" id="test"></div>
+        <div class="chart-container" id="negeriChart"></div>
       </div>
     </div>
   </div>
 
 
-  <div class="col">
+  {{-- <div class="col">
     <div class="card h-100">
       <div class="card-header">
         <h5 class="card-title mb-0">Negeri From by UMNO and By geochart </h5>
       </div>
       <div class="card-body  overflow-auto">
-        <div class="chart-container" id="test"></div>
+        <div class="chart-container" id="geochart"></div>
       </div>
     </div>
-  </div>
+  </div> --}}
 
 
   <!-- Bootstrap Tooltip Modal -->
@@ -227,12 +227,84 @@
 
 @push('scripts')
 
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    google.charts.load('current', {
+      packages: ['geochart']
+    });
+  </script>
+
+
 
   <script>
 
+    // const NEGERI_TO_CODE = {
+    //   'JOHOR': 'MY-01',
+    //   'KEDAH': 'MY-02',
+    //   'KELANTAN': 'MY-03',
+    //   'MELAKA': 'MY-04',
+    //   'NEGERI SEMBILAN': 'MY-05',
+    //   'PAHANG': 'MY-06',
+    //   'PULAU PINANG': 'MY-07',
+    //   'PERAK': 'MY-08',
+    //   'PERLIS': 'MY-09',
+    //   'SELANGOR': 'MY-10',
+    //   'TERENGGANU': 'MY-11',
+    //   'SABAH': 'MY-12',
+    //   'SARAWAK': 'MY-13',
+    //   'WILAYAH PERSEKUTUAN KUALA LUMPUR': 'MY-14',
+    //   'LABUAN': 'MY-15',
+    //   'PUTRAJAYA': 'MY-16'
+    // };
 
+    // function renderMalaysiaGeoChart(cube) {
+    //   google.charts.setOnLoadCallback(() => {
 
+    //     // init all states with 0
+    //     const stateTotals = {};
+    //     Object.values(NEGERI_TO_CODE).forEach(code => {
+    //       stateTotals[code] = 0;
+    //     });
 
+    //     // aggregate from cube
+    //     cube.forEach(x => {
+    //       const negeri = x.negeri?.trim().toUpperCase();
+    //       const code = NEGERI_TO_CODE[negeri];
+
+    //       if (!code) return;
+
+    //       // 🔁 choose what you want to plot
+    //       if (x.status_umno === '1') {
+    //         stateTotals[code] += x.total;
+    //       }
+    //     });
+
+    //     const rows = Object.entries(stateTotals).map(([code, total]) => [
+    //       code,
+    //       total
+    //     ]);
+
+    //     const data = google.visualization.arrayToDataTable([
+    //       ['Negeri', 'Jumlah UMNO'],
+    //       ...rows
+    //     ]);
+
+    //     const options = {
+    //       region: 'MY',
+    //       resolution: 'provinces',
+    //       colorAxis: { colors: ['#fee2e2', '#991b1b'] },
+    //       datalessRegionColor: '#e5e7eb',
+    //       backgroundColor: '#ffffff',
+    //       legend: { textStyle: { color: '#111827' } }
+    //     };
+
+    //     const chart = new google.visualization.GeoChart(
+    //       document.getElementById('geochart')
+    //     );
+
+    //     chart.draw(data, options);
+    //   });
+    // }
 
 
     document.getElementById('exportPdf').addEventListener('click', async () => {
@@ -347,7 +419,8 @@
         bangsa: { chart: null },
         umur: { chart: null },
         jantina: { chart: null },
-        dun: { chart: null }  // ✅ add this
+        dun: { chart: null },
+        negeri: { chart: null },
       }
     };
 
@@ -414,6 +487,69 @@
       renderUmurChart(DashboardState.cube);
       renderJantinaChart(DashboardState.cube);
       renderDmUmurChart(DashboardState.cube);
+      // renderMalaysiaGeoChart(DashboardState.cube);
+      renderNegeriChart(DashboardState.cube);
+    }
+
+
+    function renderNegeriChart(cube) {
+
+
+      const categories = [
+        ...new Set(
+          cube
+            .map(x => x.negeri ? x.negeri.trim() : 'UNKNOWN') // null becomes "Unknown"
+        )
+      ];
+
+
+      if (!categories.length) return; // safety
+
+      // 2️⃣ Define stacks
+      const stacks = [
+        { umno: '1', baru: '1', name: 'UMNO - First Time' },
+        { umno: '1', baru: '0', name: 'UMNO - Existing' },
+        { umno: '0', baru: '1', name: 'Bukan UMNO - First Time' },
+        { umno: '0', baru: '0', name: 'Bukan UMNO - Existing' }
+      ];
+
+      // 3️⃣ Build series — ALWAYS return a number
+      const series = stacks.map(stack => ({
+        name: stack.name,
+        data: categories.map(negeri => {
+          const total = cube
+            .filter(x =>
+              (x.negeri ? x.negeri.trim() : 'UNKNOWN') === negeri &&
+              x.status_umno === stack.umno &&
+              x.status_baru === stack.baru
+            )
+            .reduce((sum, x) => sum + (Number(x.total) || 0), 0);
+
+          return total;
+        })
+
+      }));
+
+      // 4️⃣ Final safety check (important)
+      if (
+        series.some(s => !Array.isArray(s.data) || s.data.length !== categories.length)
+      ) {
+        console.warn('Negeri chart skipped due to invalid data', { categories, series });
+        return;
+      }
+
+      renderStackedBar(
+        document.querySelector('#negeriChart'),
+        DashboardState.charts.negeri,
+        categories,
+        series,
+        'Jumlah Pengundi',
+        'Negeri',
+        [],
+        'Negeri × UMNO × First Time',
+        true,
+        false
+      );
     }
 
 
