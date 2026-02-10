@@ -30,7 +30,7 @@
         </a>
         <ul class="nav-submenu ">
           <li><a class="nav-link " href="{{ route('pengundi.analysis') }}">Analytics</a></li>
-          <li><a class="nav-link " href="{{ route('dashboard') }}">Insert</a></li>
+          <li><a class="nav-link " href="{{ route('pengundi.bulkimport') }}">Bulk Import</a></li>
 
         </ul>
       </li>
@@ -52,7 +52,11 @@
 
       <li class="nav-item has-submenu ">
         <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
-          <i class="ph-light ph-users"></i>
+<i class="umno-logo">
+ @include('layouts.logo')
+
+</i>
+
           <span>Members</span>
           <i class="ph-light ph-caret-down nav-arrow"></i>
         </a>

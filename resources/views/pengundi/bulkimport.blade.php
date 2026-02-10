@@ -1,6 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Import Pengundi')
+@section('title', 'Bulk Import')
+
+
+@section('breadcrumb')
+  @php
+    // Build dynamic crumbs based on request
+    $crumbs = [
+      ['label' => 'Pengundi', 'url' => route('pengundi.analysis')],
+      ['label' => 'Bulk Import', 'url' => route('pengundi.bulkimport')],
+    ];
+
+  @endphp
+
+@endsection
 
 @section('content')
   <div class="row g-4 mb-4">
@@ -13,11 +26,17 @@
 
     <form id="importForm" enctype="multipart/form-data">
       @csrf
+
       <input type="file" name="file" required>
-      <button type="submit" class="btn btn-success" id="submitBtn">
+
+      <input type="number" name="tarikh_undian" class="form-control mt-2" placeholder="Tahun Undian (contoh: 2022)"
+        required>
+
+      <button type="submit" class="btn btn-success mt-2" id="submitBtn">
         Upload CSV
       </button>
     </form>
+
 
     <div id="loading" class="mt-3 d-none">
       <div class="spinner-border spinner-border-sm"></div>
@@ -85,18 +104,37 @@
         });
 
 
+      let polling = false;
 
-      // optional: start polling progress
       let interval = setInterval(() => {
+        if (polling) return;
+
+        polling = true;
+
         fetch("{{ route('pengundi.import.progress') }}")
           .then(res => res.json())
-          .then(progress => {
-            let percent = Math.min(Math.round(progress.count / 1000 * 100), 100); // adjust 1000 if needed
-            progressBar.style.width = percent + '%';
-            progressBar.innerText = percent + '%';
-            if (percent >= 100) clearInterval(interval);
+          .then(p => {
+            console.log(p);
+
+            if (p.total > 0) {
+              let percent = Math.round((p.count / p.total) * 100);
+              progressBar.style.width = percent + '%';
+              progressBar.innerText = percent + '%';
+
+              if (percent >= 100) {
+                clearInterval(interval);
+              }
+            }
+          })
+          .catch(err => {
+            console.warn('Progress fetch failed, retrying…', err);
+          })
+          .finally(() => {
+            polling = false;
           });
       }, 1000);
+
+
 
     });
   </script>

@@ -34,7 +34,7 @@ class StaffController extends Controller
             ->addColumn('staff', function ($row) {
                 return '
                 <div class="d-flex align-items-center gap-3">
-                    <img src="' . asset('assets/img/profile-img.webp') . '" 
+                    <img src="' . $row->profile->getProfilePictureUrlAttribute() . '" 
                          class="rounded-circle" width="40">
                     <div>
                         <a href="' . route('staff.show', $row->id) . '" class="fw-semibold">

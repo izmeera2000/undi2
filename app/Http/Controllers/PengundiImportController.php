@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\TransferPengundiJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -10,10 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class PengundiImportController extends Controller
 {
-    protected $cacheKey = 'pengundi_import_progress';
-    protected $batchSize = 300;
+    protected string $cacheKey = 'pengundi_import_progress';
+    protected int $batchSize = 300;
 
-    protected $headerMap = [
+    protected array $headerMap = [
         'KOD PAR' => 'kod_par',
         'NAMAPAR' => 'namapar',
         'KOD DUN' => 'kod_dun',
@@ -42,136 +43,111 @@ class PengundiImportController extends Controller
         'NEGERI' => 'negeri',
     ];
 
-    protected $integerColumns = [
+    protected array $integerColumns = [
+ 
         'tahun_lahir',
         'umur',
-        'kod_par',
-        'kod_dun',
-        'koddm',
-        'kodlokaliti',
-        'kodpar_pru12',
-        'poskod'
-    ];
+     ];
 
     /**
-     * Import CSV into pengundi_raw table
+     * Import CSV → pengundi_raw
      */
-
     public function import(Request $request)
     {
-        $count = 0;
-        $rows = [];
-
-        $total = count($rows);
-
-        Cache::put($this->cacheKey, 0);
-
         try {
-            // Catch validation manually to log it
-            try {
-                $request->validate([
-                    'file' => 'required|mimes:csv,txt|max:30720', // 30MB
-                ]);
-            } catch (ValidationException $ve) {
-                Log::error('CSV Validation Error', [
-                    'errors' => $ve->errors(),
-                    'request' => $request->all(),
-                ]);
+            $request->validate([
+                'file' => 'required|mimes:csv,txt|max:30720',
+                'tarikh_undian' => 'required|integer',
 
-                return response()->json([
-                    'error' => 'Validation failed',
-                    'details' => $ve->errors(),
-                ], 422);
-            }
-
-            $file = $request->file('file');
-
-            if (!$file || !$file->isValid()) {
-                Log::error('File upload error', [
-                    'file' => $file ? $file->getClientOriginalName() : null,
-                    'error' => $file ? $file->getError() : 'No file',
-                ]);
-
-                return response()->json([
-                    'error' => 'The file failed to upload.'
-                ], 422);
-            }
-
-            Cache::put($this->cacheKey, 0);
-
-            if (($handle = fopen($file->getRealPath(), 'r')) === false) {
-                throw new \Exception('Failed to open uploaded CSV file.');
-            }
-
-            $header = null;
-
-            while (($data = fgetcsv($handle, 0, ',')) !== false) {
-                if (!$header) {
-                    $header = array_map(fn($h) => trim(strtoupper($h)), $data);
-                    continue;
-                }
-
-                if (!array_filter($data, fn($v) => trim($v) !== '')) {
-                    continue;
-                }
-
-                $rowData = [];
-                foreach ($this->headerMap as $csvKey => $dbColumn) {
-                    $index = array_search(strtoupper($csvKey), $header);
-                    $value = $index !== false ? trim($data[$index]) : null;
-
-                    if ($value === '') {
-                        $value = null;
-                    }
-
-                    if (in_array($dbColumn, $this->integerColumns) && $value !== null) {
-                        $value = is_numeric($value) ? (int) $value : null;
-                    }
-
-                    $rowData[$dbColumn] = $value;
-                }
-
-                $rows[] = $rowData;
-                $count++;
-
-                if ($count % $this->batchSize === 0) {
-                    DB::table('pengundi_raw')->insert($rows);
-                    $rows = [];
-                    Cache::put($this->cacheKey, $count);
-                }
-            }
-
-            if (!empty($rows)) {
-                DB::table('pengundi_raw')->insert($rows);
-            }
-
-            fclose($handle);
-            Cache::put($this->cacheKey, $count);
-
-            return response()->json([
-                'success' => "Imported $count rows successfully!"
             ]);
-        } catch (\Exception $e) {
-            Log::error('CSV Import Exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'request' => $request->all(),
-            ]);
-
-            return response()->json([
-                'error' => 'Import failed: ' . $e->getMessage()
-            ], 500);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Invalid CSV file'], 422);
         }
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+        $tarikhUndian = (int) $request->tarikh_undian;
+
+        /** 1️⃣ Count total rows */
+        $total = 0;
+        if (($h = fopen($path, 'r')) !== false) {
+            fgetcsv($h); // header
+            while (fgetcsv($h))
+                $total++;
+            fclose($h);
+        }
+
+        Cache::put($this->cacheKey, [
+            'count' => 0,
+            'total' => $total,
+        ]);
+
+        /** 2️⃣ Import data */
+        $handle = fopen($path, 'r');
+        $header = array_map('strtoupper', fgetcsv($handle));
+
+        $rows = [];
+        $count = 0;
+
+        while (($data = fgetcsv($handle)) !== false) {
+            if (!array_filter($data))
+                continue;
+
+            $row = [];
+            foreach ($this->headerMap as $csv => $db) {
+                $idx = array_search(strtoupper($csv), $header);
+                $val = $idx !== false ? trim($data[$idx]) : null;
+
+                if ($val === '')
+                    $val = null;
+                if (in_array($db, $this->integerColumns) && $val !== null) {
+                    $val = is_numeric($val) ? (int) $val : null;
+                }
+
+                $row[$db] = $val;
+            }
+
+            $rows[] = $row;
+            $count++;
+
+            if ($count % $this->batchSize === 0) {
+                DB::table('pengundi_raw')->insert($rows);
+                $rows = [];
+
+                Cache::put($this->cacheKey, [
+                    'count' => $count,
+                    'total' => $total,
+                ]);
+            }
+        }
+
+        if ($rows) {
+            DB::table('pengundi_raw')->insert($rows);
+        }
+
+        fclose($handle);
+
+        Cache::put($this->cacheKey, [
+            'count' => $count,
+            'total' => $total,
+        ]);
+
+        /** 3️⃣ Dispatch transfer job */
+        $job = new TransferPengundiJob($tarikhUndian);
+        $job->handle();
+
+        return response()->json([
+            'success' => "Imported $count rows. Transfer started."
+        ]);
     }
 
-
     /**
-     * Get current import progress for JS polling
+     * Progress polling
      */
     public function progress()
     {
-        return response()->json([
-            'count' => Cache::get($this->cacheKey, 0)
-        ]);
+        return response()->json(
+            Cache::get($this->cacheKey, ['count' => 0, 'total' => 1])
+        );
     }
 }

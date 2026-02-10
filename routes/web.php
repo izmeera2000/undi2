@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Staff
     Route::prefix('staff')->name('staff.')->group(function () {
         Route::view('list', 'staff.list')->name('list');
+        Route::get('{staff}/edit', [StaffController::class, 'edit'])->name('edit');
         Route::get('data', [StaffController::class, 'getStaff'])->name('data');
         Route::resource('/', StaffController::class)->except(['index']);
         Route::get('{staff}', [StaffController::class, 'show'])->name('show');
@@ -83,12 +84,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Pengundi Analytics
     Route::prefix('pengundi')->name('pengundi.')->group(function () {
         Route::get('analytics', [PengundiAnalyticsController::class, 'dropdowns'])->name('analysis');
- 
+
 
         Route::view('bulkimport', 'pengundi.bulkimport')->name('bulkimport');
 
-    Route::get('import/progress', [PengundiImportController::class, 'progress'])
-        ->name('import.progress');
+        Route::get('import/progress', [PengundiImportController::class, 'progress'])
+            ->name('import.progress');
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
         Route::get('transfer', [PengundiTransferController::class, 'transfer']);

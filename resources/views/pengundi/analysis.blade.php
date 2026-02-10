@@ -102,8 +102,11 @@
           <div class="widget-stat-value" id="totalUmno">4m 32s</div>
           <div class="widget-stat-label">Ahli UMNO</div>
         </div>
-        <div class="widget-stat-icon info">
-          <i class="bi bi-clock-history"></i>
+        <div class="widget-stat-icon danger">
+          <i class="umno-logo2">
+            @include('layouts.logo')
+
+          </i>
         </div>
       </div>
       {{-- <div class="widget-stat-change positive">
