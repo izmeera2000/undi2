@@ -29,9 +29,13 @@ class PengundiAnalyticsController extends Controller
 
     public function index(Request $request)
     {
+
+
+
+
         $filters = $request->only([
             'dm_id',
-            'tahun_undian',
+            'tarikh_undian',
             'jantina',
             'status_umno',
             'status_baru',
@@ -72,6 +76,15 @@ class PengundiAnalyticsController extends Controller
             COUNT(*) AS total
         ");
 
+        if ($request->mode === 'compare' && $request->year1 && $request->year2) {
+            $query->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        } elseif ($request->year1) {
+            $query->where('pengundi.tarikh_undian', $request->year1);
+        }
+
         // Apply filters safely
         foreach ($filters as $column => $value) {
             if ($value !== null && $value !== '') {
@@ -97,23 +110,34 @@ class PengundiAnalyticsController extends Controller
         // Totals (reuse filters)
         $totalsQuery = DB::table('pengundi');
 
+        if ($request->mode === 'compare' && $request->year1 && $request->year2) {
+            $totalsQuery->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        } elseif ($request->year1) {
+            $totalsQuery->where('pengundi.tarikh_undian', $request->year1);
+        }
+
         foreach ($filters as $column => $value) {
             if ($value !== null && $value !== '') {
                 $totalsQuery->where("pengundi.$column", $value);
             }
         }
 
-        $totals = $totalsQuery->selectRaw("
+        $totals = $totalsQuery
+            ->selectRaw("
+        tarikh_undian,
         COUNT(*) AS total_pengundi,
         SUM(status_umno = 1) AS total_umno,
         SUM(status_baru = 1) AS total_first_time_voter
-    ")->first();
+    ")
+            ->groupBy('tarikh_undian')
+            ->get();
 
         return response()->json([
             'cube' => $analytics,
-            'total_pengundi' => (int) $totals->total_pengundi,
-            'total_umno' => (int) $totals->total_umno,
-            'total_first_time_voter' => (int) $totals->total_first_time_voter,
+            'totals' => $totals,
         ]);
     }
 

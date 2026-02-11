@@ -36572,3 +36572,4 @@ input:checked + .contact-priority-label.urgent {
     display: block;
     fill: currentColor; /* inherits color from <i> */
 }
+ 

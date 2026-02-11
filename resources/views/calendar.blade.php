@@ -217,6 +217,15 @@
           document.querySelectorAll('.participant-checkbox:checked')
         ).map(cb => cb.value);
 
+
+ 
+
+        console.log(title);
+        console.log(start_date);
+        console.log(end_date);
+        console.log(participants);
+ 
+
         fetch('/events', {
           method: 'POST',
           headers: {
@@ -336,19 +345,19 @@
           upcomingEl.insertAdjacentHTML(
             'beforeend',
             `
-              <div class="upcoming-event-item">
-                <div class="upcoming-event-color"
-                      style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
-                <div class="upcoming-event-date text-center me-2">
-                  <div class="fw-bold">${day}</div>
-                  <div>${month}</div>
-                </div>
-                <div>
-                  <div class="fw-semibold">${title}</div>
-                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
+                <div class="upcoming-event-item">
+                  <div class="upcoming-event-color"
+                        style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
+                  <div class="upcoming-event-date text-center me-2">
+                    <div class="fw-bold">${day}</div>
+                    <div>${month}</div>
                   </div>
-              </div>
-            `
+                  <div>
+                    <div class="fw-semibold">${title}</div>
+                    <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
+                    </div>
+                </div>
+              `
           );
         });
       }

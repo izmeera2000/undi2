@@ -581,8 +581,8 @@ async function renderStackedBar(
         chart: {
             type: "bar",
             stacked: true,
-            height: isHorizontal ? 800 : 600,
-            width: isHorizontal ? 800 : undefined,
+            height: isHorizontal ? 1100 : 600,
+            width: isHorizontal ? 900 : undefined,
             animations: {
                 enabled: isAnimated,
             },
@@ -662,7 +662,19 @@ async function renderStackedBar(
 
         series,
         colors,
-
+        dataLabels: {
+            enabled: true,
+            style: {
+                colors: ["#fff"], // default text color
+            },
+            dropShadow: {
+                enabled: true,
+                top: 0, // move shadow slightly down
+                left: 0, // move shadow slightly right
+                blur: 1, // soften edges
+                color: "#000",
+            },
+        },
         xaxis: {
             categories,
             title: {
@@ -675,7 +687,15 @@ async function renderStackedBar(
             },
         },
 
-        legend: { position: "bottom" },
+    legend: {
+  show: true,
+  position: 'bottom',
+  horizontalAlign: 'center',
+  width: '100%',   // make legend span full chart width
+  offsetX: 0,      // optional, adjust horizontal offset
+  offsetY: 0
+},
+
 
         title: {
             text: title,
