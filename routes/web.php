@@ -127,4 +127,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('mail/send', [MailController::class, 'sendEmail'])->name('mail.send');
 });
 
+
+
+
+
+
+Route::get('/clear-all', function () {
+    Artisan::call('optimize:clear');
+    return 'Cleared';
+});
+
+
+
+
+
+
+
+
+
+
+
+
 require __DIR__ . '/auth.php';
