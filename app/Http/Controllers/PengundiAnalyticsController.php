@@ -35,7 +35,7 @@ class PengundiAnalyticsController extends Controller
             'jantina',
             'status_umno',
             'status_baru',
-            'negeri',  
+            'negeri',
         ]);
 
         // Base query with joins
@@ -75,7 +75,7 @@ class PengundiAnalyticsController extends Controller
         // Apply filters safely
         foreach ($filters as $column => $value) {
             if ($value !== null && $value !== '') {
-                $query->where("pengundi.$column", $value); 
+                $query->where("pengundi.$column", $value);
             }
         }
 
@@ -84,7 +84,7 @@ class PengundiAnalyticsController extends Controller
             ->groupBy([
                 'dun.namadun',
                 'dm.namadm',
-                'pengundi.negeri',  
+                'pengundi.negeri',
                 'umur_group',
                 'bangsa_group',
                 'jantina',
@@ -140,17 +140,14 @@ class PengundiAnalyticsController extends Controller
             COUNT(*) AS total
         ");
 
-        // 🔹 MODE HANDLING
 
-        // 🔹 Other filters
-// SINGLE
-        if ($request->mode !== 'compare' && $request->year) {
-            $query->where('tarikh_undian', $request->year);
-        }
-
-        // COMPARE
         if ($request->mode === 'compare') {
-            $query->whereIn('tarikh_undian', [$request->year1, $request->year2]);
+            $query->whereIn('pengundi.tarikh_undian', [
+                $request->year1,
+                $request->year2
+            ]);
+        } elseif ($request->year) {
+            $query->where('pengundi.tarikh_undian', $request->year);
         }
 
 
