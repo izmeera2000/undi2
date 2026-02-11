@@ -100,7 +100,7 @@
       <div class="widget-stat-header">
         <div>
           <div class="widget-stat-value" id="totalUmno">4m 32s</div>
-          <div class="widget-stat-label">Ahli UMNO</div>
+          <div class="widget-stat-label">Pengundi UMNO</div>
         </div>
         <div class="widget-stat-icon danger">
           <i class="umno-logo2">
