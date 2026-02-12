@@ -18,4 +18,29 @@
 
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
+
 {!! ToastMagic::scripts() !!}
+
+
+@vite(['resources/js/app.js'])
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        if (!window.Echo) {
+            console.error("Echo not loaded yet");
+            return;
+        }
+
+        window.Echo.private('App.Models.User.{{ auth()->id() }}')
+            .notification((notification) => {
+
+                console.log(notification);
+                const toast = new ToastMagic();
+
+                toast.info("Exporting", "Done");
+
+
+            });
+    });
+</script>

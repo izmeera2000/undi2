@@ -7,7 +7,8 @@ use App\Models\Dun;
 use App\Models\Pengundi;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-
+use App\Models\User;
+use App\Notifications\NewPengundiNotification;
 
 
 class PengundiAnalyticsController extends Controller
@@ -149,13 +150,17 @@ class PengundiAnalyticsController extends Controller
 
 
 
-   public function generatePdf(Request $request)
+    public function generatePdf(Request $request)
     {
         $charts = $request->input('charts');
 
+        $user = User::find(1);
+
+        $user->notify(new NewPengundiNotification("New Pengundi registered"));
+
         return Pdf::loadView('pengundi.pdf', [
-                'charts' => $charts
-            ])
+            'charts' => $charts
+        ])
             ->setPaper('a4', 'portrait')
             ->stream('pengundi-analytics.pdf');
     }
