@@ -93,12 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
         Route::get('transfer', [PengundiTransferController::class, 'transfer']);
-        Route::post('analytics/pdf', function (Request $request) {
-            $charts = $request->input('charts');
-            return Pdf::loadView('pengundi.pdf', ['charts' => $charts])
-                ->setPaper('a4', 'portrait')
-                ->stream('pengundi-analytics.pdf');
-        });
+        Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
+            ->name('analytics.pdf');
+
     });
 
     // Members

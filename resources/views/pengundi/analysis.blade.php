@@ -170,28 +170,41 @@
 
 
 
+  <div class="row   mb-4">
 
 
-  <div class="mb-4">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title">DUN Chart DunxUMNOxUmur </h5>
-        <div>
-          {{-- <select id="dunSelect" class="form-select d-inline-block" style="width:200px;">
-            <option value="">All</option>
-            @foreach($duns as $dun)
-            <option value="{{ $dun->namadun }}">{{ $dun->namadun }}</option>
-            @endforeach
-          </select> --}}
+    <div class="col-md-6 col-12 ">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title">DUN Chart DunxUMNOxUmur </h5>
+          <div>
 
-          {{-- <button id="loadDunChart" class="btn btn-primary btn-sm">Load Chart</button> --}}
+          </div>
+        </div>
+        <div class="card-body overflow-auto">
+          <div class="chart-container mx-auto" id="dunChart1"></div>
         </div>
       </div>
-      <div class="card-body overflow-auto">
-        <div class="chart-container mx-auto" id="dunChart"></div>
+    </div>
+
+
+    <div class="col-md-6 col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title">DUN Chart DunxUMNOxUmur </h5>
+          <div>
+
+          </div>
+        </div>
+        <div class="card-body overflow-auto">
+          <div class="chart-container mx-auto" id="dunChart2"></div>
+        </div>
       </div>
     </div>
+
+
   </div>
+
 
   <div class="col">
     <div class="card h-100">
@@ -245,182 +258,19 @@
 
 
 
+
+
+
+
+
+
+  @include('pengundi.js.exportpdf')
+
+
+
+
+
   <script>
-
-    // const NEGERI_TO_CODE = {
-    //   'JOHOR': 'MY-01',
-    //   'KEDAH': 'MY-02',
-    //   'KELANTAN': 'MY-03',
-    //   'MELAKA': 'MY-04',
-    //   'NEGERI SEMBILAN': 'MY-05',
-    //   'PAHANG': 'MY-06',
-    //   'PULAU PINANG': 'MY-07',
-    //   'PERAK': 'MY-08',
-    //   'PERLIS': 'MY-09',
-    //   'SELANGOR': 'MY-10',
-    //   'TERENGGANU': 'MY-11',
-    //   'SABAH': 'MY-12',
-    //   'SARAWAK': 'MY-13',
-    //   'WILAYAH PERSEKUTUAN KUALA LUMPUR': 'MY-14',
-    //   'LABUAN': 'MY-15',
-    //   'PUTRAJAYA': 'MY-16'
-    // };
-
-    // function renderMalaysiaGeoChart(cube) {
-    //   google.charts.setOnLoadCallback(() => {
-
-    //     // init all states with 0
-    //     const stateTotals = {};
-    //     Object.values(NEGERI_TO_CODE).forEach(code => {
-    //       stateTotals[code] = 0;
-    //     });
-
-    //     // aggregate from cube
-    //     cube.forEach(x => {
-    //       const negeri = x.negeri?.trim().toUpperCase();
-    //       const code = NEGERI_TO_CODE[negeri];
-
-    //       if (!code) return;
-
-    //       // 🔁 choose what you want to plot
-    //       if (x.status_umno === '1') {
-    //         stateTotals[code] += x.total;
-    //       }
-    //     });
-
-    //     const rows = Object.entries(stateTotals).map(([code, total]) => [
-    //       code,
-    //       total
-    //     ]);
-
-    //     const data = google.visualization.arrayToDataTable([
-    //       ['Negeri', 'Jumlah UMNO'],
-    //       ...rows
-    //     ]);
-
-    //     const options = {
-    //       region: 'MY',
-    //       resolution: 'provinces',
-    //       colorAxis: { colors: ['#fee2e2', '#991b1b'] },
-    //       datalessRegionColor: '#e5e7eb',
-    //       backgroundColor: '#ffffff',
-    //       legend: { textStyle: { color: '#111827' } }
-    //     };
-
-    //     const chart = new google.visualization.GeoChart(
-    //       document.getElementById('geochart')
-    //     );
-
-    //     chart.draw(data, options);
-    //   });
-    // }
-
-
-    document.getElementById('exportPdf').addEventListener('click', async () => {
-      // console.log('Exporting PDF');
-
-      const toast = new ToastMagic();
-      toast.info("Exporting", "Exporting to PDF");
-
-
-      if (!DashboardState.charts) {
-        alert('Charts not ready');
-        return;
-      }
-
-
-      await new Promise(r => setTimeout(r, 300));
-
-      const images = [];
-
-      for (const { chart, title } of Object.values(DashboardState.charts)) {
-        if (!chart) continue;
-        // console.log(chart.core.w.config);
-
-        const originalHeight = chart.core.w.config.chart.height;
-        const originalWidth = chart.core.w.config.chart.width;
-        const originalAnimated = chart.core.w.config.chart.animations.enabled;
-        const totalCategories = chart.w.config.xaxis.categories.length;
-        // console.log(originalAnimated);
-
-        try {
-
-          await chart.updateOptions({
-            chart: {
-              animations: { enabled: false },
-            },
-          });
-          if (totalCategories >= 6) {
-            try {
-              await chart.updateOptions({
-                chart: {
-                  width: 600,
-                },
-              });
-            } catch (error) {
-              console.error('Error updating chart width:', error);
-            }
-
-            await new Promise(r => setTimeout(r, 1300));
-
-          } else {
-            await new Promise(r => setTimeout(r, 600));
-
-          }
-
-          // 3️⃣ Wait a moment for ApexCharts to render
-
-          // 4️⃣ Capture image
-          const { imgURI } = await chart.dataURI({ scale: 2 });
-          images.push({
-            id: chart.w.globals.chartID,
-            image: imgURI,
-            title,
-          });
-
-          if (totalCategories >= 6) {
-
-            await chart.updateOptions({
-              chart: {
-                width: originalWidth,
-                animations: { enabled: originalAnimated },
-
-              },
-            });
-          }
-
-
-        } catch (err) {
-          console.warn('Chart not ready:', chart?.w?.globals?.chartID, err);
-        }
-      }
-
-      if (!images.length) {
-        alert('No charts ready for export yet.');
-        return;
-      }
-      // console.log("start ex  ");
-
-      // 6️⃣ Send to backend
-      fetch('/pengundi/analytics/pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ charts: images })
-      })
-        .then(res => res.blob())
-        .then(blob => {
-          window.open(URL.createObjectURL(blob));
-        })
-      // .then(() => console.log("end ex"));
-
-
-    });
-
-
-
     const DashboardState = {
       cube: [],
       totals: {
@@ -431,31 +281,36 @@
         bangsa: { chart: null },
         umur: { chart: null },
         jantina: { chart: null },
-        dun: { chart: null },
+
+        // 👇 split DUN charts
+        dun1: { chart: null },
+        dun2: { chart: null },
+
         negeri: { chart: null },
       }
     };
 
+    
     async function loadDashboard(payload) {
       const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
       const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
       console.log(payload);
 
-      // 1️⃣ Try cache
+    
       const cached = sessionStorage.getItem(cacheKey);
 
 
-      // if (cached) {
-      //   const { data, expires } = JSON.parse(cached);
-      //   if (Date.now() < expires) {
-      //     console.log('using cache');
-      //     applyDashboardData(data);
-      //     return;
-      //   }
-      //   sessionStorage.removeItem(cacheKey);
-      // }
+      if (cached) {
+        const { data, expires } = JSON.parse(cached);
+        if (Date.now() < expires) {
+          console.log('using cache');
+          applyDashboardData(data);
+          return;
+        }
+        sessionStorage.removeItem(cacheKey);
+      }
 
-      // 2️⃣ Fetch if no cache
+       
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
       const res = await fetch('/analytics/pengundi', {
@@ -470,11 +325,11 @@
       const data = await res.json();
       console.log('rendering (fresh)');
 
-      // 3️⃣ Save cache
-      // sessionStorage.setItem(cacheKey, JSON.stringify({
-      //   data,
-      //   expires: Date.now() + CACHE_TTL
-      // }));
+ 
+      sessionStorage.setItem(cacheKey, JSON.stringify({
+        data,
+        expires: Date.now() + CACHE_TTL
+      }));
 
       applyDashboardData(data);
     }
@@ -536,6 +391,10 @@
 
   @include('pengundi.charts.jantina')
 
+
+
+
+
   @include('pengundi.charts.dmumur')
 
 
@@ -568,16 +427,16 @@
         const t = totals.data[0];
 
         elPengundi.innerHTML = `
-                                  ${t.totalPengundi.toLocaleString()}
-                                `;
+                                    ${t.totalPengundi.toLocaleString()}
+                                  `;
 
         elUmno.innerHTML = `
-                                  ${t.totalUmno.toLocaleString()}
-                                `;
+                                    ${t.totalUmno.toLocaleString()}
+                                  `;
 
         elFirstTime.innerHTML = `
-                                  ${t.totalFirstTime.toLocaleString()}
-                                `;
+                                    ${t.totalFirstTime.toLocaleString()}
+                                  `;
 
 
         elPengundib.innerHTML = '';
@@ -605,11 +464,11 @@
 
           return `
 
-                                <div class="widget-stat-change ${className}">
-                                  <i class="bi ${icon}"></i>
-                                  ${Math.abs(change).toFixed(1)}% vs ${previous.year}
-                                </div>
-                              `;
+                                  <div class="widget-stat-change ${className}">
+                                    <i class="bi ${icon}"></i>
+                                    ${Math.abs(change).toFixed(1)}% vs ${previous.year}
+                                  </div>
+                                `;
         };
 
         elPengundib.innerHTML = buildHTML(current.totalPengundi, pChange);

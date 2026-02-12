@@ -581,9 +581,8 @@ async function renderStackedBar(
         chart: {
             type: "bar",
             stacked: true,
-            height: isHorizontal ? 1100 : 600,
-            width: isHorizontal ? 900 : undefined,
-            animations: {
+            height: isHorizontal ? 800 : 600,
+             animations: {
                 enabled: isAnimated,
             },
             events: {
@@ -687,15 +686,14 @@ async function renderStackedBar(
             },
         },
 
-    legend: {
-  show: true,
-  position: 'bottom',
-  horizontalAlign: 'center',
-  width: '100%',   // make legend span full chart width
-  offsetX: 0,      // optional, adjust horizontal offset
-  offsetY: 0
-},
-
+        legend: {
+            show: true,
+            position: "bottom",
+            horizontalAlign: "center",
+            width: "100%", // make legend span full chart width
+            offsetX: 0, // optional, adjust horizontal offset
+            offsetY: 0,
+        },
 
         title: {
             text: title,
@@ -717,7 +715,7 @@ async function renderStackedBar(
                         title: { align: "left" },
                     },
                     plotOptions: {
-                        // bar: { horizontal: true, columnWidth: isHorizontal ? "100%"  : "60%"},
+                        bar: { horizontal: true },
                     },
                     chart: {
                         height: isHorizontal ? 800 : 500,

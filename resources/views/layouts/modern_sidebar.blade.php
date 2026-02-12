@@ -2,8 +2,8 @@
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <a href="{{ route('dashboard') }}" class="sidebar-logo">
-      <img src="{{ asset('assets/img/logo.webp') }}" alt="Undi">
-      <span>Undi</span>
+      <img src="{{ asset('assets/img/logo.png') }}" alt="UndiScope">
+      <span>UndiScope</span>
     </a>
     <button class="sidebar-close">
       <i class="bi bi-x-lg"></i>

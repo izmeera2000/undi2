@@ -83,23 +83,42 @@
             padding: 0 0.5rem;
             box-sizing: border-box;
         }
+
         .chart-card {
-    page-break-inside: avoid;
-    break-inside: avoid;
-}
+            border: 1px solid #dee2e6;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
 
-/* Extra safety for images */
-.chart-card img {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    display: block;
-    max-width: 100%;
-}
+            /* CRITICAL for PDF */
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
 
-/* Force new page when card is too tall */
-.chart-card {
-    page-break-before: auto;
-}
+        .chart-card img {
+            display: block;
+
+            max-width: 100% !important;
+            width: auto !important;
+
+            max-height: 850px !important;
+            /* SAFE height for A4 portrait */
+            height: auto !important;
+
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+
+        .chart-wrapper {
+            page-break-inside: avoid !important;
+        }
+
+
+        /* Force new page when card is too tall */
+        .chart-card {
+            page-break-before: auto;
+        }
     </style>
 
 </head>
@@ -111,16 +130,13 @@
     </header>
     <div class="container my-4">
         @foreach($charts as $chart)
-            <div class="  my-4">
-
+            <div class="chart-wrapper">
                 <div class="chart-card">
- 
-
-                    <img src="{{ $chart['image'] }}" class="img-fluid">
+                    <img src="{{ $chart['image'] }}">
                 </div>
             </div>
-
         @endforeach
+
     </div>
 
     <footer>

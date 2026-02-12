@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Dun;
 use App\Models\Pengundi;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 
 
@@ -140,6 +141,50 @@ class PengundiAnalyticsController extends Controller
             'totals' => $totals,
         ]);
     }
+
+
+
+
+
+
+
+
+   public function generatePdf(Request $request)
+    {
+        $charts = $request->input('charts');
+
+        return Pdf::loadView('pengundi.pdf', [
+                'charts' => $charts
+            ])
+            ->setPaper('a4', 'portrait')
+            ->stream('pengundi-analytics.pdf');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function overview(Request $request)
     {

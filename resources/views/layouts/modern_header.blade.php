@@ -1,9 +1,9 @@
 <header class="header">
   <!-- Header Left -->
   <div class="header-left">
-    <a href="index.html" class="header-logo">
-      <img src="{{ asset('assets/img/logo.webp') }}" alt="Undi">
-      <span>Undi</span>
+    <a href="{{ route('logout') }}" class="header-logo">
+      <img src="{{ asset('assets/img/logo2.png') }}" alt="UndiScope">
+      <span>UndiScope</span>
     </a>
     <button class="sidebar-toggle" title="Toggle Sidebar">
       <i class="bi bi-list"></i>
