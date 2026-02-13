@@ -7,7 +7,7 @@
           <a href="#">Contact</a>
         </div>
         <div class="footer-copyright">
-          &copy; 2026 <a href="#">ModernAdmin</a>. All Rights Reserved.
+          &copy; 2026 <a href="#">UndiScope</a>. All Rights Reserved.
         </div>
         <div class="footer-credits">
           <div class="credits">

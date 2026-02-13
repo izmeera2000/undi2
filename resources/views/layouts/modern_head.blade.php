@@ -34,7 +34,11 @@
   <!-- Main CSS -->
   <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
 
-  
+  @php
+
+  use Devrabiul\ToastMagic\Facades\ToastMagic;
+@endphp
+
       {!! ToastMagic::styles() !!}
 
   @stack('styles')

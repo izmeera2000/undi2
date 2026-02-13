@@ -13,8 +13,8 @@
 
             <!-- Logo -->
             <a href="{{ url('/') }}" class="auth-logo">
-                <img src="{{ asset('assets/img/logo.webp') }}" alt="ModernAdmin">
-                <span>ModernAdmin</span>
+                <img src="{{ asset('assets/img/logomain2.png') }}" alt="UndiScope">
+                {{-- <span>UndiScope</span> --}}
             </a>
 
             <div class="auth-card">
@@ -113,36 +113,39 @@
 
         </div>
     </div>
+<!-- Brand Side -->
+<div class="auth-brand-side">
+    <div class="auth-brand-content">
+        <div class="auth-brand-icon">
+           
+                <img src=" {{ asset('assets/img/logo.png') }}" alt="UndiScope">
 
-    <!-- Brand Side -->
-    <div class="auth-brand-side">
-        <div class="auth-brand-content">
-            <div class="auth-brand-icon">
-                <i class="bi bi-shield-lock"></i>
+        </div>
+
+        <h2 class="auth-brand-title">Welcome Back</h2>
+
+        <p class="auth-brand-text">
+            Sign in to access real-time voter analytics, monitor trends, and make data-driven political decisions.
+        </p>
+
+        <div class="auth-brand-features">
+            <div class="auth-brand-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>256-bit SSL Encryption</span>
             </div>
-
-            <h2 class="auth-brand-title">Welcome Back</h2>
-
-            <p class="auth-brand-text">
-                Sign in to access your dashboard, manage your projects, and collaborate with your team.
-            </p>
-
-            <div class="auth-brand-features">
-                <div class="auth-brand-feature">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>256-bit SSL Encryption</span>
-                </div>
-                <div class="auth-brand-feature">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>Two-Factor Authentication</span>
-                </div>
-                <div class="auth-brand-feature">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <span>24/7 Security Monitoring</span>
-                </div>
+ 
+          <div class="auth-brand-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Real-time Voter Trends</span>
+            </div>
+            <div class="auth-brand-feature">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>Political Data Insights</span>
             </div>
         </div>
     </div>
+</div>
+
 </div>
 
 @endsection

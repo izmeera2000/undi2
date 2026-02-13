@@ -25,6 +25,8 @@
 @vite(['resources/js/app.js'])
 
 <script>
+    const toast = new ToastMagic();
+
     document.addEventListener("DOMContentLoaded", function () {
 
         if (!window.Echo) {

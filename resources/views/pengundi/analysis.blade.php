@@ -20,42 +20,44 @@
 @section('content')
 
 
+<div class="mb-4">
+  <div class="form-actions-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+    
 
-  <div class="mb-4">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="card-title mb-0">Overview</h5>
+    <!-- Controls -->
+    <div class="form-actions-buttons d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+      <!-- Selects stack vertically on small screens -->
+      <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1">
+        <select id="modeSelect" class="form-select form-select-lg {{ $years->count() <= 1 ? 'd-none' : '' }}">
+          <option value="single" selected>Single Year</option>
+          <option value="compare">Compare Years</option>
+        </select>
 
-        <div class="d-flex gap-2">
+        <select id="year1" class="form-select form-select-lg">
+          @foreach($years as $year)
+            <option value="{{ $year }}" {{ $loop->first ? 'selected' : '' }}>
+              {{ $year }}
+            </option>
+          @endforeach
+        </select>
 
-          <select id="modeSelect" class="form-select form-select-sm {{ $years->count() <= 1 ? 'd-none' : '' }}">
-            <option value="single" selected>Single Year</option>
-            <option value="compare">Compare Years</option>
-          </select>
-
-          <select id="year1" class="form-select form-select-sm">
-            @foreach($years as $year)
-              <option value="{{ $year }}" {{ $loop->first ? 'selected' : '' }}>
-                {{ $year }}
-              </option>
-            @endforeach
-          </select>
-
-          <select id="year2" class="form-select form-select-sm d-none {{ $years->count() <= 1 ? 'd-none' : '' }}">
-            @foreach($years as $year)
-              <option value="{{ $year }}">{{ $year }}</option>
-            @endforeach
-          </select>
-
-          <button id="exportPdf" class="btn btn-danger">
-            Export PDF
-          </button>
-
-        </div>
+        <select id="year2" class="form-select form-select-lg d-none {{ $years->count() <= 1 ? 'd-none' : '' }}">
+          @foreach($years as $year)
+            <option value="{{ $year }}">{{ $year }}</option>
+          @endforeach
+        </select>
       </div>
-    </div>
-  </div>
 
+      <!-- Button: full width on small screens -->
+      <button id="exportPdf" class="btn btn-danger btn-lg  w-md-auto mt-2 mt-md-0">
+        Export PDF
+      </button>
+    </div>
+    
+  </div>
+</div>
+
+ 
 
 
   <!-- Stats Row -->
@@ -87,7 +89,7 @@
           <div class="widget-stat-label">First Time Voter</div>
         </div>
         <div class="widget-stat-icon warning">
-          <i class="bi bi-arrow-return-left"></i>
+          <i class="bi bi-person-check"></i>
         </div>
       </div>
       <div id="totalFirstTimeb">
@@ -115,9 +117,7 @@
       <div id="totalUmnob">
 
       </div>
-      {{-- <div class="widget-stat-change positive">
-        <i class="bi bi-arrow-up"></i> 12.1% vs last month
-      </div> --}}
+   
     </div>
   </div>
 
@@ -217,17 +217,7 @@
     </div>
   </div>
 
-
-  {{-- <div class="col">
-    <div class="card h-100">
-      <div class="card-header">
-        <h5 class="card-title mb-0">Negeri From by UMNO and By geochart </h5>
-      </div>
-      <div class="card-body  overflow-auto">
-        <div class="chart-container" id="geochart"></div>
-      </div>
-    </div>
-  </div> --}}
+ 
 
 
   <!-- Bootstrap Tooltip Modal -->
@@ -290,27 +280,27 @@
       }
     };
 
-    
+
     async function loadDashboard(payload) {
       const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
       const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-      console.log(payload);
+      // console.log(payload);
 
-    
+
       const cached = sessionStorage.getItem(cacheKey);
 
 
       if (cached) {
         const { data, expires } = JSON.parse(cached);
         if (Date.now() < expires) {
-          console.log('using cache');
+          // console.log('using cache');
           applyDashboardData(data);
           return;
         }
         sessionStorage.removeItem(cacheKey);
       }
 
-       
+
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
       const res = await fetch('/analytics/pengundi', {
@@ -323,9 +313,9 @@
       });
 
       const data = await res.json();
-      console.log('rendering (fresh)');
+      // console.log('rendering (fresh)');
 
- 
+
       sessionStorage.setItem(cacheKey, JSON.stringify({
         data,
         expires: Date.now() + CACHE_TTL
@@ -427,16 +417,16 @@
         const t = totals.data[0];
 
         elPengundi.innerHTML = `
-                                    ${t.totalPengundi.toLocaleString()}
-                                  `;
+                                      ${t.totalPengundi.toLocaleString()}
+                                    `;
 
         elUmno.innerHTML = `
-                                    ${t.totalUmno.toLocaleString()}
-                                  `;
+                                      ${t.totalUmno.toLocaleString()}
+                                    `;
 
         elFirstTime.innerHTML = `
-                                    ${t.totalFirstTime.toLocaleString()}
-                                  `;
+                                      ${t.totalFirstTime.toLocaleString()}
+                                    `;
 
 
         elPengundib.innerHTML = '';
@@ -464,11 +454,11 @@
 
           return `
 
-                                  <div class="widget-stat-change ${className}">
-                                    <i class="bi ${icon}"></i>
-                                    ${Math.abs(change).toFixed(1)}% vs ${previous.year}
-                                  </div>
-                                `;
+                                    <div class="widget-stat-change ${className}">
+                                      <i class="bi ${icon}"></i>
+                                      ${Math.abs(change).toFixed(1)}% vs ${previous.year}
+                                    </div>
+                                  `;
         };
 
         elPengundib.innerHTML = buildHTML(current.totalPengundi, pChange);

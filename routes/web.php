@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\MembersController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PengundiImportController;
 use App\Http\Controllers\PengundiTransferController;
@@ -100,9 +101,40 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Members
     Route::prefix('members')->name('members.')->group(function () {
+
+
+        Route::view('list', 'members.list')->name('list');
+        // Route::get('{staff}/edit', [StaffController::class, 'edit'])->name('edit');
+        Route::get('data', [MembersController::class, 'getList'])->name('data');
+        // Route::resource('/', StaffController::class)->except(['index']);
+        // Route::get('{staff}', [StaffController::class, 'show'])->name('show');
+        // Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
+        // Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
+        // Route::post('{user}/role', [StaffController::class, 'changeRole'])->name('changeRole');
+        // Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
+        // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
+        // Route::post('{user}/avatar', [StaffController::class, 'updateAvatar']);
+        // Route::delete('{staff}', [StaffController::class, 'destroy'])->name('destroy');
+
+
+
+
+
+
+
+
         Route::post('upload', [MembersUploadController::class, 'upload'])->name('upload');
         Route::get('transfer', [MembersTransferController::class, 'transfer']);
+
+
+
+
+
+
     });
+
+
+ 
 
     // Analytics AJAX Charts
     Route::prefix('analytics/chart')->group(function () {

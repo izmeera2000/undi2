@@ -27,7 +27,11 @@
     <form id="importForm" enctype="multipart/form-data">
       @csrf
 
-      <input type="file" name="file" required>
+
+        <div class="mb-3">
+        <label for="basicFile" class="form-label">CSV File</label>
+        <input class="form-control" type="file" id="basicFile" name="file" >
+      </div>
 
       <input type="number" name="tarikh_undian" class="form-control mt-2" placeholder="Tahun Undian (contoh: 2022)"
         required>
@@ -35,6 +39,9 @@
       <button type="submit" class="btn btn-success mt-2" id="submitBtn">
         Upload CSV
       </button>
+
+    
+
     </form>
 
 

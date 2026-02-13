@@ -52,19 +52,19 @@
 
       <li class="nav-item has-submenu ">
         <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
-<i class="umno-logo">
- @include('layouts.logo')
+          <i class="umno-logo">
+            @include('layouts.logo')
 
-</i>
+          </i>
 
           <span>Members</span>
           <i class="ph-light ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu ">
-          <li><a class="nav-link " href=" ">List</a></li>
+          <li><a class="nav-link " href="{{ route('members.list') }}">List</a></li>
 
 
-          <li><a class="nav-link " href="roles.html">Groups</a></li>
+          <li><a class="nav-link " href="{{ route('members.list') }}">Groups</a></li>
         </ul>
       </li>
 
