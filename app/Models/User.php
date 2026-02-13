@@ -114,9 +114,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(
             Group::class,
-            'user_groups',
-            'user_id',
-            'group_id'
+            'user_groups',   // pivot table
+            'user_id',       // foreign key on pivot
+            'group_id'         // related key on pivot
         )->withTimestamps();
     }
 

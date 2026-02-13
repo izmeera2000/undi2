@@ -7,6 +7,7 @@ use App\Http\Controllers\PengundiTransferController;
 use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
 use App\Http\Controllers\PengundiAnalyticsController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\MailController;
@@ -55,6 +56,12 @@ Route::middleware('auth')->group(function () {
         return view('calendar', compact('users'));
     })->middleware(['verified'])->name('event');
 
+
+
+
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+
 });
 
 // --------------------------------------------------
@@ -70,7 +77,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('staff')->name('staff.')->group(function () {
         Route::view('list', 'staff.list')->name('list');
         Route::get('{staff}/edit', [StaffController::class, 'edit'])->name('edit');
-        Route::get('data', [StaffController::class, 'getStaff'])->name('data');
+        Route::post('data', [StaffController::class, 'getStaff'])->name('data');
         Route::resource('/', StaffController::class)->except(['index']);
         Route::get('{staff}', [StaffController::class, 'show'])->name('show');
         Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
@@ -104,17 +111,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
         Route::view('list', 'members.list')->name('list');
-        // Route::get('{staff}/edit', [StaffController::class, 'edit'])->name('edit');
-        Route::get('data', [MembersController::class, 'getList'])->name('data');
+        Route::get('{member}/edit', [MembersController::class, 'edit'])->name('edit');
+        Route::post('data', [MembersController::class, 'getList'])->name('data');
         // Route::resource('/', StaffController::class)->except(['index']);
-        // Route::get('{staff}', [StaffController::class, 'show'])->name('show');
+        Route::get('{member}', [MembersController::class, 'show'])->name('show');
         // Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
         // Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
         // Route::post('{user}/role', [StaffController::class, 'changeRole'])->name('changeRole');
         // Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
         // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
-        // Route::post('{user}/avatar', [StaffController::class, 'updateAvatar']);
-        // Route::delete('{staff}', [StaffController::class, 'destroy'])->name('destroy');
+        Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
+        Route::delete('{member}', [MembersController::class, 'destroy'])->name('destroy');
 
 
 

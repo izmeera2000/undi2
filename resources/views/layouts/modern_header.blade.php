@@ -1,7 +1,7 @@
 <header class="header">
   <!-- Header Left -->
   <div class="header-left">
-    <a href="{{ route('logout') }}" class="header-logo">
+    <a href="{{ route('dashboard') }}" class="header-logo">
       <img src="{{ asset('assets/img/logo2.png') }}" alt="UndiScope">
       <span>UndiScope</span>
     </a>
@@ -26,84 +26,12 @@
       <!-- Apps Dropdown -->
 
 
+  @include('layouts.modern_notifications')
 
 
 
 
-      <!-- Notifications -->
-      <div class="header-action dropdown notification-dropdown">
-        <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
-          <i class="bi bi-bell"></i>
-          <span class="badge">3</span>
-        </button>
-        <div class="dropdown-menu dropdown-menu-end">
-          <div class="notification-header">
-            <h6>Notifications</h6>
-            <span class="notification-count">3 new</span>
-          </div>
-          <div class="notification-list">
-            <a href="#" class="notification-item unread">
-              <div class="notification-avatar success">
-                <i class="bi bi-check-circle"></i>
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Order Completed</div>
-                <div class="notification-text">Your order #12345 has been delivered successfully</div>
-                <div class="notification-time">
-                  <i class="bi bi-clock"></i>
-                  5 min ago
-                </div>
-              </div>
-            </a>
-            <a href="#" class="notification-item unread">
-              <div class="notification-avatar warning">
-                <i class="bi bi-exclamation-triangle"></i>
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">Low Storage Warning</div>
-                <div class="notification-text">Server storage is running low (85% used)</div>
-                <div class="notification-time">
-                  <i class="bi bi-clock"></i>
-                  1 hour ago
-                </div>
-              </div>
-            </a>
-            <a href="#" class="notification-item unread">
-              <div class="notification-avatar info">
-                <i class="bi bi-person-plus"></i>
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">New Team Member</div>
-                <div class="notification-text">Sarah Johnson joined the design team</div>
-                <div class="notification-time">
-                  <i class="bi bi-clock"></i>
-                  2 hours ago
-                </div>
-              </div>
-            </a>
-            <a href="#" class="notification-item">
-              <div class="notification-avatar primary">
-                <i class="bi bi-chat-left-text"></i>
-              </div>
-              <div class="notification-content">
-                <div class="notification-title">New Comment</div>
-                <div class="notification-text">Mike commented on your post</div>
-                <div class="notification-time">
-                  <i class="bi bi-clock"></i>
-                  Yesterday
-                </div>
-              </div>
-            </a>
-          </div>
-          <div class="notification-footer">
-            <a href="notifications.html">
-              View all notifications
-              <i class="bi bi-arrow-right"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-
+      <!-- #region -->
       <!-- User Dropdown -->
       <div class="header-action dropdown user-dropdown">
         <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">

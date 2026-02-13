@@ -26,4 +26,16 @@ class Group extends Model
             'user_id'
         )->withTimestamps();
     }
+
+    public function members()
+    {
+        return $this->belongsToMany(
+            Member::class,
+            'member_groups',
+            'group_id',
+            'member_id'
+        )->withTimestamps();
+    }
+
+
 }

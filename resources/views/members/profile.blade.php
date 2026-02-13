@@ -16,7 +16,7 @@
 
 
 
-        <a href="{{ route('staff.edit', $staff) }}" class="btn btn-primary">
+        <a href="{{ route('members.edit', $member) }}" class="btn btn-primary">
           <i class="bi bi-pencil me-1"></i> Edit Profile
         </a>
 
@@ -34,14 +34,15 @@
       </div>
       <div class="profile-cover-content">
         <div class="profile-cover-avatar">
-          <img src="{{$staff->profile->getProfilePictureUrlAttribute()}}" alt="John Doe">
-          <span class="profile-online-badge"></span>
+          <img src="{{$member->getProfilePictureUrlAttribute()}}" alt="John Doe">
         </div>
         <div class="profile-cover-info">
-          <h2>{{$staff->name}}</h2>
-          <p class="text-muted mb-2">{{ucfirst($staff->role)}}</p>
+          <h2>{{$member->nama}}</h2>
+
+
+          <p class="profile-header-title">{{$member->no_ahli}}</p>
           <div class="profile-cover-meta">
-            <span><i class="bi bi-calendar3"></i>{{$staff->created_at}}</span>
+            <span><i class="bi bi-calendar3"></i>Joined {{ $member->created_at->format('d M Y') }}</span>
           </div>
         </div>
 
@@ -50,25 +51,65 @@
 
     <div class="row">
       <!-- Left Sidebar -->
-      <div class="col ">
+      <div class="col-md-6">
         <!-- About Card -->
         <div class="card">
           <div class="card-header">
-            <h6 class="card-title mb-0">About</h6>
+            <h6 class="card-title mb-0">Contact Information</h6>
           </div>
           <div class="card-body">
-            <p class="mb-3">{{$staff->profile->bio}}</p>
-            <div class="profile-about-list">
 
-              @if ($staff->profile->address)
-                <div class="profile-about-item">
-                  <i class="bi bi-house-door"></i>
-                  <div>
-                    <span class="label">Lives in</span>
-                    <span class="value">{{$staff->profile->address}}</span>
+
+
+
+            <div class="profile-about-list">
+              @if($member->email)
+
+                <div class="info-list-item">
+                  <div class="info-list-icon"><i class="bi bi-envelope"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Email</div>
+                    <div class="info-list-value">{{ $member->email }}</div>
                   </div>
                 </div>
               @endif
+
+              @if($member->phone)
+
+                <div class="info-list-item">
+                  <div class="info-list-icon"><i class="bi bi-phone"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Phone</div>
+                    <div class="info-list-value">{{ $member->phone }}</div>
+                  </div>
+                </div>
+
+              @endif
+
+
+              @if($member->alamat_1 || $member->alamat_2 || $member->alamat_3 || $member->poskod || $member->bandar || $member->negeri)
+
+                <div class="info-list-item">
+                  <div class="info-list-icon"><i class="bi bi-geo-alt"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Address</div>
+                    <div class="info-list-value">
+                      <div class="ms-2">
+                        @foreach([$member->alamat_1, $member->alamat_2, $member->alamat_3, $member->poskod, $member->bandar, $member->negeri] as $alamat)
+                          @if($alamat)
+                            <div>{{ $alamat }}</div>
+                          @endif
+                        @endforeach
+                      </div>
+
+
+                    </div>
+                  </div>
+                </div>
+              @endif
+
+
+
 
 
             </div>
@@ -77,33 +118,181 @@
 
         <!-- Skills Card -->
 
-        @if ($staff->members_id)
-
-          <div class="card">
-            <div class="card-header">
-              <h6 class="card-title mb-0">Group Affiliation</h6>
-            </div>
-            <div class="card-body">
-              @if ($staff->groups->count())
-                <div class="profile-skills">
-                  @foreach ($staff->groups as $group)
-                    <span class="profile-skill-tag">
-                      {{ $group->name }}
-                    </span>
-                  @endforeach
-                </div>
-              @else
-                <p class="text-muted mb-0">No group assigned</p>
-              @endif
-            </div>
-          </div>
-
-        @endif
-
-
-
 
       </div>
+
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-person-lines-fill me-2"></i>Maklumat Ahli</h5>
+          </div>
+          <div class="card-body">
+            <div class="info-list">
+
+              <!-- Member Number -->
+              <div class="info-list-item mb-3">
+                <div class="info-list-icon text-primary"><i class="bi bi-card-text fs-5"></i></div>
+                <div class="info-list-content">
+                  <div class="info-list-label">No Ahli</div>
+                  <div class="info-list-value">{{ $member->no_ahli }}</div>
+                </div>
+              </div>
+
+              <!-- Branch -->
+              <div class="info-list-item mb-3">
+                <div class="info-list-icon text-success"><i class="bi bi-building fs-5"></i></div>
+                <div class="info-list-content">
+                  <div class="info-list-label">Cawangan</div>
+                  <div class="info-list-value">
+                    {{ $member->nama_cwgn }}<br>
+                    <small class="text-muted">{{ $member->kod_cwgn }}</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Start Date -->
+              <div class="info-list-item mb-3">
+                <div class="info-list-icon text-warning"><i class="bi bi-calendar-check fs-5"></i></div>
+                <div class="info-list-content">
+                  <div class="info-list-label">Start Date</div>
+                  <div class="info-list-value">{{ $member->created_at->format('d M Y') }}</div>
+                </div>
+              </div>
+
+              <!-- Alamat JPN -->
+              @if($member->alamat_jpn_1 || $member->alamat_jpn_2 || $member->alamat_jpn_3)
+                <div class="info-list-item mb-3">
+                  <div class="info-list-icon text-danger"><i class="bi bi-geo-alt fs-5"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Alamat JPN</div>
+                    <div class="info-list-value ms-2">
+                      @foreach([$member->alamat_jpn_1, $member->alamat_jpn_2, $member->alamat_jpn_3] as $alamatjpn)
+                        @if($alamatjpn)
+                          <div>{{ $alamatjpn }}</div>
+                        @endif
+                      @endforeach
+                    </div>
+                  </div>
+                </div>
+              @endif
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-person-circle me-2"></i>Personal Info</h5>
+          </div>
+          <div class="card-body">
+            <div class="info-list">
+
+              <!-- Gender -->
+              @if ($member->jantina)
+                <div class="info-list-item mb-3">
+                  <div class="info-list-icon text-info"><i class="bi bi-gender-ambiguous fs-5"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Jantina</div>
+                    <div class="info-list-value">
+                      @if($member->jantina === 'P')
+                        Perempuan
+                      @elseif($member->jantina === 'L')
+                        Lelaki
+                      @else
+                        Tidak Diketahui
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              @endif
+
+              <!-- Age -->
+              @if ($member->tahun_lahir)
+                <div class="info-list-item mb-3">
+                  <div class="info-list-icon text-secondary"><i class="bi bi-hourglass-split fs-5"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">Umur</div>
+                    <div class="info-list-value">{{ now()->year - $member->tahun_lahir }}</div>
+                  </div>
+                </div>
+              @endif
+
+              <!-- No KP -->
+              @if ($member->nokp_baru)
+                <div class="info-list-item mb-3">
+                  <div class="info-list-icon text-dark"><i class="bi bi-card-heading fs-5"></i></div>
+                  <div class="info-list-content">
+                    <div class="info-list-label">No KP</div>
+                    <div class="info-list-value">{{ $member->nokp_baru }}</div>
+                  </div>
+                </div>
+              @endif
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+      <div class="col-md-6">
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-person-circle me-2"></i>Pengundi</h5>
+          </div>
+          <div class="card-body">
+
+
+            <div class="activity-timeline">
+
+              @foreach($member->pengundiGroupedByTarikh() as $tarikh => $pengundiCollection)
+                @forelse($pengundiCollection as $pengundi)
+                  <div class="activity-timeline-item">
+                    <div class="activity-timeline-marker success"></div>
+                    <div class="activity-timeline-content">
+                      <div class="activity-timeline-header">
+                        <span class="activity-timeline-title">Registered Voter</span>
+                        <span class="activity-timeline-time">{{ $tarikh }}</span>
+                      </div>
+                      <p class="activity-timeline-desc">
+                        {{ $tarikh - $member->tahun_lahir }}
+                        <br>
+                        @if($pengundi->status_umno)
+                          Undi UMNO
+                        @else
+                          Undi Lain
+                        @endif
+                        <br>
+                        {{ $pengundi->dm->namadm }}
+                      </p>
+                    </div>
+                  </div>
+                @empty
+                  <div class="activity-timeline-item">
+                    <div class="activity-timeline-marker secondary"></div>
+                    <div class="activity-timeline-content">
+                      <div class="activity-timeline-header">
+                        <span class="activity-timeline-title">Not Registered</span>
+                        <span class="activity-timeline-time">{{ $tarikh }}</span>
+                      </div>
+                    </div>
+                  </div>
+                @endforelse
+              @endforeach
+
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
+
+    </div>
 
 
     </div>
@@ -114,6 +303,7 @@
 
 @push('scripts')
 
+  {{--
   <script>
     $(document).ready(function () {
 
@@ -141,6 +331,6 @@
       });
 
     });
-  </script>
+  </script> --}}
 
 @endpush

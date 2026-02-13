@@ -26,23 +26,27 @@ class StaffController extends Controller
     // Server-side DataTable
     public function getStaff(Request $request)
     {
-        $query = User::query();
+        // Exclude soft-deleted staff members (where 'deleted_at' is null)
+        // $query = User::query()->whereNull('deleted_at');  // Excludes soft-deleted users
+
+        // Alternatively, you could use withoutTrashed() if the model uses SoftDeletes
+        $query = User::query()->withoutTrashed();
 
         return DataTables::of($query)
             ->addIndexColumn()
 
             ->addColumn('staff', function ($row) {
                 return '
-                <div class="d-flex align-items-center gap-3">
-                    <img src="' . $row->profile->getProfilePictureUrlAttribute() . '" 
-                         class="rounded-circle" width="40">
-                    <div>
-                        <a href="' . route('staff.show', $row->id) . '" class="fw-semibold">
-                            ' . e($row->name) . '
-                        </a>
-                        <div class="text-muted small">' . e($row->email) . '</div>
-                    </div>
-                </div>';
+            <div class="d-flex align-items-center gap-3">
+                <img src="' . $row->profile->getProfilePictureUrlAttribute() . '" 
+                     class="rounded-circle" width="40">
+                <div>
+                    <a href="' . route('staff.show', $row->id) . '" class="fw-semibold">
+                        ' . e($row->name) . '
+                    </a>
+                    <div class="text-muted small">' . e($row->email) . '</div>
+                </div>
+            </div>';
             })
 
             ->addColumn('role', function ($row) {
@@ -55,15 +59,11 @@ class StaffController extends Controller
 
             ->addColumn('actions', function ($row) {
                 return '
-                <div class="btn-group">
-                    <div class="btn-group">
-                        <a href="' . route('staff.show', $row->id) . '" class="btn btn-sm btn-light" title="View">
-                            <i class="bi bi-eye"></i>
-                        </a>
- 
-                       
-                    </div>
-                </div>';
+            <div class="btn-group">
+                <a href="' . route('staff.show', $row->id) . '" class="btn btn-sm btn-light" title="View">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </div>';
             })
 
             ->rawColumns(['staff', 'role', 'actions'])

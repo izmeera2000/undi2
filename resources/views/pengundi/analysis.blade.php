@@ -20,44 +20,45 @@
 @section('content')
 
 
-<div class="mb-4">
-  <div class="form-actions-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
-    
+  <div class="mb-4">
+    <div
+      class="form-actions-bar d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
 
-    <!-- Controls -->
-    <div class="form-actions-buttons d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
-      <!-- Selects stack vertically on small screens -->
-      <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1">
-        <select id="modeSelect" class="form-select form-select-lg {{ $years->count() <= 1 ? 'd-none' : '' }}">
-          <option value="single" selected>Single Year</option>
-          <option value="compare">Compare Years</option>
-        </select>
 
-        <select id="year1" class="form-select form-select-lg">
-          @foreach($years as $year)
-            <option value="{{ $year }}" {{ $loop->first ? 'selected' : '' }}>
-              {{ $year }}
-            </option>
-          @endforeach
-        </select>
+      <!-- Controls -->
+      <div class="form-actions-buttons d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+        <!-- Selects stack vertically on small screens -->
+        <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1">
+          <select id="modeSelect" class="form-select form-select-lg {{ $years->count() <= 1 ? 'd-none' : '' }}">
+            <option value="single" selected>Single Year</option>
+            <option value="compare">Compare Years</option>
+          </select>
 
-        <select id="year2" class="form-select form-select-lg d-none {{ $years->count() <= 1 ? 'd-none' : '' }}">
-          @foreach($years as $year)
-            <option value="{{ $year }}">{{ $year }}</option>
-          @endforeach
-        </select>
+          <select id="year1" class="form-select form-select-lg">
+            @foreach($years as $year)
+              <option value="{{ $year }}" {{ $loop->first ? 'selected' : '' }}>
+                {{ $year }}
+              </option>
+            @endforeach
+          </select>
+
+          <select id="year2" class="form-select form-select-lg d-none {{ $years->count() <= 1 ? 'd-none' : '' }}">
+            @foreach($years as $year)
+              <option value="{{ $year }}">{{ $year }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <!-- Button: full width on small screens -->
+        <button id="exportPdf" class="btn btn-danger btn-lg  w-md-auto mt-2 mt-md-0">
+          Export PDF
+        </button>
       </div>
 
-      <!-- Button: full width on small screens -->
-      <button id="exportPdf" class="btn btn-danger btn-lg  w-md-auto mt-2 mt-md-0">
-        Export PDF
-      </button>
     </div>
-    
   </div>
-</div>
 
- 
+
 
 
   <!-- Stats Row -->
@@ -117,7 +118,7 @@
       <div id="totalUmnob">
 
       </div>
-   
+
     </div>
   </div>
 
@@ -217,7 +218,7 @@
     </div>
   </div>
 
- 
+
 
 
   <!-- Bootstrap Tooltip Modal -->
@@ -272,11 +273,14 @@
         umur: { chart: null },
         jantina: { chart: null },
 
-        // 👇 split DUN charts
+
+
+        negeri: { chart: null },
+
+
         dun1: { chart: null },
         dun2: { chart: null },
 
-        negeri: { chart: null },
       }
     };
 
@@ -417,16 +421,16 @@
         const t = totals.data[0];
 
         elPengundi.innerHTML = `
-                                      ${t.totalPengundi.toLocaleString()}
-                                    `;
+                                        ${t.totalPengundi.toLocaleString()}
+                                      `;
 
         elUmno.innerHTML = `
-                                      ${t.totalUmno.toLocaleString()}
-                                    `;
+                                        ${t.totalUmno.toLocaleString()}
+                                      `;
 
         elFirstTime.innerHTML = `
-                                      ${t.totalFirstTime.toLocaleString()}
-                                    `;
+                                        ${t.totalFirstTime.toLocaleString()}
+                                      `;
 
 
         elPengundib.innerHTML = '';
@@ -454,11 +458,11 @@
 
           return `
 
-                                    <div class="widget-stat-change ${className}">
-                                      <i class="bi ${icon}"></i>
-                                      ${Math.abs(change).toFixed(1)}% vs ${previous.year}
-                                    </div>
-                                  `;
+                                      <div class="widget-stat-change ${className}">
+                                        <i class="bi ${icon}"></i>
+                                        ${Math.abs(change).toFixed(1)}% vs ${previous.year}
+                                      </div>
+                                    `;
         };
 
         elPengundib.innerHTML = buildHTML(current.totalPengundi, pChange);

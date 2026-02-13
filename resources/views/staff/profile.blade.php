@@ -41,7 +41,7 @@
           <h2>{{$staff->name}}</h2>
           <p class="text-muted mb-2">{{ucfirst($staff->role)}}</p>
           <div class="profile-cover-meta">
-            <span><i class="bi bi-calendar3"></i>{{$staff->created_at}}</span>
+            <span><i class="bi bi-calendar3"></i>{{ $staff->created_at->format('d M Y') }}</span>
           </div>
         </div>
 

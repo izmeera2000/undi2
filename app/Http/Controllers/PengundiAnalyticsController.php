@@ -154,9 +154,9 @@ class PengundiAnalyticsController extends Controller
     {
         $charts = $request->input('charts');
 
-        // $user = User::find(1);
+        $user = User::find(1);
 
-        // $user->notify(new NewPengundiNotification("New Pengundi registered"));
+        $user->notify(new NewPengundiNotification("New Pengundi registered"));
 
         return Pdf::loadView('pengundi.pdf', [
             'charts' => $charts

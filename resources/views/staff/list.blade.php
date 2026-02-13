@@ -156,11 +156,23 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         const table = $('#staffTable').DataTable({
           processing: true,
           serverSide: true,
-          ajax: "{{ route('staff.data') }}",
+          ajax: {
+            url: "{{ route('staff.data') }}",
+            type: "POST",
+            headers: {
+              'X-CSRF-TOKEN': csrfToken
+            },
+            error: function (xhr) {
+              if (xhr.status === 401) {
+                window.location.href = "{{ route('login') }}";
+              }
+            }
+          },
           columns: [
             { data: 'DT_RowIndex', orderable: false, searchable: false },
             { data: 'staff', name: 'name' },
@@ -181,6 +193,8 @@
 
 
       });
+
+
 
 
       $('#addStaffBtn').on('click', function (e) {

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Broadcast;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,7 +20,12 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
  public function boot(): void
-{
+{    
+    
+
+Broadcast::routes();
+
+    require base_path('routes/channels.php');
     Schema::defaultStringLength(191);
 }
 }

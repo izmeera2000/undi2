@@ -66,7 +66,7 @@
                     </div>
                   </th>
                   <th>Member</th>
-                  <th>Role</th>
+                  <th>Groups</th>
                   <th>Joined</th>
                   <th class="text-end pe-4" style="width: 80px;">Actions</th>
                 </tr>
@@ -156,29 +156,40 @@
 
     <script>
       document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
         const table = $('#membersTable').DataTable({
           processing: true,
           serverSide: true,
-          ajax: "{{ route('members.data') }}",
+          ajax: {
+            url: "{{ route('members.data') }}",
+            type: "POST",
+            headers: {
+              'X-CSRF-TOKEN': csrfToken
+            },
+            error: function (xhr) {
+              if (xhr.status === 401) {
+                window.location.href = "{{ route('login') }}";
+              }
+            }
+          },
           columns: [
             { data: 'DT_RowIndex', orderable: false, searchable: false },
-            { data: 'members', name: 'name' },
-            { data: 'role', name: 'role' },
+            { data: 'members', name: 'nama' },      // 👈 fix this (see below)
+            { data: 'groups', name: 'groups' },
             { data: 'joined', name: 'created_at' },
             { data: 'actions', orderable: false, searchable: false }
           ],
-          searching: true,   // 👈 make sure enabled
+          searching: true,
           lengthChange: true,
           pageLength: 10
         });
 
         $('#membersSearch').on('keydown', function (e) {
-          if (e.key === "Enter" || e.keyCode === 13) {
+          if (e.key === "Enter") {
             table.search(this.value).draw();
           }
         });
-
 
       });
 

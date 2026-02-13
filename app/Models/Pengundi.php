@@ -29,7 +29,7 @@ class Pengundi extends Model
         'tarikh_undian',
     ];
 
-    
+
 
     /**
      * Relationship: Pengundi belongs to DM
@@ -38,4 +38,10 @@ class Pengundi extends Model
     {
         return $this->belongsTo(Dm::class);
     }
+
+
+
+
+
+
 }
