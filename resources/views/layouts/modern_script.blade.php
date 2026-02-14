@@ -33,12 +33,14 @@
 
     const toast = new ToastMagic();
 
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
+    document.addEventListener('DOMContentLoaded', function () {
 
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
+    });
 
 
     document.addEventListener('DOMContentLoaded', function () {

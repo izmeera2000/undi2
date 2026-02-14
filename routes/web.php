@@ -11,6 +11,9 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\MailController;
+use App\Http\Controllers\DunController;
+use App\Http\Controllers\DmController;
+use App\Http\Controllers\ParlimenController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -66,7 +69,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/event', [EventController::class, 'list'])
-         ->name('event');
+        ->name('event');
 
 
 
@@ -118,11 +121,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
         // Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
         // Route::post('{user}/role', [StaffController::class, 'changeRole'])->name('changeRole');
-        // Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
+        Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
         // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
         Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
         Route::delete('{member}', [MembersController::class, 'destroy'])->name('destroy');
 
+        Route::post('store', [MembersController::class, 'store'])->name('store');
 
 
 
@@ -138,6 +142,55 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 
+    });
+    Route::prefix('parlimen')->name('parlimen.')->group(function () {
+        Route::get('/', [ParlimenController::class, 'index'])->name('index');   // list page
+        Route::post('/', [ParlimenController::class, 'store'])->name('store');
+
+        Route::get('/{parlimen}/edit', [ParlimenController::class, 'edit'])->name('edit');
+        Route::put('/{parlimen}', [ParlimenController::class, 'update'])->name('update');
+        Route::delete('/{parlimen}', [ParlimenController::class, 'destroy'])->name('destroy');
+
+        // Show single Parlimen (must be **after** edit/update/delete routes)
+        Route::get('/{parlimen}', [ParlimenController::class, 'show'])->name('show');
+
+        // For DataTables AJAX
+        Route::post('/data', [ParlimenController::class, 'getList'])->name('data');
+    });
+
+
+
+
+
+    Route::prefix('dun')->name('dun.')->group(function () {
+        Route::get('/', [DunController::class, 'index'])->name('index');   // list page
+        Route::post('/', [DunController::class, 'store'])->name('store');
+
+        Route::get('/{dun}/edit', [DunController::class, 'edit'])->name('edit');
+        Route::put('/{dun}', [DunController::class, 'update'])->name('update');
+        Route::delete('/{dun}', [DunController::class, 'destroy'])->name('destroy');
+
+        // Show single Dun (must be **after** edit/update/delete routes)
+        Route::get('/{dun}', [DunController::class, 'show'])->name('show');
+
+        // For DataTables AJAX
+        Route::post('/data', [DunController::class, 'getList'])->name('data');
+    });
+
+
+    Route::prefix('dm')->name('dm.')->group(function () {
+        Route::get('/', [DmController::class, 'index'])->name('index');   // list page
+        Route::post('/', [DmController::class, 'store'])->name('store');
+
+        Route::get('/{dm}/edit', [DmController::class, 'edit'])->name('edit');
+        Route::put('/{dm}', [DmController::class, 'update'])->name('update');
+        Route::delete('/{dm}', [DmController::class, 'destroy'])->name('destroy');
+
+        // Show single Dm (must be **after** edit/update/delete routes)
+        Route::get('/{dm}', [DmController::class, 'show'])->name('show');
+
+        // For DataTables AJAX
+        Route::post('/data', [DmController::class, 'getList'])->name('data');
     });
 
 

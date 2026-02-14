@@ -4,14 +4,9 @@
 
 @section('breadcrumb')
   @php
-    // Build dynamic crumbs based on request
-    $crumbs = [
-      ['label' => 'Members', 'url' => route('members.list')],
-      ['label' => 'List', 'url' => route('members.list')],
-    ];
+    $crumbs[] = ['label' => 'Member', 'url' => route('members.list')];
 
   @endphp
-
 @endsection
 
 
@@ -60,11 +55,6 @@
             <table id="membersTable" class="table table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th class="ps-4" style="width: 40px;">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="selectAllMember">
-                    </div>
-                  </th>
                   <th>Member</th>
                   <th>Groups</th>
                   <th>Joined</th>
@@ -84,65 +74,7 @@
 
 
 
-    <!-- Add Member Modal -->
-    <div class="modal fade" id="addMemberModal" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header border-0 pb-0">
-            <div>
-              <h5 class="modal-title">Add New Member</h5>
-              <p class="text-muted small mb-0">Member will set their password on first login</p>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-          </div>
-          <div class="modal-body">
-            <form id="addMemberForm">
-              <div class="text-center mb-4">
-                <div class="avatar-upload">
-                  <div class="avatar-preview">
-                    <img src="{{ asset('assets/img/avatars/avatar-1.webp') }}" alt="Avatar" id="avatarPreview">
-                  </div>
-                  <label class="avatar-edit" for="avatarUpload">
-                    <i class="bi bi-camera"></i>
-                    <input type="file" id="avatarUpload" accept="image/*" class="d-none">
-                  </label>
-                </div>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="name" class="form-control" placeholder="Enter full name" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input type="email" name="email" class="form-control" placeholder="Enter email address" required>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Role</label>
-                <select name="role" class="form-select" required>
-                  <option value="">Select role…</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="user">User</option>
-                </select>
-              </div>
-
-
-            </form>
-          </div>
-
-          <div class="modal-footer border-0 pt-0">
-            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="addMemberBtn">
-              <i class="bi bi-plus-lg me-1"></i> Add Member
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
+    @include('members.partials.list.modals')
 
 
 
@@ -194,32 +126,90 @@
       });
 
 
-      // $('#addMemberBtn').on('click', function (e) {
-      //   e.preventDefault();
 
-      //   let form = $('#addMemberForm')[0];
-      //   let formData = new FormData(form);
+      document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('addMemberForm');
+        const submitBtn = document.getElementById('addMemberBtn');
+        const avatarInput = document.getElementById('avatarUpload');
+        const avatarPreview = document.getElementById('avatarPreview');
 
-      //   $.ajax({
-      //     url: " ",
-      //     method: "POST",
-      //     data: formData,
-      //     processData: false,
-      //     contentType: false,
-      //     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-      //     success: function (res) {
-      //       $('#addMemberModal').modal('hide');
-      //       $('#membersTable').DataTable().ajax.reload();
-      //       toast.success("Member added successfully! They will set their password on first login.");
+        // =========================
+        // AVATAR PREVIEW
+        // =========================
+        avatarInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
 
-      //     },
-      //     error: function (err) {
-      //       console.log(err);
-      //       toast.error("Error adding members.");
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            avatarPreview.src = event.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
 
-      //     }
-      //   });
-      // });
+        // =========================
+        // AJAX SUBMISSION
+        // =========================
+        submitBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          if (!form.reportValidity()) return;
+
+          const formData = new FormData(form);
+
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span>Adding...`;
+
+          fetch("{{ route('members.store') }}", {
+            method: "POST",
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: formData
+          })
+            .then(res => {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = `<i class="bi bi-plus-lg me-1"></i> Add Member`;
+              if (!res.ok) throw new Error('Network response was not ok');
+              return res.json();
+            })
+            .then(data => {
+              if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide();
+                form.reset();
+                avatarPreview.src = "{{ asset('assets/img/avatars/avatar-placeholder.webp') }}";
+
+                // Optional: reload DataTable or members list
+                if (typeof membersTable !== 'undefined') {
+                  membersTable.ajax.reload();
+                }
+
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Member added!',
+                  showConfirmButton: false,
+                  timer: 1500
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: data.message || 'Failed to add member'
+                });
+              }
+            })
+            .catch(err => {
+              console.error(err);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Something went wrong'
+              });
+            });
+        });
+      });
+
+
 
 
 

@@ -73,9 +73,31 @@
       <li class="nav-item">
         <a class="nav-link " href="{{ route('event') }}" data-sidebar-tooltip="Event">
           <i class="ph-light ph-calendar-blank"></i>
-          <span>Event</span>
+          <span>Events</span>
         </a>
       </li>
+
+      <li class="nav-heading"><span>Settings</span></li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
+        <i class="ph-light ph-file"></i>
+        <span>Parlimen</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
+        <i class="ph-light ph-file"></i>
+        <span>Dun</span>
+    </a>
+</li>
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
+        <i class="ph-light ph-file"></i>
+        <span>DM</span>
+    </a>
+</li>
 
 
 

@@ -11,6 +11,7 @@ namespace App\Models {
      * @property string $koddm
      * @property int $dun_id
      * @property int $id
+     * @property-read \App\Models\Dun $dun
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereDunId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKoddm($value)
@@ -336,6 +337,9 @@ namespace App\Models {
      * @property string $kod_dun
      * @property int $parlimen_id
      * @property int $id
+     * @property-read \App\Models\Parlimen $parlimen
+     * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Dm> $dms
+     * @property-read int|null $dms_count
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereParlimenId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereKodDun($value)
@@ -2721,6 +2725,8 @@ namespace App\Models {
      * @property string $namapar
      * @property string $kod_par
      * @property int $id
+     * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Dun> $duns
+     * @property-read int|null $duns_count
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereKodPar($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereNamapar($value)

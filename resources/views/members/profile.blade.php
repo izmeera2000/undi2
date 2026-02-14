@@ -3,6 +3,16 @@
 @section('title', 'Profile')
 
 
+
+
+@section('breadcrumb')
+    @php
+        $crumbs[] = ['label' => 'Member', 'url' => route('members.list')];
+        $crumbs[] = ['label' => 'Profile', 'url' => route('members.show', $member)];
+     @endphp
+@endsection
+
+
 @section('content')
   <!-- Welcome & Stats Row -->
 
@@ -53,7 +63,7 @@
       <!-- Left Sidebar -->
       <div class="col-md-6">
         <!-- About Card -->
-        <div class="card">
+        <div class="card h-100">
           <div class="card-header">
             <h6 class="card-title mb-0">Contact Information</h6>
           </div>
@@ -87,7 +97,7 @@
               @endif
 
 
-              @if($member->alamat_1 || $member->alamat_2 || $member->alamat_3 || $member->poskod || $member->bandar || $member->negeri)
+              @if($member->alamat_1 || $member->alamat_2 || $member->alamat_3 )
 
                 <div class="info-list-item">
                   <div class="info-list-icon"><i class="bi bi-geo-alt"></i></div>
@@ -95,7 +105,7 @@
                     <div class="info-list-label">Address</div>
                     <div class="info-list-value">
                       <div class="ms-2">
-                        @foreach([$member->alamat_1, $member->alamat_2, $member->alamat_3, $member->poskod, $member->bandar, $member->negeri] as $alamat)
+                        @foreach([$member->alamat_1, $member->alamat_2, $member->alamat_3 ] as $alamat)
                           @if($alamat)
                             <div>{{ $alamat }}</div>
                           @endif
@@ -122,7 +132,7 @@
       </div>
 
       <div class="col-md-6">
-        <div class="card mb-4">
+        <div class="card mb-4 h-100">
           <div class="card-header">
             <h5 class="card-title mb-0"><i class="bi bi-person-lines-fill me-2"></i>Maklumat Ahli</h5>
           </div>

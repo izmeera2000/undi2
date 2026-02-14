@@ -1,7 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Profile')
+@section('title', 'Edit Profile')
 
+
+
+@section('breadcrumb')
+    @php
+        $crumbs[] = ['label' => 'Member', 'url' => route('members.list')];
+        $crumbs[] = ['label' => 'Profile', 'url' => route('members.show', $member)];
+        $crumbs[] = ['label' => 'Edit', 'url' => route('members.edit', $member)];
+     @endphp
+@endsection
 
 @section('content')
     <!-- Welcome & Stats Row -->
@@ -23,10 +32,7 @@
                                     <i class="bi bi-person-circle"></i>
                                     <span>Avatar &amp; Status</span>
                                 </a>
-                                <a href="#section-personal" class="edit-nav-item">
-                                    <i class="bi bi-person"></i>
-                                    <span>Personal Info</span>
-                                </a>
+          
                                 <a href="#section-contact" class="edit-nav-item">
                                     <i class="bi bi-envelope"></i>
                                     <span>Contact Details</span>

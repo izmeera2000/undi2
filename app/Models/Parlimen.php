@@ -6,9 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Parlimen extends Model
 {
-    //
     protected $table = 'parlimen';
 
-        protected $fillable = ['kod_par','namapar'];
+    protected $fillable = ['kod_par','namapar'];
 
+    /**
+     * Get all DUNs under this Parlimen
+     */
+    public function duns()
+    {
+        return $this->hasMany(Dun::class, 'parlimen_id', 'id');
+    }
 }

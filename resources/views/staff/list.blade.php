@@ -55,16 +55,12 @@
           </div>
         </div>
 
-        <div class="card-body p-0">
+        <div class="card-body p-1">
           <div class="table-responsive">
             <table id="staffTable" class="table table-hover align-middle mb-0">
               <thead>
                 <tr>
-                  <th class="ps-4" style="width: 40px;">
-                    <div class="form-check">
-                      <input class="form-check-input" type="checkbox" id="selectAllStaff">
-                    </div>
-                  </th>
+ `
                   <th>Staff</th>
                   <th>Role</th>
                   <th>Joined</th>
@@ -75,6 +71,8 @@
             </table>
           </div>
         </div>
+
+
       </div>
 
 
@@ -157,7 +155,7 @@
     <script>
       document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
+ 
         const table = $('#staffTable').DataTable({
           processing: true,
           serverSide: true,

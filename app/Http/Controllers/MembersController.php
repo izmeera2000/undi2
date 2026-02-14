@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Member;
 use Spatie\Activitylog\Models\Activity;
-
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Validator;
+ 
 class MembersController extends Controller
 {
     //
@@ -156,5 +156,70 @@ class MembersController extends Controller
             'avatar_url' => asset('storage/' . $path),
         ]);
     }
+
+
+
+    public function store(Request $request)
+    {
+        // =========================
+        // VALIDATION
+        // =========================
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:members,email',
+            'role' => 'required|in:admin,manager,user',
+            'dun_id' => 'nullable|exists:duns,id',
+            'nokp_baru' => 'nullable|string|max:20',
+            'nokp_lama' => 'nullable|string|max:20',
+            'tahun_lahir' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'jantina' => 'nullable|in:Lelaki,Perempuan',
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // =========================
+        // CREATE MEMBER
+        // =========================
+        $data = $request->only([
+            'dun_id',
+            'nama',        // full name
+            'nokp_baru',
+            'nokp_lama',
+            'tahun_lahir',
+            'jantina',
+            'email',
+            'role'
+        ]);
+
+        // =========================
+        // HANDLE AVATAR
+        // =========================
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+            $path = $file->store('avatars', 'public'); // stored in storage/app/public/avatars
+            $data['profile_picture'] = $path;
+        }
+
+        // =========================
+        // AUTO-CALCULATE UMUR
+        // =========================
+        if (!empty($data['tahun_lahir'])) {
+            $data['umur'] = date('Y') - $data['tahun_lahir'];
+        }
+
+        $member = Member::create($data);
+
+        return response()->json([
+            'success' => true,
+            'member' => $member
+        ]);
+    }
+
 
 }

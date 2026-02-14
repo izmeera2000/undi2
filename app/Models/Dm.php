@@ -11,4 +11,13 @@ class Dm extends Model
 
         protected $fillable = ['koddm','namadm','dun_id'];
 
+
+
+            public function dun()
+    {
+        return $this->belongsTo(Dun::class, 'dun_id');
+    }
+
+
+     
 }
