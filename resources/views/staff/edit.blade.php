@@ -1,6 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Profile')
+@section('title', 'Edit Profile')
+
+
+
+@section('breadcrumb')
+    @php
+        $crumbs[] = ['label' => 'Staff', 'url' => route('staff.list')];
+        $crumbs[] = ['label' => 'Profile', 'url' => route('staff.show', $staff)];
+        $crumbs[] = ['label' => 'Edit', 'url' => route('staff.edit', $staff)];
+    @endphp
+@endsection
+
+
 
 
 @section('content')
@@ -92,7 +104,7 @@
                                 </div>
 
                             </div>
- 
+
                         </div>
                     </div>
 
@@ -310,73 +322,73 @@
 @push('scripts')
 
 
-<script>
-  const toast = new ToastMagic();
-</script>
+    <script>
+        const toast = new ToastMagic();
+    </script>
 
 
-@include('staff.partials.edit.changerole')
-@include('staff.partials.edit.deleteuser')
-@include('staff.partials.edit.revoke')
-@include('staff.partials.edit.savepassword')
-@include('staff.partials.edit.saveprofile')
-@include('staff.partials.edit.status')
+    @include('staff.partials.edit.changerole')
+    @include('staff.partials.edit.deleteuser')
+    @include('staff.partials.edit.revoke')
+    @include('staff.partials.edit.savepassword')
+    @include('staff.partials.edit.saveprofile')
+    @include('staff.partials.edit.status')
 
 
 
-<script>
-    $(document).on('click', '.toggle-password', function () {
-        const input = $(this).siblings('.password-field');
-        const icon = $(this).find('i');
+    <script>
+        $(document).on('click', '.toggle-password', function () {
+            const input = $(this).siblings('.password-field');
+            const icon = $(this).find('i');
 
-        if (input.attr('type') === 'password') {
-            input.attr('type', 'text');
-            icon.removeClass('bi-eye').addClass('bi-eye-slash');
-        } else {
-            input.attr('type', 'password');
-            icon.removeClass('bi-eye-slash').addClass('bi-eye');
-        }
-    });
-</script>
-
-<script>
-    $('#avatarInput').on('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            $('#avatarPreview').attr('src', e.target.result);
-        };
-        reader.readAsDataURL(file);
-
-        uploadAvatar(file);
-    });
-
-    function uploadAvatar(file) {
-        let formData = new FormData();
-        formData.append('avatar', file);
-        formData.append('_token', '{{ csrf_token() }}');
-
-        $.ajax({
-            url: '/staff/{{ $staff->id ?? auth()->id() }}/avatar',
-            type: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            success: function (res) {
-                toast.success('Avatar updated');
-                $('img[data-avatar]').each(function () {
-                    $(this).attr('src', res.avatar_url);
-                });
-            },
-            error: function (err) {
-                toast.error('Failed to upload avatar');
-                console.error(err);
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('bi-eye-slash').addClass('bi-eye');
             }
         });
-    }
-</script>
+    </script>
+
+    <script>
+        $('#avatarInput').on('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                $('#avatarPreview').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+
+            uploadAvatar(file);
+        });
+
+        function uploadAvatar(file) {
+            let formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('_token', '{{ csrf_token() }}');
+
+            $.ajax({
+                url: '/staff/{{ $staff->id ?? auth()->id() }}/avatar',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (res) {
+                    toast.success('Avatar updated');
+                    $('img[data-avatar]').each(function () {
+                        $(this).attr('src', res.avatar_url);
+                    });
+                },
+                error: function (err) {
+                    toast.error('Failed to upload avatar');
+                    console.error(err);
+                }
+            });
+        }
+    </script>
 
 
 

@@ -79,46 +79,40 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body">
-        <!-- Start Date -->
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-calendar3 text-muted"></i>
-          <span id="eventDetailsStartDate"></span>
-        </div>
+<div class="modal-body">
 
-        <!-- Start Time -->
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-clock text-muted"></i>
-          <span id="eventDetailsStartTime"></span>
-        </div>
+  <!-- Date & Time -->
+  <div class="d-flex align-items-start gap-3 mb-3">
+    <div class="fs-4 text-primary">
+      <i class="bi bi-calendar-event"></i>
+    </div>
+    <div>
+      <div id="eventDetailsDateRange" class="fw-semibold"></div>
+      <div id="eventDetailsTimeRange" class="text-muted small"></div>
+    </div>
+  </div>
 
-        <!-- End Date -->
-        <div class="d-flex align-items-center gap-2 mb-2">
-          <i class="bi bi-calendar-check text-muted"></i>
-          <span id="eventDetailsEndDate"></span>
-        </div>
+  <!-- Participants -->
+  <div class="mb-3">
+    <div class="fw-semibold mb-2">
+      <i class="bi bi-people me-1"></i> Participants
+    </div>
+    <div id="eventDetailsParticipants" class="d-flex flex-wrap gap-2">
+      <!-- JS inject badges -->
+    </div>
+  </div>
 
-        <!-- End Time -->
-        <div class="d-flex align-items-center gap-2 mb-3">
-          <i class="bi bi-clock-history text-muted"></i>
-          <span id="eventDetailsEndTime"></span>
-        </div>
+  <hr class="my-3">
 
-        <!-- Participants -->
-        <div class="mb-3">
-          <div class="fw-semibold mb-1">
-            <i class="bi bi-people me-1"></i> Participants
-          </div>
-          <div id="eventDetailsParticipants" class="d-flex flex-wrap gap-1">
-            <!-- JS will inject badges -->
-          </div>
-        </div>
+  <!-- Description -->
+  <div class="d-flex align-items-start gap-3">
+    <div class="fs-5 text-secondary">
+      <i class="bi bi-text-left"></i>
+    </div>
+    <p class="text-muted mb-0" id="eventDetailsDescription"></p>
+  </div>
 
-        <hr>
-
-        <!-- Description -->
-        <p class="text-muted mb-0" id="eventDetailsDescription"></p>
-      </div>
+</div>
 
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-danger" id="deleteEventBtn">

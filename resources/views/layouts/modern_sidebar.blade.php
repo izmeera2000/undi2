@@ -80,44 +80,7 @@
 
 
       <!-- Apps Section -->
-      <li class="nav-heading"><span>Apps</span></li>
-
-
-
-      <li class="nav-item">
-        <a class="nav-link " href="apps-kanban.html" data-sidebar-tooltip="Kanban Board">
-          <i class="ph-light ph-kanban"></i>
-          <span>Kanban Board</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link " href="apps-chat.html" data-sidebar-tooltip="Chat">
-          <i class="ph-light ph-chat-circle-dots"></i>
-          <span>Chat</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link " href="apps-contacts.html" data-sidebar-tooltip="Contacts">
-          <i class="ph-light ph-address-book"></i>
-          <span>Contacts</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link " href="apps-file-manager.html" data-sidebar-tooltip="File Manager">
-          <i class="ph-light ph-folder-open"></i>
-          <span>File Manager</span>
-        </a>
-      </li>
-
-      <li class="nav-item">
-        <a class="nav-link " href="apps-email.html" data-sidebar-tooltip="Email">
-          <i class="ph-light ph-envelope"></i>
-          <span>Email</span>
-        </a>
-      </li>
+      <li class="nav-heading"><span>Test</span></li>
 
 
 

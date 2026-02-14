@@ -48,18 +48,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('{event}', [EventController::class, 'destroy'])->name('events.destroy');
     });
 
-    // Calendar
-    Route::get('/event', function () {
-        $users = User::where('id', '!=', auth()->id())
-            ->select('id', 'name')
-            ->get();
-        return view('calendar', compact('users'));
-    })->middleware(['verified'])->name('event');
+
+
+    Route::get('upcoming', [EventController::class, 'upcoming'])->name('events.upcoming');
 
 
 
-
-        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
 });
@@ -69,6 +64,11 @@ Route::middleware('auth')->group(function () {
 // --------------------------------------------------
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    Route::get('/event', [EventController::class, 'list'])
+         ->name('event');
+
+
 
     // Dashboard
     Route::view('/dashboard', 'dashboard')->name('dashboard');
@@ -141,7 +141,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 
- 
+
 
     // Analytics AJAX Charts
     Route::prefix('analytics/chart')->group(function () {

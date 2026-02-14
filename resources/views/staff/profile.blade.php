@@ -3,6 +3,16 @@
 @section('title', 'Profile')
 
 
+
+@section('breadcrumb')
+    @php
+        $crumbs[] = ['label' => 'Staff', 'url' => route('staff.list')];
+        $crumbs[] = ['label' => 'Profile', 'url' => route('staff.show', $staff)];
+     @endphp
+@endsection
+
+
+
 @section('content')
   <!-- Welcome & Stats Row -->
 
