@@ -9,9 +9,8 @@
 
         <!-- Logo -->
         <a href="{{ url('/') }}" class="auth-logo">
-            <img src="{{ asset('assets/img/logo.webp') }}" alt="ModernAdmin">
-            <span>ModernAdmin</span>
-        </a>
+            <img src="{{ asset('assets/img/logomain2.png') }}" alt="ModernAdmin">
+         </a>
 
         <div class="auth-card">
 
@@ -25,8 +24,7 @@
                 </p>
             </div>
 
-            <!-- Session Status -->
-            <x-auth-session-status class="mb-3" :status="session('status')" />
+  
 
             <form class="auth-form" method="POST" action="{{ route('password.email') }}">
                 @csrf

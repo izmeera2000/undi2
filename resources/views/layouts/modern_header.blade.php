@@ -11,13 +11,13 @@
   </div>
 
   <!-- Header Search (Desktop) -->
-  <div class="header-search">
+  {{-- <div class="header-search">
     <form class="search-form" action="search-results.html" method="GET">
       <i class="bi bi-search search-icon"></i>
       <input type="search" name="q" placeholder="Search..." autocomplete="off">
       <kbd class="search-shortcut">Ctrl+K</kbd>
     </form>
-  </div>
+  </div> --}}
 
   <!-- Header Right -->
   <div class="header-right">
@@ -26,7 +26,7 @@
       <!-- Apps Dropdown -->
 
 
-  @include('layouts.modern_notifications')
+      @include('layouts.modern_notifications')
 
 
 
@@ -35,22 +35,20 @@
       <!-- User Dropdown -->
       <div class="header-action dropdown user-dropdown">
         <button class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-          <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="avatar"  data-avatar>
+          <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="avatar" data-avatar>
         </button>
         <div class="dropdown-menu dropdown-menu-end">
           <div class="user-dropdown-header">
-            <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="user-dropdown-avatar"  data-avatar>
+            <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User"
+              class="user-dropdown-avatar" data-avatar>
             <div class="user-dropdown-info">
               <div class="user-dropdown-name">{{ucfirst(auth()->user()->name)}}</div>
               <div class="user-dropdown-role">{{ucfirst(auth()->user()->role)}}</div>
             </div>
           </div>
           <div class="user-dropdown-body">
-            <a class="user-dropdown-item" href="profile.html">
-              <i class="bi bi-person"></i>
-              <span>My Profile</span>
-            </a>
-            <a class="user-dropdown-item" href="settings.html">
+
+            <a class="user-dropdown-item" href="{{ route('staff.show', ['staff' => auth()->user()]) }}">
               <i class="bi bi-gear"></i>
               <span>Account Settings</span>
             </a>

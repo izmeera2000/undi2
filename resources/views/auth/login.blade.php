@@ -96,15 +96,7 @@
 
  
                 </form>
-
-                @if (Route::has('register'))
-                    <p class="auth-footer-text">
-                        Don't have an account?
-                        <a href="{{ route('register') }}" class="auth-link">
-                            Create account
-                        </a>
-                    </p>
-                @endif
+ 
             </div>
 
             <!-- Footer -->

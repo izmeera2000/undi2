@@ -5,10 +5,10 @@
 
 
 @section('breadcrumb')
-    @php
-        $crumbs[] = ['label' => 'Staff', 'url' => route('staff.list')];
-        $crumbs[] = ['label' => 'Profile', 'url' => route('staff.show', $staff)];
-     @endphp
+  @php
+    $crumbs[] = ['label' => 'Staff', 'url' => route('staff.list')];
+    $crumbs[] = ['label' => 'Profile', 'url' => route('staff.show', $staff)];
+   @endphp
 @endsection
 
 
@@ -25,10 +25,12 @@
       <div class="d-flex justify-content-end gap-2">
 
 
+        @if (auth()->user()->id === $staff->id || auth()->user()->role !== 'user')
+          <a href="{{ route('staff.edit', $staff) }}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i> Edit Profile
+          </a>
+        @endif
 
-        <a href="{{ route('staff.edit', $staff) }}" class="btn btn-primary">
-          <i class="bi bi-pencil me-1"></i> Edit Profile
-        </a>
 
 
 

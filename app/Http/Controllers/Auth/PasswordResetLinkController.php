@@ -7,6 +7,14 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
+use App\Models\User;
+
+
+
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use App\Mail\ForgotPasswordMail;
 
 class PasswordResetLinkController extends Controller
 {
@@ -29,16 +37,34 @@ class PasswordResetLinkController extends Controller
             'email' => ['required', 'email'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $user = User::where('email', $request->email)
+            ->where('status', 'active')
+            ->first();
+            
+        if (!$user) {
+            throw ValidationException::withMessages([
+                'email' => ['User not found.'],
+            ]);
+        }
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+
+
+
+        $token = Password::createToken($user);
+
+        // Generate reset URL
+        $resetUrl = url(route('password.reset', [
+            'token' => $token,
+            'email' => $user->email,
+        ], false));
+
+        // Attach URL to user object (for Blade email)
+        $user->reset_url = $resetUrl;
+
+        // Send custom mail
+        Mail::to($user->email)->send(new ForgotPasswordMail($user, $resetUrl));
+
+        return back()->with('status', 'Reset link sent successfully.');
     }
+
 }

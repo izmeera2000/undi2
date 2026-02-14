@@ -103,7 +103,10 @@
               if (xhr.status === 401) {
                 window.location.href = "{{ route('login') }}";
               }
-            }
+              if (xhr.status == 419) {
+                location.reload();
+              }
+            },
           },
           columns: [
             { data: 'DT_RowIndex', orderable: false, searchable: false },
@@ -123,11 +126,9 @@
           }
         });
 
-      });
 
 
 
-      document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('addMemberForm');
         const submitBtn = document.getElementById('addMemberBtn');
         const avatarInput = document.getElementById('avatarUpload');
@@ -207,6 +208,47 @@
               });
             });
         });
+
+
+
+
+        $('#dun_id').on('change', function () {
+          // Get the selected DUN id
+          var dunId = $(this).val();
+
+          // Clear the DM dropdown (set default option)
+          $('#kod_dm').html('<option value="">-- Select DM --</option>');
+
+          // If a DUN is selected
+          if (dunId) {
+            $.ajax({
+              url: "{{ route('members.duns', ':dunId') }}".replace(':dunId', dunId),
+              method: 'GET',
+              headers: {
+                'X-CSRF-TOKEN': csrfToken
+              },
+              success: function (response) {
+                // Populate the DM dropdown with the new options
+                if (response.dms.length > 0) {
+                  response.dms.forEach(function (dm) {
+                    $('#kod_dm').append('<option value="' + dm.koddm + '">' + dm.namadm + ' (' + dm.koddm + ')</option>');
+                  });
+                } else {
+                  $('#kod_dm').append('<option value="">No DM found for this DUN</option>');
+                }
+              },
+              error: function () {
+                alert('Error fetching DM data.');
+              }
+            });
+          }
+        });
+
+
+
+
+
+
       });
 
 
@@ -235,6 +277,11 @@
       //     }
       //   });
       // });
+
+
+
+      // When the DUN dropdown changes
+
 
 
     </script>

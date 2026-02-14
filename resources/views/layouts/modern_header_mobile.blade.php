@@ -10,14 +10,10 @@
       <span class="mobile-menu-label">Notifications</span>
     </a>
 
-    <!-- Profile -->
-    <a href="profile.html" class="mobile-menu-item">
-      <i class="bi bi-person"></i>
-      <span class="mobile-menu-label">Profile</span>
-    </a>
+ 
 
     <!-- Settings -->
-    <a href="settings.html" class="mobile-menu-item">
+    <a href="{{ route('staff.show', ['staff' => auth()->user()]) }}" class="mobile-menu-item">
       <i class="bi bi-gear"></i>
       <span class="mobile-menu-label">Settings</span>
     </a>

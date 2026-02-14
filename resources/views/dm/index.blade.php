@@ -116,9 +116,14 @@
                         'X-CSRF-TOKEN': csrfToken
                     },
                     error: function (xhr) {
+                        // Handle 401 Unauthorized
                         if (xhr.status === 401) {
-                            window.location.href = "{{ route('login') }}";
+                            window.location.href = "{{ route('login') }}";  // Redirect to login page
                         }
+                        // Handle 419 Page Expired
+                        if (xhr.status === 419) {
+                            location.reload();  // Reload the page
+                        }               
                     }
                 },
                 columns: [

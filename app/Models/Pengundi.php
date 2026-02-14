@@ -10,6 +10,7 @@ class Pengundi extends Model
 
     protected $fillable = [
         'dm_id',
+        'koddm',
         'nokp_baru',
         'nokp_lama',
         'nama',

@@ -3064,11 +3064,13 @@ namespace App\Models {
      * @property string $nama
      * @property string|null $nokp_lama
      * @property string $nokp_baru
+     * @property string|null $koddm
      * @property int $dm_id
      * @property int $id
      * @property-read \App\Models\Dm $dm
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereDmId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereKoddm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNokpBaru($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNokpLama($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNama($value)

@@ -36,11 +36,11 @@ Route::get('/testimport', fn() => view('testimport'))
 Route::middleware('auth')->group(function () {
 
     // Profile
-    Route::prefix('profile')->group(function () {
-        Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
-        Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    });
+    // Route::prefix('profile')->group(function () {
+    //     Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
+    //     Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
+    //     Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // });
 
     // Events
     Route::prefix('events')->group(function () {
@@ -51,9 +51,21 @@ Route::middleware('auth')->group(function () {
         Route::delete('{event}', [EventController::class, 'destroy'])->name('events.destroy');
     });
 
-
-
     Route::get('upcoming', [EventController::class, 'upcoming'])->name('events.upcoming');
+
+
+    Route::get('/first-login', function () {
+        return view('auth.first-login');
+    })->name('first.login');
+
+    Route::post('/first-login', [StaffController::class, 'firstLoginUpdate'])
+        ->name('first.login.update');
+
+
+
+
+
+
 
 
 
@@ -66,7 +78,19 @@ Route::middleware('auth')->group(function () {
 // Verified Routes (Dashboard + Staff + Protected Features)
 // --------------------------------------------------
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
+
+
+    Route::get('/clear-all', function () {
+        Artisan::call('optimize:clear');
+        return 'Cleared';
+    });
+
+
+
+
+
+
 
     Route::get('/event', [EventController::class, 'list'])
         ->name('event');
@@ -81,7 +105,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('list', 'staff.list')->name('list');
         Route::get('{staff}/edit', [StaffController::class, 'edit'])->name('edit');
         Route::post('data', [StaffController::class, 'getStaff'])->name('data');
-        Route::resource('/', StaffController::class)->except(['index']);
         Route::get('{staff}', [StaffController::class, 'show'])->name('show');
         Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
         Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
@@ -89,8 +112,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
         Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
         Route::post('{user}/avatar', [StaffController::class, 'updateAvatar']);
+        Route::post('store', [StaffController::class, 'store'])->name('store');
+
+
         Route::delete('{staff}', [StaffController::class, 'destroy'])->name('destroy');
     });
+
+
 
     // Pengundi Analytics
     Route::prefix('pengundi')->name('pengundi.')->group(function () {
@@ -113,7 +141,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('members')->name('members.')->group(function () {
 
 
-        Route::view('list', 'members.list')->name('list');
+        Route::get('list', [MembersController::class, 'list'])->name('list');
+
         Route::get('{member}/edit', [MembersController::class, 'edit'])->name('edit');
         Route::post('data', [MembersController::class, 'getList'])->name('data');
         // Route::resource('/', StaffController::class)->except(['index']);
@@ -129,6 +158,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('store', [MembersController::class, 'store'])->name('store');
 
 
+
+        Route::get('/duns/{dunId}', [MembersController::class, 'getDmsByDun'])->name('duns');
 
 
 
@@ -199,14 +230,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Analytics AJAX Charts
     Route::prefix('analytics/chart')->group(function () {
         Route::post('overview', [PengundiAnalyticsController::class, 'overview']);
-        Route::post('jantina', [PengundiAnalyticsController::class, 'jantina']);
-        Route::post('jantina2', [PengundiAnalyticsController::class, 'overviewByJantina']);
-        Route::post('ahliumno', [PengundiAnalyticsController::class, 'ahliumno']);
-        Route::post('ahliumno2', [PengundiAnalyticsController::class, 'overviewByAhliumno']);
-        Route::post('dundm', [PengundiAnalyticsController::class, 'dundm']);
-        Route::post('dundm2', [PengundiAnalyticsController::class, 'overviewByDundm']);
-        Route::post('dundm2spec', [PengundiAnalyticsController::class, 'overviewByDundmSpecDun']);
-        Route::post('firsttime', [PengundiAnalyticsController::class, 'overviewByFirstTime']);
+
     });
 
     Route::post('analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
@@ -217,14 +241,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
-
-
-
-
-Route::get('/clear-all', function () {
-    Artisan::call('optimize:clear');
-    return 'Cleared';
-});
 
 
 

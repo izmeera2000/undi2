@@ -31,7 +31,7 @@
               <label class="form-label">Full Name</label>
               <input type="text" name="nama" class="form-control" placeholder="Full Name" required>
             </div>
- 
+
             <div class="col-md-4">
               <label class="form-label">Gender</label>
               <select name="jantina" class="form-select">
@@ -41,7 +41,7 @@
               </select>
             </div>
 
-                        <div class="col-md-6">
+            <div class="col-md-6">
               <label class="form-label">NO KP Baru</label>
               <input type="text" name="nokp_baru" class="form-control" placeholder="NOKP Baru">
             </div>
@@ -96,15 +96,30 @@
               <input type="text" name="alamat_jpn_3" class="form-control">
             </div>
 
-
-                        <div class="col-md-6">
-              <label class="form-label">DUN ID</label>
-              <input type="text" name="dun_id" class="form-control" placeholder="DUN ID">
-            </div>
             <div class="col-md-6">
-              <label class="form-label">Kod DM</label>
-              <input type="text" name="kod_dm" class="form-control">
+              <label class="form-label">DUN</label>
+              <select name="dun_id" id="dun_id" class="form-select">
+                <option value="">-- Select DUN --</option>
+                @foreach($duns as $dun)
+                  <option value="{{ $dun->id }}" {{ old('dun_id', $member->dun_id ?? '') == $dun->id ? 'selected' : '' }}>
+                    {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                  </option>
+                @endforeach
+              </select>
             </div>
+
+            <div class="col-md-6">
+              <label class="form-label">DM</label>
+              <select name="kod_dm" id="kod_dm" class="form-select">
+                <option value="">-- Select DM --</option>
+                @foreach($dms as $dm)
+                  <option value="{{ $dm->koddm }}" {{ old('kod_dm', $member->kod_dm ?? '') == $dm->koddm ? 'selected' : '' }}>
+                    {{ $dm->namadm }} ({{ $dm->koddm }})
+                  </option>
+                @endforeach
+              </select>
+            </div>
+
 
             <div class="col-md-6">
               <label class="form-label">Kod CWGN</label>

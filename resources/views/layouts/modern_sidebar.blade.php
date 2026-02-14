@@ -78,26 +78,26 @@
       </li>
 
       <li class="nav-heading"><span>Settings</span></li>
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
-        <i class="ph-light ph-file"></i>
-        <span>Parlimen</span>
-    </a>
-</li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
+          <i class="ph-light ph-file"></i>
+          <span>Parlimen</span>
+        </a>
+      </li>
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
-        <i class="ph-light ph-file"></i>
-        <span>Dun</span>
-    </a>
-</li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
+          <i class="ph-light ph-file"></i>
+          <span>Dun</span>
+        </a>
+      </li>
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
-        <i class="ph-light ph-file"></i>
-        <span>DM</span>
-    </a>
-</li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
+          <i class="ph-light ph-file"></i>
+          <span>DM</span>
+        </a>
+      </li>
 
 
 
@@ -119,7 +119,7 @@
   <!-- Sidebar Footer -->
   <div class="sidebar-footer">
     <div class="sidebar-footer-user">
-      <a href="profile.html" class="sidebar-footer-profile">
+      <a href="{{ route('staff.show', ['staff' => auth()->user()]) }}" class="sidebar-footer-profile">
         <img src="{{auth()->user()->profile->getProfilePictureUrlAttribute()}}" alt="User" class="sidebar-footer-avatar"
           data-avatar>
         <div class="sidebar-footer-info">
@@ -128,9 +128,8 @@
         </div>
       </a>
       <div class="sidebar-footer-actions">
-        <a href="settings.html" class="sidebar-footer-action" title="Settings">
-          <i class="ph-light ph-gear"></i>
-        </a>
+
+ 
         <form method="POST" action="{{ route('logout') }}" style="display: inline;">
           @csrf
           <button type="submit" class="sidebar-footer-action sidebar-footer-logout" title="Logout"

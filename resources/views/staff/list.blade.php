@@ -169,6 +169,9 @@
               if (xhr.status === 401) {
                 window.location.href = "{{ route('login') }}";
               }
+                            if (xhr.status == 419) {
+                 location.reload();
+              }
             }
           },
           columns: [

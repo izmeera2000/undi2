@@ -26,26 +26,28 @@ class TransferPengundiJob
 
                 foreach ($rows as $row) {
 
-                    $parlimen = Parlimen::firstOrCreate(
+                    $parlimen = Parlimen::updateOrCreate(
                         ['kod_par' => $row->kod_par],
                         ['namapar' => $row->namapar]
                     );
 
-                    $dun = Dun::firstOrCreate(
+                    $dun = Dun::updateOrCreate(
+                        ['kod_dun' => $row->kod_dun],
                         [
                             'parlimen_id' => $parlimen->id,
-                            'kod_dun' => $row->kod_dun
-                        ],
-                        ['namadun' => $row->namadun]
+                            'namadun' => $row->namadun
+                        ]
                     );
 
-                    $dm = Dm::firstOrCreate(
+                    // Update or create based only on 'koddm' to prevent duplicates of the same 'koddm'
+                    $dm = Dm::updateOrCreate(
+                        ['koddm' => $row->koddm],  // Only use 'koddm' for uniqueness check
                         [
-                            'dun_id' => $dun->id,
-                            'koddm' => $row->koddm
-                        ],
-                        ['namadm' => $row->namadm]
+                            'dun_id' => $dun->id,  // Attach the dun_id to the dm record
+                            'namadm' => $row->namadm
+                        ]
                     );
+
 
                     Pengundi::updateOrCreate(
                         [
@@ -54,6 +56,7 @@ class TransferPengundiJob
                         ],
                         [
                             'dm_id' => $dm->id,
+                            'koddm' => $row->koddm,
                             'nokp_lama' => $row->nokp_lama,
                             'nama' => $row->nama,
                             'jantina' => $row->jantina,

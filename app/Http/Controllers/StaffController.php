@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+ use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Storage;
 
 class StaffController extends Controller
@@ -227,4 +228,34 @@ class StaffController extends Controller
         ]);
     }
 
+    public function firstLoginUpdate(Request $request)
+    {
+        $request->validate([
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $user = Auth::user();
+
+        // Stop if already active
+        if ($user->status === 'active') {
+            return redirect()->route('dashboard');
+        }
+
+        // Update password
+        $user->password = Hash::make($request->password);
+        $user->status = 'active';
+
+        // ✅ Auto verify email on first login
+        if (is_null($user->email_verified_at)) {
+            $user->email_verified_at = now();
+        }
+
+        $user->save();
+
+        // Regenerate session (security)
+        $request->session()->regenerate();
+
+        return redirect()->route('dashboard')
+            ->with('success', 'Account activated successfully.');
+    }
 }

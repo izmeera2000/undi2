@@ -135,6 +135,8 @@ class PengundiImportController extends Controller
         /** 3️⃣ Dispatch transfer job */
         $job = new TransferPengundiJob($tarikhUndian);
         $job->handle();
+        
+        Cache::forget($this->cacheKey );
 
         return response()->json([
             'success' => "Imported $count rows. Transfer started."

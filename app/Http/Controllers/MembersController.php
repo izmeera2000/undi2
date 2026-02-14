@@ -12,16 +12,30 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Member;
+use App\Models\Dun;
+use App\Models\Dm;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
- 
+use Illuminate\Support\Facades\Log;
+
 class MembersController extends Controller
 {
     //
 
+    public function list()
+    {
+        $duns = Dun::orderBy('namadun')->get();
+        $dms = Dm::orderBy('namadm')->get();
+
+        return view('members.list', compact('duns', 'dms'));
+    }
+
+
     public function index()
     {
+
+
         return view(view: 'members.profile');
     }
 
@@ -164,16 +178,19 @@ class MembersController extends Controller
         // =========================
         // VALIDATION
         // =========================
+
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:members,email',
-            'role' => 'required|in:admin,manager,user',
+            'nama' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:members,email',
             'dun_id' => 'nullable|exists:duns,id',
             'nokp_baru' => 'nullable|string|max:20',
             'nokp_lama' => 'nullable|string|max:20',
-            'tahun_lahir' => 'nullable|integer|min:1900|max:' . date('Y'),
             'jantina' => 'nullable|in:Lelaki,Perempuan',
-            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'phone' => 'nullable|string|max:15|regex:/^[0-9\-\(\)\+\s]*$/',
+            'no_ahli' => 'nullable|string|max:20',
+
+            
         ]);
 
         if ($validator->fails()) {
@@ -188,14 +205,17 @@ class MembersController extends Controller
         // =========================
         $data = $request->only([
             'dun_id',
-            'nama',        // full name
+            'nama',      
             'nokp_baru',
             'nokp_lama',
-            'tahun_lahir',
             'jantina',
             'email',
-            'role'
+            'phone', 
+            'no_ahli',
         ]);
+
+
+
 
         // =========================
         // HANDLE AVATAR
@@ -209,9 +229,7 @@ class MembersController extends Controller
         // =========================
         // AUTO-CALCULATE UMUR
         // =========================
-        if (!empty($data['tahun_lahir'])) {
-            $data['umur'] = date('Y') - $data['tahun_lahir'];
-        }
+
 
         $member = Member::create($data);
 
@@ -220,6 +238,19 @@ class MembersController extends Controller
             'member' => $member
         ]);
     }
+
+
+
+
+    public function getDmsByDun($dunId)
+    {
+        // Fetch DMs by the selected DUN
+        $dms = Dm::where('dun_id', $dunId)->get(['koddm', 'namadm']);
+
+        // Return the DMs in JSON format
+        return response()->json(['dms' => $dms]);
+    }
+
 
 
 }
