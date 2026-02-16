@@ -3,8 +3,7 @@
 use App\Http\Controllers\MembersController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PengundiImportController;
-use App\Http\Controllers\PengundiTransferController;
-use App\Http\Controllers\MembersTransferController;
+ use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
 use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\NotificationController;
@@ -13,6 +12,7 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\DunController;
 use App\Http\Controllers\DmController;
+use App\Http\Controllers\LokalitiController;
 use App\Http\Controllers\ParlimenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ActivityLogController;
@@ -155,8 +155,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('import.progress');
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
-        Route::get('transfer', [PengundiTransferController::class, 'transfer']);
-        Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
+         Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
             ->name('analytics.pdf');
 
 
@@ -256,6 +255,24 @@ Route::middleware(['auth', 'active'])->group(function () {
         // For DataTables AJAX
         Route::post('/data', [DmController::class, 'getList'])->name('data');
     });
+
+
+        Route::prefix('lokaliti')->name('lokaliti.')->group(function () {
+        Route::get('/', [LokalitiController::class, 'index'])->name('index');   // list page
+        Route::post('/', [LokalitiController::class, 'store'])->name('store');
+
+        Route::get('/{lokaliti}/edit', [LokalitiController::class, 'edit'])->name('edit');
+        Route::put('/{lokaliti}', [LokalitiController::class, 'update'])->name('update');
+        Route::delete('/{lokaliti}', [LokalitiController::class, 'destroy'])->name('destroy');
+
+        // Show single Dm (must be **after** edit/update/delete routes)
+        Route::get('/{lokaliti}', [LokalitiController::class, 'show'])->name('show');
+
+        // For DataTables AJAX
+        Route::post('/data', [LokalitiController::class, 'getList'])->name('data');
+    });
+
+
 
 
 

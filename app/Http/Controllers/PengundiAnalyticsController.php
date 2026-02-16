@@ -35,6 +35,8 @@ class PengundiAnalyticsController extends Controller
         // Pass to the view
         return view('pengundi.analysis', compact('duns', 'years'));
     }
+
+    
     public function index(Request $request)
     {
         $filters = $request->only([

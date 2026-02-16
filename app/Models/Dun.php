@@ -12,15 +12,34 @@ class Dun extends Model
 
     protected $table = 'dun';
 
-    protected $fillable = ['kod_dun', 'namadun', 'parlimen_id'];
+    protected $fillable = [
+        'parlimen_id',
+        'kod_dun',
+        'namadun',
+        'status',
+        'effective_from',
+        'effective_to'
+    ];
 
+
+    protected $casts = [
+        'effective_from' => 'date',
+        'effective_to' => 'date',
+    ];
     /**
      * Get the Parlimen that owns the Dun
      */
+
+
+
     public function parlimen()
     {
         return $this->belongsTo(Parlimen::class, 'parlimen_id');
     }
+public function lokalitis()
+{
+    return $this->hasManyThrough(Lokaliti::class, Dm::class);
+}
 
     /**
      * Get all DMs under this Dun
@@ -29,7 +48,10 @@ class Dun extends Model
     {
         return $this->hasMany(Dm::class, 'dun_id');
     }
-
+    public function pengundis()
+    {
+        return $this->hasManyThrough(Pengundi::class, Dm::class);
+    }
     /**
      * Get the activity log options.
      *

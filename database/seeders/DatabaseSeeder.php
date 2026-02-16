@@ -58,6 +58,10 @@ class DatabaseSeeder extends Seeder
             'dm.add',
             'dm.edit',
             'dm.delete',
+            'lokaliti.view',
+            'lokaliti.add',
+            'lokaliti.edit',
+            'lokaliti.delete',
         ];
 
         foreach ($permissions as $permission) {

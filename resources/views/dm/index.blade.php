@@ -3,12 +3,12 @@
 @section('title', 'DM List')
 
 @section('breadcrumb')
-    @php
-        $crumbs = [
-            ['label' => 'DM', 'url' => route('dm.index')],
-            ['label' => 'List', 'url' => route('dm.index')],
-        ];
-    @endphp
+@php
+    $crumbs = [
+        ['label' => 'DM', 'url' => route('dm.index')],
+        ['label' => 'List', 'url' => route('dm.index')],
+    ];
+@endphp
 @endsection
 
 @push('styles')
@@ -16,86 +16,98 @@
 @endpush
 
 @section('content')
-    <section class="section">
-        <div class="card g-4 mb-4">
-            <div class="card-header">
-                <div class="row g-3 align-items-center w-100">
-                    <div class="col-md-4 col-12">
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0">
-                                <i class="bi bi-search text-muted"></i>
-                            </span>
-                            <input type="text" id="dmSearch" class="form-control border-start-0 ps-0"
-                                placeholder="Search DM...">
-                        </div>
-                    </div>
-                    <div class="col-md-8 col-12">
-                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDMModal">
-                                <i class="bi bi-plus-lg me-1"></i> Add DM
-                            </button>
-                        </div>
+<section class="section">
+    <div class="card g-4 mb-4">
+        <div class="card-header">
+            <div class="row g-3 align-items-center w-100">
+                <div class="col-md-4 col-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" id="dmSearch" class="form-control border-start-0 ps-0" placeholder="Search DM...">
                     </div>
                 </div>
-            </div>
-
-            <div class="card-body p-1">
-                <div class="table-responsive">
-                    <table id="dmTable" class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>Kod DM</th>
-                                <th>Nama DM</th>
-                                <th>DUN</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="col-md-8 col-12">
+                    <div class="d-flex flex-wrap justify-content-md-end gap-2">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDMModal">
+                            <i class="bi bi-plus-lg me-1"></i> Add DM
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    {{-- Add DM Modal --}}
-    <div class="modal fade" id="addDMModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form id="addDMForm">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add DM</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">Kod DM</label>
-                            <input type="text" name="koddm" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Nama DM</label>
-                            <input type="text" name="namadm" class="form-control" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">DUN</label>
-                            <select name="dun_id" class="form-select" required>
-                                @foreach($duns as $dun)
-                                    <option value="{{ $dun->id }}">{{ $dun->namadun }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save DM</button>
-                    </div>
-                </form>
+        <div class="card-body p-1">
+            <div class="table-responsive">
+                <table id="dmTable" class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Kod DM</th>
+                            <th>Nama DM</th>
+                            <th>DUN</th>
+                            <th>Effective From</th>
+                            <th>Effective To</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
+</section>
+
+{{-- Add DM Modal --}}
+<div class="modal fade" id="addDMModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="addDMForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add DM</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Kod DM</label>
+                        <input type="text" name="koddm" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Nama DM</label>
+                        <input type="text" name="namadm" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">DUN</label>
+                        <select name="dun_id" class="form-select" required>
+                            @foreach($duns as $dun)
+                                <option value="{{ $dun->id }}">{{ $dun->namadun }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Effective From</label>
+                        <input type="date" name="effective_from" class="form-control">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Effective To</label>
+                        <input type="date" name="effective_to" class="form-control">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save DM</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -103,7 +115,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const table = $('#dmTable').DataTable({
@@ -130,6 +141,8 @@
                     { data: 'koddm', name: 'koddm' },
                     { data: 'namadm', name: 'namadm' },
                     { data: 'dun_name', name: 'dun' },
+                    { data: 'effective_from', name: 'effective_from' },
+                    { data: 'effective_to', name: 'effective_to' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
             });
@@ -158,8 +171,15 @@
                 });
             });
 
+            // Row click to go to show page
+            $('#dmTable tbody').on('click', 'tr', function () {
+                const dmId = table.row(this).data().id;  // Get the ID of the clicked row
+                window.location.href = "{{ url('dm') }}/" + dmId;  // Redirect to the show page
+            });
+
             // Delete DM
-            $('#dmTable').on('click', '.delete-dm', function () {
+            $('#dmTable').on('click', '.delete-dm', function (e) {
+                e.stopPropagation();  // Prevent triggering row click when clicking delete
                 const dmId = $(this).data('id');
 
                 if (confirm('Are you sure you want to delete this DM?')) {
@@ -183,10 +203,6 @@
                     });
                 }
             });
-
-
-
-
         });
     </script>
 @endpush

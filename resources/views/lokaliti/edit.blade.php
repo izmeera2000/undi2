@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Edit DM')
+@section('title', 'Edit Lokaliti')
 
 @section('breadcrumb')
     @php
         $crumbs = [
-            ['label' => 'DM', 'url' => route('dm.index')],
-            ['label' => 'Edit', 'url' => route('dm.edit', $dm->id)],
+            ['label' => 'Lokaliti', 'url' => route('lokaliti.index')],
+            ['label' => 'Edit', 'url' => route('lokaliti.edit', $lokaliti->id)],
         ];
     @endphp
 @endsection
@@ -15,51 +15,50 @@
 <section class="section">
     <div class="card g-4 mb-4">
         <div class="card-header">
-            <h5>Edit DM</h5>
+            <h5>Edit Lokaliti</h5>
         </div>
         <div class="card-body">
-            <form id="editDmForm">
+            <form id="editLokalitiForm">
                 <div class="mb-3">
-                    <label class="form-label">Kod DM</label>
-                    <input type="text" name="koddm" class="form-control"
-                        value="{{ $dm->koddm }}" required>
+                    <label class="form-label">Kod Lokaliti</label>
+                    <input type="text" name="kod_lokaliti" class="form-control"
+                        value="{{ $lokaliti->kod_lokaliti }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Nama DM</label>
-                    <input type="text" name="namadm" class="form-control"
-                        value="{{ $dm->namadm }}" required>
+                    <label class="form-label">Nama Lokaliti</label>
+                    <input type="text" name="nama_lokaliti" class="form-control"
+                        value="{{ $lokaliti->nama_lokaliti }}" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">DUN</label>
-                    <select name="dun_id" class="form-control" required>
-                        @foreach($duns as $dun)
-                            <option value="{{ $dun->id }}"
-                                {{ $dm->dun_id == $dun->id ? 'selected' : '' }}>
-                                {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                    <label class="form-label">DM</label>
+                    <select name="dm_id" class="form-control" required>
+                        @foreach($dms as $dm)
+                            <option value="{{ $dm->id }}"
+                                {{ $lokaliti->dm_id == $dm->id ? 'selected' : '' }}>
+                                {{ $dm->namadm }} ({{ $dm->koddm }})
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- Effective Dates -->
                 <div class="mb-3">
                     <label class="form-label">Effective From</label>
                     <input type="date" name="effective_from" class="form-control"
-                        value="{{ $dm->effective_from ? $dm->effective_from->format('Y-m-d') : '' }}">
+                        value="{{ $lokaliti->effective_from ? $lokaliti->effective_from->format('Y-m-d') : '' }}">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Effective To</label>
                     <input type="date" name="effective_to" class="form-control"
-                        value="{{ $dm->effective_to ? $dm->effective_to->format('Y-m-d') : '' }}">
+                        value="{{ $lokaliti->effective_to ? $lokaliti->effective_to->format('Y-m-d') : '' }}">
                 </div>
 
                 <input type="hidden" name="_method" value="PUT">
 
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('dm.index') }}" class="btn btn-light">Cancel</a>
+                    <a href="{{ route('lokaliti.index') }}" class="btn btn-light">Cancel</a>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
                 </div>
 
@@ -74,24 +73,24 @@
 document.addEventListener('DOMContentLoaded', function () {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    $('#editDmForm').submit(function (e) {
+    $('#editLokalitiForm').submit(function (e) {
         e.preventDefault();
 
         const formData = $(this).serialize();
 
         $.ajax({
-            url: "{{ route('dm.update', $dm->id) }}",
+            url: "{{ route('lokaliti.update', $lokaliti->id) }}",
             method: 'POST', // POST + _method=PUT
             headers: {
                 'X-CSRF-TOKEN': csrfToken
             },
             data: formData,
             success: function () {
-                alert('DM updated successfully!');
-                window.location.href = "{{ route('dm.index') }}";
+                alert('Lokaliti updated successfully!');
+                window.location.href = "{{ route('lokaliti.index') }}";
             },
             error: function (xhr) {
-                alert('Error updating DM!');
+                alert('Error updating Lokaliti!');
                 console.error(xhr.responseText);
             }
         });

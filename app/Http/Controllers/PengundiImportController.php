@@ -52,21 +52,17 @@ class PengundiImportController extends Controller
     /**
      * Import CSV → pengundi_raw
      */
-    public function import(Request $request)
-    {
-        try {
-            $request->validate([
-                'file' => 'required|mimes:csv,txt|max:30720',
-                'tarikh_undian' => 'required|integer',
-
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json(['error' => 'Invalid CSV file'], 422);
-        }
-
+public function import(Request $request)
+{
+    try {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt|max:30720',
+            'tarikh_undian' => 'required|integer',
+        ]);
+        
         $file = $request->file('file');
         $path = $file->getRealPath();
-        $tarikhUndian = (int) $request->tarikh_undian;
+$tarikhUndian = (int) $request->tarikh_undian; // e.g., 2022
 
         /** 1️⃣ Count total rows */
         $total = 0;
@@ -111,18 +107,27 @@ class PengundiImportController extends Controller
             $count++;
 
             if ($count % $this->batchSize === 0) {
-                DB::table('pengundi_raw')->insert($rows);
-                $rows = [];
+                // Insert data in batches
+                try {
+                    DB::table('pengundi_raw')->insert($rows);
+                    $rows = [];
 
-                Cache::put($this->cacheKey, [
-                    'count' => $count,
-                    'total' => $total,
-                ]);
+                    Cache::put($this->cacheKey, [
+                        'count' => $count,
+                        'total' => $total,
+                    ]);
+                } catch (\Exception $e) {
+                    return response()->json(['error' => 'Database insertion failed: ' . $e->getMessage()], 500);
+                }
             }
         }
 
         if ($rows) {
-            DB::table('pengundi_raw')->insert($rows);
+            try {
+                DB::table('pengundi_raw')->insert($rows);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Database insertion failed: ' . $e->getMessage()], 500);
+            }
         }
 
         fclose($handle);
@@ -133,15 +138,25 @@ class PengundiImportController extends Controller
         ]);
 
         /** 3️⃣ Dispatch transfer job */
-        $job = new TransferPengundiJob($tarikhUndian);
-        $job->handle();
-        
-        Cache::forget($this->cacheKey );
+        try {
+            $job = new TransferPengundiJob($tarikhUndian);
+            $job->handle();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error dispatching transfer job: ' . $e->getMessage()], 500);
+        }
+
+        Cache::forget($this->cacheKey);
 
         return response()->json([
             'success' => "Imported $count rows. Transfer started."
         ]);
+    } catch (ValidationException $e) {
+        return response()->json(['error' => 'Invalid CSV file'], 422);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
     }
+}
+
 
     /**
      * Progress polling

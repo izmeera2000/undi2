@@ -111,6 +111,13 @@
         </a>
       </li>
 
+            <li class="nav-item">
+        <a class="nav-link" href="{{ route('lokaliti.index') }}" data-sidebar-tooltip="DM">
+          <i class="ph-light ph-file"></i>
+          <span>Lokaliti</span>
+        </a>
+      </li>
+
 
 
       @role('admin')

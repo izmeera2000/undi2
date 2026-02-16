@@ -9,8 +9,7 @@ class Pengundi extends Model
     protected $table = 'pengundi';
 
     protected $fillable = [
-        'dm_id',
-        'koddm',
+        'lokaliti_id', // 🔥 changed from dm_id
         'nokp_baru',
         'nokp_lama',
         'nama',
@@ -30,19 +29,61 @@ class Pengundi extends Model
         'tarikh_undian',
     ];
 
+    protected $casts = [
+            'tarikh_undian' => 'integer', // treat as YEAR
 
+         'tahun_lahir'   => 'integer',
+        'umur'          => 'integer',
+    ];
 
-    /**
-     * Relationship: Pengundi belongs to DM
-     */
-    public function dm()
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    */
+
+    // Pengundi belongs to Lokaliti
+    public function lokaliti()
     {
-        return $this->belongsTo(Dm::class);
+        return $this->belongsTo(Lokaliti::class);
     }
 
+    // Access DM through Lokaliti
+    public function dm()
+    {
+        return $this->hasOneThrough(
+            Dm::class,
+            Lokaliti::class,
+            'id',       // FK on lokaliti table
+            'id',       // FK on dm table
+            'lokaliti_id',
+            'dm_id'
+        );
+    }
 
+    // Access DUN through DM
+    public function dun()
+    {
+        return $this->hasOneThrough(
+            Dun::class,
+            Dm::class,
+            'id',
+            'id',
+            'lokaliti_id',
+            'dun_id'
+        );
+    }
 
-
-
-
+    // Access Parlimen through DUN
+    public function parlimen()
+    {
+        return $this->hasOneThrough(
+            Parlimen::class,
+            Dun::class,
+            'id',
+            'id',
+            'lokaliti_id',
+            'parlimen_id'
+        );
+    }
 }

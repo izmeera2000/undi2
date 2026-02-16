@@ -44,6 +44,26 @@
                     </select>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-control" required>
+                        <option value="active" {{ $dun->status == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ $dun->status == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Effective From</label>
+                    <input type="date" name="effective_from" class="form-control"
+                        value="{{ $dun->effective_from ? $dun->effective_from->format('Y-m-d') : '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Effective To</label>
+                    <input type="date" name="effective_to" class="form-control"
+                        value="{{ $dun->effective_to ? $dun->effective_to->format('Y-m-d') : '' }}">
+                </div>
+
                 <input type="hidden" name="_method" value="PUT">
 
                 <div class="d-flex justify-content-end gap-2">

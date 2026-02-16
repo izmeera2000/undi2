@@ -12,7 +12,9 @@ return new class extends Migration {
     {
         Schema::create('pengundi', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dm_id')->constrained('dm');
+            $table->foreignId('lokaliti_id')
+                ->constrained('lokaliti')
+                ->cascadeOnDelete();
 
             $table->string('nokp_baru');
             $table->string('nokp_lama')->nullable();

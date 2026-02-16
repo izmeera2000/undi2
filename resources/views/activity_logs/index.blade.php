@@ -153,7 +153,7 @@
 
             </div>
 
-{{-- 
+            {{--
             <!-- Load More -->
             <div class="card-footer bg-transparent text-center">
               <button class="btn btn-outline-primary">

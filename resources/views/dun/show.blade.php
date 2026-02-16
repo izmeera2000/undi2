@@ -22,15 +22,17 @@
         </div>
 
         <div class="card-body">
-
+            <!-- Kod Dun -->
             <div class="mb-3">
                 <strong>Kod Dun:</strong> {{ $dun->kod_dun }}
             </div>
 
+            <!-- Nama Dun -->
             <div class="mb-3">
                 <strong>Nama Dun:</strong> {{ $dun->namadun }}
             </div>
 
+            <!-- Parlimen -->
             <div class="mb-3">
                 <strong>Parlimen:</strong> 
                 @if($dun->parlimen)
@@ -42,8 +44,27 @@
                 @endif
             </div>
 
+            <!-- Status -->
+            <div class="mb-3">
+                <strong>Status:</strong> 
+                {{ ucfirst($dun->status) }} <!-- Display 'Active' or 'Inactive' -->
+            </div>
+
+            <!-- Effective From -->
+            <div class="mb-3">
+                <strong>Effective From:</strong> 
+                {{ $dun->effective_from ? $dun->effective_from->format('Y-m-d') : 'Not Set' }}
+            </div>
+
+            <!-- Effective To -->
+            <div class="mb-3">
+                <strong>Effective To:</strong> 
+                {{ $dun->effective_to ? $dun->effective_to->format('Y-m-d') : 'Not Set' }}
+            </div>
+
             <hr>
 
+            <!-- DMs under this Dun -->
             <h6>DMs under this Dun</h6>
 
             @if($dun->dms->isEmpty())

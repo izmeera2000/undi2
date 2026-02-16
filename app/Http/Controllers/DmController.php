@@ -7,12 +7,8 @@ use App\Models\Dun;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 
-
 class DmController extends Controller
 {
-
-
-
     public function __construct()
     {
         // View permissions
@@ -40,16 +36,7 @@ class DmController extends Controller
         ]);
     }
 
-
-
-
-
-
-
-
-
-
-    // List all
+    // List all DM
     public function index()
     {
         $dms = Dm::orderBy('namadm')->get();
@@ -58,26 +45,28 @@ class DmController extends Controller
         return view('dm.index', compact('dms', 'duns'));
     }
 
-
-
-
     // Show create form
     public function create()
     {
-        return view('dm.create');
+        $duns = Dun::all(); // for dropdown
+        return view('dm.create', compact('duns'));
     }
 
-    // Store new
+    // Store new DM
     public function store(Request $request)
     {
         $request->validate([
             'koddm' => 'required|unique:dm,koddm',
             'namadm' => 'required',
+            'dun_id' => 'required|exists:dun,id', // ensure selected DUN exists
+            'effective_from' => 'nullable|date', // Add validation for effective_from
+            'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
         ]);
 
+        // Create DM record
         Dm::create($request->all());
 
-        return redirect()->route('dm.index')->with('success', 'Dm added.');
+        return redirect()->route('dm.index')->with('success', 'DM added successfully.');
     }
 
     // Show edit form
@@ -87,40 +76,41 @@ class DmController extends Controller
         return view('dm.edit', compact('dm', 'duns'));
     }
 
-    // Update
+    // Update an existing DM
     public function update(Request $request, Dm $dm)
     {
         $request->validate([
             'koddm' => 'required|unique:dm,koddm,' . $dm->id, // ignore current DM
             'namadm' => 'required',
             'dun_id' => 'required|exists:dun,id', // ensure selected DUN exists
+            'effective_from' => 'nullable|date', // Add validation for effective_from
+            'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
         ]);
 
-        $dm->update($request->only('koddm', 'namadm', 'dun_id'));
+        // Update DM record
+        $dm->update($request->only('koddm', 'namadm', 'dun_id', 'effective_from', 'effective_to'));
 
         return redirect()->route('dm.index')->with('success', 'DM updated successfully.');
     }
 
-    // Delete
+    // Delete a DM
     public function destroy(Dm $dm)
     {
         $dm->delete();
 
-        return redirect()->route('dm.index')->with('success', 'Dm deleted.');
+        return redirect()->route('dm.index')->with('success', 'DM deleted successfully.');
     }
 
-    // Optional: show single
+    // Optional: Show a single DM's details
     public function show(Dm $dm)
     {
         return view('dm.show', compact('dm'));
     }
 
-
-
+    // Get list of DM for Datatables (AJAX)
     public function getList(Request $request)
     {
-        // Eager load dun relationship for each DM
-        $query = Dm::with('dun');
+        $query = Dm::with('dun'); // Eager load dun relationship for each DM
 
         return datatables($query)
             ->addColumn('koddm', function ($row) {
@@ -134,6 +124,12 @@ class DmController extends Controller
                 // Show related DUN name
                 return $row->dun ? $row->dun->namadun : '-';
             })
+            ->addColumn('effective_from', function ($row) {
+                return $row->effective_from ? $row->effective_from->format('Y-m-d') : '-';
+            })
+            ->addColumn('effective_to', function ($row) {
+                return $row->effective_to ? $row->effective_to->format('Y-m-d') : '-';
+            })
             ->addColumn('actions', function ($row) {
                 $edit = '<a href="' . route('dm.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
                 $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-dm">Delete</button>';
@@ -142,7 +138,4 @@ class DmController extends Controller
             ->rawColumns(['namadm', 'actions']) // namadm has HTML link, actions have buttons
             ->make(true);
     }
-
-
-
 }

@@ -1,23 +1,21 @@
 @extends('layouts.app')
 
-@section('title', 'DUN List')
+@section('title', 'Lokaliti List')
 
 @section('breadcrumb')
     @php
-        // Build dynamic crumbs based on request
         $crumbs = [
-            ['label' => 'DUN', 'url' => route('dun.index')],
-            ['label' => 'List', 'url' => route('dun.index')],
+            ['label' => 'Lokaliti', 'url' => route('lokaliti.index')],
+            ['label' => 'List', 'url' => route('lokaliti.index')],
         ];
     @endphp
 @endsection
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css')}}">
 @endpush
 
 @section('content')
-
     <section class="section">
         <div class="card g-4 mb-4">
             <div class="card-header">
@@ -27,14 +25,14 @@
                             <span class="input-group-text bg-transparent border-end-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text" id="dunSearch" class="form-control border-start-0 ps-0"
-                                placeholder="Search DUN...">
+                            <input type="text" id="lokalitiSearch" class="form-control border-start-0 ps-0"
+                                placeholder="Search Lokaliti...">
                         </div>
                     </div>
                     <div class="col-md-8 col-12">
                         <div class="d-flex flex-wrap justify-content-md-end gap-2">
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDUNModal">
-                                <i class="bi bi-plus-lg me-1"></i> Add DUN
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLokalitiModal">
+                                <i class="bi bi-plus-lg me-1"></i> Add Lokaliti
                             </button>
                         </div>
                     </div>
@@ -43,13 +41,12 @@
 
             <div class="card-body p-1">
                 <div class="table-responsive">
-                    <table id="dunTable" class="table table-hover align-middle mb-0">
+                    <table id="lokalitiTable" class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Parlimen Name</th>
-                                <th>Kod DUN</th>
-                                <th>Nama DUN</th>
-                                <th>Status</th>
+                                <th>Kod Lokaliti</th>
+                                <th>Nama Lokaliti</th>
+                                <th>DM</th>
                                 <th>Effective From</th>
                                 <th>Effective To</th>
                                 <th>Actions</th>
@@ -62,52 +59,56 @@
         </div>
     </section>
 
-    {{-- Add DUN Modal --}}
-    <div class="modal fade" id="addDUNModal" tabindex="-1">
+    {{-- Add Lokaliti Modal --}}
+    <div class="modal fade" id="addLokalitiModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form id="addDUNForm">
+                <form id="addLokalitiForm">
                     <div class="modal-header">
-                        <h5 class="modal-title">Add DUN</h5>
+                        <h5 class="modal-title">Add Lokaliti</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
+
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Nama Parlimen</label>
-                            <input type="text" name="parlimen_name" class="form-control" required>
+                            <label class="form-label">Kod Lokaliti</label>
+                            <input type="text" name="kod_lokaliti" class="form-control" required>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Kod DUN</label>
-                            <input type="text" name="kod_dun" class="form-control" required>
+                            <label class="form-label">Nama Lokaliti</label>
+                            <input type="text" name="nama_lokaliti" class="form-control" required>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label">Nama DUN</label>
-                            <input type="text" name="namadun" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Status</label>
-                            <select name="status" class="form-control" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                            <label class="form-label">DM</label>
+                            <select name="dm_id" class="form-select" required>
+                                @foreach($dms as $dm)
+                                    <option value="{{ $dm->id }}">{{ $dm->namadm }}</option>
+                                @endforeach
                             </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Effective From</label>
                             <input type="date" name="effective_from" class="form-control">
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Effective To</label>
                             <input type="date" name="effective_to" class="form-control">
                         </div>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save DUN</button>
+                        <button type="submit" class="btn btn-primary">Save Lokaliti</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
 
 @endsection
 
@@ -118,70 +119,75 @@
         document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-            const table = $('#dunTable').DataTable({
+            const table = $('#lokalitiTable').DataTable({
                 processing: true,
                 serverSide: true,
                 ajax: {
-                    url: "{{ route('dun.data') }}",
+                    url: "{{ route('lokaliti.data') }}",
                     type: "POST",
                     headers: {
                         'X-CSRF-TOKEN': csrfToken
                     },
                     error: function (xhr) {
+                        // Handle 401 Unauthorized
                         if (xhr.status === 401) {
                             window.location.href = "{{ route('login') }}";  // Redirect to login page
                         }
+                        // Handle 419 Page Expired
                         if (xhr.status === 419) {
                             location.reload();  // Reload the page
                         }
                     }
                 },
                 columns: [
-                    { data: 'parlimen_name', name: 'parlimen.namapar' },
-                    { data: 'kod_dun', name: 'kod_dun' },
-                    { data: 'namadun', name: 'namadun' },
-                    { data: 'status', name: 'status' },
+                    { data: 'kod_lokaliti', name: 'kod_lokaliti' },
+                    { data: 'nama_lokaliti', name: 'nama_lokaliti' },
+                    { data: 'dm_name', name: 'dm_name' },
                     { data: 'effective_from', name: 'effective_from' },
                     { data: 'effective_to', name: 'effective_to' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
+
             });
 
-            // Search input
-            $('#dunSearch').on('keyup', function () {
+            // Search
+            $('#lokalitiSearch').on('keyup', function () {
                 table.search(this.value).draw();
             });
 
-            // Add DUN
-            $('#addDUNForm').submit(function (e) {
+            // Add Lokaliti
+            $('#addLokalitiForm').submit(function (e) {
                 e.preventDefault();
+
                 $.ajax({
-                    url: "{{ route('dun.store') }}",
+                    url: "{{ route('lokaliti.store') }}",
                     method: 'POST',
                     data: $(this).serialize(),
                     success: function () {
-                        $('#addDUNModal').modal('hide');
+                        $('#addLokalitiModal').modal('hide');
                         table.ajax.reload();
+                        $('#addLokalitiForm')[0].reset();
                     },
-                    error: function (err) {
-                        alert('Error saving DUN!');
+                    error: function () {
+                        alert('Error saving Lokaliti!');
                     }
                 });
             });
 
             // Row click to go to show page
-            $('#dunTable tbody').on('click', 'tr', function () {
-                const dunId = table.row(this).data().id;  // Get the ID of the clicked row
-                window.location.href = "{{ url('dun') }}/" + dunId;  // Redirect to the show page
+            $('#lokalitiTable tbody').on('click', 'tr', function () {
+                const lokalitiId = table.row(this).data().id;  // Get the ID of the clicked row
+                window.location.href = "{{ url('lokaliti') }}/" + lokalitiId;  // Redirect to the show page
             });
 
-            // Delete DUN
-            $('#dunTable').on('click', '.delete-dun', function (e) {
+            // Delete Lokaliti
+            $('#lokalitiTable').on('click', '.delete-lokaliti', function (e) {
                 e.stopPropagation();  // Prevent triggering row click when clicking delete
-                const dunId = $(this).data('id');
-                if (confirm('Are you sure you want to delete this DUN?')) {
+                const lokalitiId = $(this).data('id');
+
+                if (confirm('Are you sure you want to delete this Lokaliti?')) {
                     $.ajax({
-                        url: "{{ route('dun.destroy', ':id') }}".replace(':id', dunId),
+                        url: "{{ route('lokaliti.destroy', ':id') }}".replace(':id', lokalitiId), // dynamically insert ID
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': csrfToken
@@ -191,10 +197,10 @@
                         },
                         success: function () {
                             table.ajax.reload();
-                            alert('DUN deleted successfully.');
+                            alert('Lokaliti deleted successfully.');
                         },
                         error: function (xhr) {
-                            alert('Error deleting DUN!');
+                            alert('Error deleting Lokaliti!');
                             console.error(xhr.responseText);
                         }
                     });

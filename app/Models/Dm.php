@@ -12,15 +12,42 @@ class Dm extends Model
 
     protected $table = 'dm';
 
-    protected $fillable = ['koddm', 'namadm', 'dun_id'];
+    protected $fillable = [
+        'dun_id',
+        'koddm',
+        'namadm',
+        'status',
+        'effective_from',
+        'effective_to'
+    ];
 
+    protected $casts = [
+        'effective_from' => 'date',
+        'effective_to' => 'date',
+    ];
     /**
      * Get the Dun that owns the Dm
      */
     public function dun()
     {
-        return $this->belongsTo(Dun::class, 'dun_id');
+        return $this->belongsTo(Dun::class);
     }
+
+    public function parlimen()
+    {
+        return $this->hasOneThrough(
+            Parlimen::class,
+            Dun::class,
+            'id',
+            'id',
+            'dun_id',
+            'parlimen_id'
+        );
+    }
+public function lokalitis()
+{
+    return $this->hasMany(Lokaliti::class);
+}
 
     /**
      * Get the activity log options.
