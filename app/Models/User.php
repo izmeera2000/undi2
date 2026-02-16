@@ -7,11 +7,16 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Group;
+use Spatie\Permission\Traits\HasRoles;
+use Spatie\Activitylog\Traits\LogsActivity; // Import the trait
+use Spatie\Activitylog\LogOptions; // Import LogOptions
 
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
     use SoftDeletes;
+    use HasRoles;
+    use LogsActivity; // Import LogsActivity trait
 
     protected $dates = ['deleted_at'];
     protected $fillable = [
@@ -51,7 +56,6 @@ class User extends Authenticatable
         return $this->role === 'moderator';
     }
 
-
     // Events created by user
     public function createdEvents()
     {
@@ -69,9 +73,6 @@ class User extends Authenticatable
         return $this->hasOne(UserProfile::class);
     }
 
-
-
-
     public function isActive()
     {
         return $this->status === 'active';
@@ -87,8 +88,7 @@ class User extends Authenticatable
         return $this->status === 'pending';
     }
 
-
-
+    // Status badge
     public function getStatusBadgeAttribute()
     {
         return match ($this->status) {
@@ -100,6 +100,7 @@ class User extends Authenticatable
         };
     }
 
+    // Role badge
     public function getRoleBadgeAttribute()
     {
         return match ($this->role) {
@@ -110,16 +111,43 @@ class User extends Authenticatable
         };
     }
 
+    // Groups associated with the user
     public function groups()
     {
         return $this->belongsToMany(
             Group::class,
             'user_groups',   // pivot table
             'user_id',       // foreign key on pivot
-            'group_id'         // related key on pivot
+            'group_id'       // related key on pivot
         )->withTimestamps();
     }
 
+    // Activity logging options
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('user')  // Set the log name to 'user'
+            ->logOnly(['name', 'email', 'role', 'status']) // Log only specific attributes
+            ->logOnlyDirty() // Only log dirty (changed) attributes
+            ->setDescriptionForEvent(fn(string $eventName) => "User {$this->name} was {$eventName}."); // Custom log description
+    }
 
+    // Model Events - Automatically log user actions (create, update, delete)
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            // \Log::info('User Created: ' . $user->name); // Debugging line
+            activity()->performedOn($user)->log("User {$user->name} created.");
+        });
 
+        static::updated(function ($user) {
+            // \Log::info('User Updated: ' . $user->name); // Debugging line
+            activity()->performedOn($user)->log("User {$user->name} updated.");
+        });
+
+        static::deleted(function ($user) {
+            // \Log::info('User Deleted: ' . $user->name); // Debugging line
+            activity()->performedOn($user)->log("User {$user->name} deleted.");
+        });
+    }
 }

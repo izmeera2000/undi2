@@ -74,7 +74,7 @@
     const sidebarClose = document.getElementById(`${prefix}SidebarClose`);
 
     if (!sidebar) {
-      console.log(` ${prefix} not found`)
+      // console.log(` ${prefix} not found`)
       // return; // No sidebar found
     }
 

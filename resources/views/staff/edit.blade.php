@@ -195,6 +195,9 @@
                                     <div>Leave password fields empty to keep the current password.</div>
                                 </div>
                                 <div class="row g-3">
+
+                                 <input type="hidden" class="form-control password-field" id="staff_hidden_id" value="{{ $staff->id }}" autocomplete="new-password">
+
                                     <div class="col-md-6">
                                         <label class="form-label">New Password</label>
                                         <div class="input-group">
@@ -322,9 +325,7 @@
 @push('scripts')
 
 
-    <script>
-        const toast = new ToastMagic();
-    </script>
+ 
 
 
     @include('staff.partials.edit.changerole')

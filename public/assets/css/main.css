@@ -25864,10 +25864,10 @@ mark {
     width: 44px;
     height: 44px;
     padding: 0;
-    background: var(--background-color);
+    background: var(--accent-color);
     border: none;
     border-radius: 50%;
-    color: var(--muted-color);
+    color: var(--background-color);
     font-size: 1.125rem;
     cursor: pointer;
     transition: all 0.2s;
@@ -36588,3 +36588,9 @@ input:checked + .contact-priority-label.urgent {
 }
 
  
+
+ .no-events {
+  background-color: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}

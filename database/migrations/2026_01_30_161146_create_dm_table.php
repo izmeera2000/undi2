@@ -12,12 +12,24 @@ return new class extends Migration {
     {
         Schema::create('dm', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('dun_id')->constrained('dun');
-            $table->string('koddm')->unique();
-            ;
+
+            $table->foreignId('dun_id')
+                ->constrained('dun')
+                ->cascadeOnDelete();
+
+            $table->string('koddm');
             $table->string('namadm');
+
+            // Restructure control
+            $table->enum('status', ['active', 'inactive'])->default('active');
+            $table->date('effective_from')->nullable();
+            $table->date('effective_to')->nullable();
+
             $table->timestamps();
+
+            $table->index(['koddm', 'status']);
         });
+
     }
 
     /**

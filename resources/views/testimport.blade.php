@@ -6,8 +6,17 @@
 @section('content')
   <!-- Welcome & Stats Row -->
   <div class="row g-4 mb-4">
+
+
+    <form action="{{ route('pengundi.import.paste') }}" method="POST">
+    @csrf
+    <label for="data">Paste Excel Data (from clipboard):</label>
+    <textarea name="data" id="data" rows="10" cols="50" placeholder="Paste copied data from Excel here..." required></textarea>
+
+    <button type="submit">Import Data</button>
+</form>
     
-<form action="/pengundi/import" method="POST" enctype="multipart/form-data">
+{{-- <form action="/pengundi/import" method="POST" enctype="multipart/form-data">
     @csrf
     <input type="file" name="file" required>
     <button type="submit">Upload Excel</button>
@@ -33,9 +42,9 @@
    Transfer Member
 </a>
 
+ --}}
 
-
-
+{{-- 
 
 <form action="{{ route('mail.send') }}" method="POST">
     @csrf
@@ -44,7 +53,7 @@
     <textarea name="body" placeholder="Email Body"></textarea>
     <button type="submit">Send Email</button>
 </form>
-
+ --}}
 
 
 

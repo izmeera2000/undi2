@@ -2,7 +2,7 @@
 
    <script>
     $('#savePasswordBtn').on('click', function () {
-        let userId = $('#dangerZone').data('user-id');
+        let userId = $('#staff_hidden_id').val();
         let password = $('#newPassword').val();
         let confirm = $('#confirmPassword').val();
 

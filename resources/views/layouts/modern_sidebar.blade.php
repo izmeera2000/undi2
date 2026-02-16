@@ -30,8 +30,11 @@
         </a>
         <ul class="nav-submenu ">
           <li><a class="nav-link " href="{{ route('pengundi.analysis') }}">Analytics</a></li>
-          <li><a class="nav-link " href="{{ route('pengundi.bulkimport') }}">Bulk Import</a></li>
 
+          @can('pengundi.add')
+
+            <li><a class="nav-link " href="{{ route('pengundi.bulkimport') }}">Bulk Import</a></li>
+          @endcan
         </ul>
       </li>
 
@@ -77,6 +80,15 @@
         </a>
       </li>
 
+      <li class="nav-item">
+        <a class="nav-link " href="{{ route('task.index') }}" data-sidebar-tooltip="Event">
+          <i class="ph-light ph-check-square"></i>
+          <span>Task</span>
+        </a>
+      </li>
+
+
+
       <li class="nav-heading"><span>Settings</span></li>
       <li class="nav-item">
         <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
@@ -101,17 +113,46 @@
 
 
 
+      @role('admin')
       <!-- Apps Section -->
       <li class="nav-heading"><span>Test</span></li>
 
-
-
       <li class="nav-item">
-        <a class="nav-link " href="{{ route('testimport') }}" data-sidebar-tooltip="Test">
+        <a class="nav-link" href="{{ route('testimport') }}" data-sidebar-tooltip="Test">
           <i class="ph-light ph-file"></i>
           <span>Test</span>
         </a>
       </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="{{ route('clear-all') }}" data-sidebar-tooltip="Test">
+          <i class="ph-light ph-file"></i>
+          <span>Clear All</span>
+        </a>
+      </li>
+
+      <li class="nav-item has-submenu ">
+        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
+          <i class="umno-logo">
+            @include('layouts.logo')
+
+          </i>
+
+          <span>Maps</span>
+          <i class="ph-light ph-caret-down nav-arrow"></i>
+        </a>
+        <ul class="nav-submenu ">
+
+
+          <li><a class="nav-link " href="{{ route('map.page2') }}">Fetch</a></li>
+
+          <li><a class="nav-link " href="{{ route('map.page') }}">Map</a></li>
+
+        </ul>
+      </li>
+
+      @endrole
+
 
     </ul>
   </nav>
@@ -129,14 +170,22 @@
       </a>
       <div class="sidebar-footer-actions">
 
- 
-        <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+
+        {{-- Logout Link --}}
+        <a href="{{ route('logout') }}" onclick="event.preventDefault(); submitLogout('logout-form');"
+          class="sidebar-footer-action sidebar-footer-logout" title="Logout">
+          <i class="ph-light ph-sign-out"></i>
+        </a>
+
+
+        {{-- Hidden Logout Form --}}
+        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
           @csrf
-          <button type="submit" class="sidebar-footer-action sidebar-footer-logout" title="Logout"
-            style="background: none; border: none;">
-            <i class="ph-light ph-sign-out"></i>
-          </button>
         </form>
+
+
+
+
       </div>
     </div>
   </div>

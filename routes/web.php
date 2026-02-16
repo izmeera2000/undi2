@@ -14,10 +14,14 @@ use App\Http\Controllers\MailController;
 use App\Http\Controllers\DunController;
 use App\Http\Controllers\DmController;
 use App\Http\Controllers\ParlimenController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ActivityLogController;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\MapController;
 
 // --------------------------------------------------
 // Public / Auth Routes
@@ -29,11 +33,31 @@ Route::get('/testimport', fn() => view('testimport'))
     ->middleware(['auth', 'verified'])
     ->name('testimport');
 
+
+// Returns a fresh CSRF token
+Route::get('/csrf-refresh', function () {
+    return response()->json(['csrf_token' => csrf_token()]);
+})->name('csrf.refresh');
+
+
+
+
+
+
+
 // --------------------------------------------------
 // Authenticated Routes
 // --------------------------------------------------
 
 Route::middleware('auth')->group(function () {
+
+
+    Route::get('/weather/today/{location?}', [WeatherController::class, 'today'])->name('weather.today');
+
+    Route::get('/map-page', [MapController::class, 'showPage'])->name('map.page');
+    Route::get('/map', [MapController::class, 'showPage2'])->name('map.page2');
+    Route::post('/fetch-map', [MapController::class, 'fetchAndStoreGeoJson'])->name('map.fetch');
+
 
     // Profile
     // Route::prefix('profile')->group(function () {
@@ -84,7 +108,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/clear-all', function () {
         Artisan::call('optimize:clear');
         return 'Cleared';
-    });
+    })->name('clear-all');
 
 
 
@@ -125,7 +149,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('analytics', [PengundiAnalyticsController::class, 'dropdowns'])->name('analysis');
 
 
-        Route::view('bulkimport', 'pengundi.bulkimport')->name('bulkimport');
+        Route::get('bulkimport', [PengundiAnalyticsController::class, 'importpage'])->name('bulkimport');
 
         Route::get('import/progress', [PengundiImportController::class, 'progress'])
             ->name('import.progress');
@@ -134,6 +158,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('transfer', [PengundiTransferController::class, 'transfer']);
         Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
             ->name('analytics.pdf');
+
+
+        Route::post('import/paste', [PengundiAnalyticsController::class, 'importFromPaste'])->name('import.paste');
+
+
+
 
     });
 
@@ -174,6 +204,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
     });
+
+
+
     Route::prefix('parlimen')->name('parlimen.')->group(function () {
         Route::get('/', [ParlimenController::class, 'index'])->name('index');   // list page
         Route::post('/', [ParlimenController::class, 'store'])->name('store');
@@ -223,6 +256,58 @@ Route::middleware(['auth', 'active'])->group(function () {
         // For DataTables AJAX
         Route::post('/data', [DmController::class, 'getList'])->name('data');
     });
+
+
+
+
+
+    Route::prefix('task')->name('task.')->group(function () {
+
+        // List all tasks (for DataTables or index page)
+        Route::get('/', [TaskController::class, 'index'])->name('index');
+
+
+
+
+        // Create a new task
+        Route::post('/', [TaskController::class, 'store'])->name('store');
+
+        // Edit task (get data to edit)
+        Route::get('/{task}/edit', [TaskController::class, 'edit'])->name('edit');
+
+        // Update task
+        Route::put('/{task}', [TaskController::class, 'update'])->name('update');
+
+        // Delete task
+        Route::delete('/{task}', [TaskController::class, 'destroy'])->name('destroy');
+
+        // Show single task (after edit/update/delete)
+        Route::get('/{task}', [TaskController::class, 'show'])->name('show');
+
+        // DataTables AJAX endpoint
+        Route::post('/data', [TaskController::class, 'data'])->name('data');
+
+        // Add subtask
+        Route::post('/{task}/subtask', [TaskController::class, 'addSubtask'])->name('subtask.store');
+
+        Route::patch('/{task}/toggle', [TaskController::class, 'toggleComplete'])->name('task.toggle');
+
+        // Toggle subtask completion
+        Route::patch('/subtask/{subtask}/toggle', [TaskController::class, 'toggleSubtask'])->name('subtask.toggle');
+
+        // Mark task as important
+        Route::patch('/{task}/important', [TaskController::class, 'markImportant'])->name('important');
+    });
+
+
+
+
+    Route::prefix('activity-logs')->name('activity-logs.')->group(function () {
+        Route::get('/', [ActivityLogController::class, 'index'])->name('index');
+        Route::delete('/{activity}', [ActivityLogController::class, 'destroy'])->name('destroy');
+        Route::delete('/clear/all', [ActivityLogController::class, 'clear'])->name('clear');
+    });
+
 
 
 

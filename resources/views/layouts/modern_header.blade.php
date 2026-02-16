@@ -52,14 +52,14 @@
               <i class="bi bi-gear"></i>
               <span>Account Settings</span>
             </a>
-            <a class="user-dropdown-item" href="activity.html">
+            <a class="user-dropdown-item" href="{{ route('activity-logs.index') }}">
               <i class="bi bi-clock-history"></i>
               <span>Activity Log</span>
             </a>
           </div>
           <div class="user-dropdown-footer">
             <a href="#" class="user-dropdown-logout"
-              onclick="event.preventDefault(); document.getElementById('dropdown-logout-form').submit();">
+              onclick="event.preventDefault(); submitLogout('dropdown-logout-form');">
               <i class="bi bi-box-arrow-right"></i>
               <span>Sign Out</span>
             </a>

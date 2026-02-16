@@ -5,9 +5,50 @@ namespace App\Http\Controllers;
 use App\Models\Dm;
 use App\Models\Dun;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+
 
 class DmController extends Controller
 {
+
+
+
+    public function __construct()
+    {
+        // View permissions
+        $this->middleware('permission:dm.view')->only([
+            'index',
+            'show',
+            'getList'
+        ]);
+
+        // Create permission
+        $this->middleware('permission:dm.add')->only([
+            'create',
+            'store'
+        ]);
+
+        // Edit permission
+        $this->middleware('permission:dm.edit')->only([
+            'edit',
+            'update'
+        ]);
+
+        // Delete permission
+        $this->middleware('permission:dm.delete')->only([
+            'destroy'
+        ]);
+    }
+
+
+
+
+
+
+
+
+
+
     // List all
     public function index()
     {

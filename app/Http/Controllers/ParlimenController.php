@@ -4,9 +4,42 @@ namespace App\Http\Controllers;
 
 use App\Models\Parlimen;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 
 class ParlimenController extends Controller
 {
+
+    public function __construct()
+    {
+        // View permission
+        $this->middleware('permission:parlimen.view')->only([
+            'index',
+            'show',
+            'getList'
+        ]);
+
+        // Add permission
+        $this->middleware('permission:parlimen.add')->only([
+            'create',
+            'store'
+        ]);
+
+        // Edit permission
+        $this->middleware('permission:parlimen.edit')->only([
+            'edit',
+            'update'
+        ]);
+
+        // Delete permission
+        $this->middleware('permission:parlimen.delete')->only([
+            'destroy'
+        ]);
+    }
+
+
+
+
+
     // List all
     public function index()
     {

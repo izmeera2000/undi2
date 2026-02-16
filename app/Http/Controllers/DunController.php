@@ -5,9 +5,40 @@ namespace App\Http\Controllers;
 use App\Models\Dun;
 use Illuminate\Http\Request;
 use App\Models\Parlimen;
+use Illuminate\Routing\Controller;
 
 class DunController extends Controller
 {
+
+
+    public function __construct()
+    {
+        // View permissions
+        $this->middleware('permission:dun.view')->only([
+            'index',
+            'show',
+            'getList'
+        ]);
+
+        // Create permission
+        $this->middleware('permission:dun.add')->only([
+            'create',
+            'store'
+        ]);
+
+        // Edit permission
+        $this->middleware('permission:dun.edit')->only([
+            'edit',
+            'update'
+        ]);
+
+        // Delete permission
+        $this->middleware('permission:dun.delete')->only([
+            'destroy'
+        ]);
+    }
+
+
     // List all
     public function index()
     {

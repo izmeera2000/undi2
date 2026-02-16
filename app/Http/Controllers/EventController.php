@@ -6,17 +6,25 @@ use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Routing\Controller;
 
 
 use App\Models\User;
 
 
 
- class EventController extends Controller
+class EventController extends Controller
 {
-    /**
-     * Return events for calendar (JSON)
-     */
+    public function __construct()
+    {
+        // Only users with these permissions can access the corresponding methods
+        $this->middleware('permission:event.view')->only(['index', 'show', 'upcoming', 'list']);
+        $this->middleware('permission:event.add')->only(['store']);
+        $this->middleware('permission:event.edit')->only(['update']);
+        $this->middleware('permission:event.delete')->only(['authorizeDelete','destroy']);
+    }
+
+
 
     public function index(Request $request)
     {
@@ -56,7 +64,7 @@ use App\Models\User;
                 ];
             });
 
-    return response()->json($events);
+        return response()->json($events);
 
     }
 
@@ -83,10 +91,12 @@ use App\Models\User;
             'color' => $request->color ?? '#3788d8',
             'created_by' => Auth::id(),
         ]);
-
-        if ($request->participants) {
-            $event->participants()->sync($request->participants);
+        if (auth()->user()->can('event.add.others')) {
+            if ($request->participants) {
+                $event->participants()->sync($request->participants);
+            }
         }
+
 
         return response()->json(['success' => true, 'event' => $event]);
     }
@@ -154,6 +164,28 @@ use App\Models\User;
         }
     }
 
+
+    private function authorizeDelete($event)
+    {
+        $user = auth()->user();
+
+        // If deleting own event
+        if ($event->created_by === $user->id) {
+
+            if (!$user->can('event.delete.personal')) {
+                abort(403, 'Unauthorized');
+            }
+
+        } else {
+
+            // If deleting someone else's event
+            if (!$user->can('event.delete.others')) {
+                abort(403, 'Unauthorized');
+            }
+        }
+    }
+
+
     /**
      * Ensure user can access event
      */
@@ -169,45 +201,45 @@ use App\Models\User;
 
 
     public function upcoming(Request $request)
-{
-    // Get the current date
-    $now = Carbon::now();
+    {
+        // Get the current date
+        $now = Carbon::now();
 
-    // Fetch upcoming events for the authenticated user
-    $events = Event::with('participants')
-        ->where(function ($query) {
-            $query->where('created_by', Auth::id())
-                  ->orWhereHas('participants', function ($q) {
-                      $q->where('user_id', Auth::id());
-                  });
-        })
-        ->whereNotNull('start_date')
-        ->where('start_date', '>=', $now)
-        ->orderBy('start_date', 'asc')
-        ->get()
-        ->map(function ($event) {
-            return [
-                'id' => $event->id,
-                'title' => $event->title,
-                'start' => $event->start_date->toIso8601String(),
-                'end' => $event->end_date ? $event->end_date->toIso8601String() : null,
-                'allDay' => (bool) $event->all_day,
-                'backgroundColor' => $event->color ?? '#0d6efd',
-                'extendedProps' => [
-                    'description' => $event->description,
-                    'participants' => $event->participants->map(fn($u) => [
-                        'id' => $u->id,
-                        'name' => $u->name,
-                    ]),
-                    'created_by' => $event->created_by,
-                ],
-            ];
-        });
+        // Fetch upcoming events for the authenticated user
+        $events = Event::with('participants')
+            ->where(function ($query) {
+                $query->where('created_by', Auth::id())
+                    ->orWhereHas('participants', function ($q) {
+                        $q->where('user_id', Auth::id());
+                    });
+            })
+            ->whereNotNull('start_date')
+            ->where('start_date', '>=', $now)
+            ->orderBy('start_date', 'asc')
+            ->get()
+            ->map(function ($event) {
+                return [
+                    'id' => $event->id,
+                    'title' => $event->title,
+                    'start' => $event->start_date->toIso8601String(),
+                    'end' => $event->end_date ? $event->end_date->toIso8601String() : null,
+                    'allDay' => (bool) $event->all_day,
+                    'backgroundColor' => $event->color ?? '#0d6efd',
+                    'extendedProps' => [
+                        'description' => $event->description,
+                        'participants' => $event->participants->map(fn($u) => [
+                            'id' => $u->id,
+                            'name' => $u->name,
+                        ]),
+                        'created_by' => $event->created_by,
+                    ],
+                ];
+            });
 
-    return response()->json($events);
-}
+        return response()->json($events);
+    }
 
-   public function list()
+    public function list()
     {
         // Fetch users excluding the authenticated user
         $users = User::where('id', '!=', Auth::id())

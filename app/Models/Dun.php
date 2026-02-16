@@ -3,23 +3,63 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity; // Import the trait
+use Spatie\Activitylog\LogOptions; // Import LogOptions
 
 class Dun extends Model
 {
-    //
+    use LogsActivity; // Add the LogsActivity trait
+
     protected $table = 'dun';
 
-        protected $fillable = ['kod_dun','namadun','parlimen_id'];
+    protected $fillable = ['kod_dun', 'namadun', 'parlimen_id'];
 
-
-        
+    /**
+     * Get the Parlimen that owns the Dun
+     */
     public function parlimen()
     {
         return $this->belongsTo(Parlimen::class, 'parlimen_id');
     }
 
-        public function dms()
+    /**
+     * Get all DMs under this Dun
+     */
+    public function dms()
     {
         return $this->hasMany(Dm::class, 'dun_id');
+    }
+
+    /**
+     * Get the activity log options.
+     *
+     * @return LogOptions
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('dun')  // Set log name to 'dun'
+            ->logOnly(['kod_dun', 'namadun', 'parlimen_id']) // Only log changes to these attributes
+            ->logOnlyDirty() // Log only dirty (changed) fields
+            ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
+            ->setDescriptionForEvent(fn(string $eventName) => "Dun with ID {$this->id} was {$eventName}"); // Custom log description
+    }
+
+    /**
+     * Boot method to automatically log Dun actions
+     */
+    protected static function booted()
+    {
+        static::created(function ($dun) {
+            activity()->performedOn($dun)->log("Dun with ID {$dun->id} created.");
+        });
+
+        static::updated(function ($dun) {
+            activity()->performedOn($dun)->log("Dun with ID {$dun->id} updated.");
+        });
+
+        static::deleted(function ($dun) {
+            activity()->performedOn($dun)->log("Dun with ID {$dun->id} deleted.");
+        });
     }
 }

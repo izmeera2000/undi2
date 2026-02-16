@@ -18,10 +18,40 @@ use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Routing\Controller;
 
 class MembersController extends Controller
 {
     //
+
+        public function __construct()
+    {
+        // View permission
+        $this->middleware('permission:members.view')->only([
+            'list',
+            'index',
+            'show',
+            'getList',
+            'getDmsByDun'
+        ]);
+
+        // Add permission
+        $this->middleware('permission:members.add')->only([
+            'create', // if you have a create form
+            'store'
+        ]);
+
+        // Edit permission
+        $this->middleware('permission:members.edit')->only([
+            'edit',
+            'updateAvatar'
+        ]);
+
+        // Delete permission
+        $this->middleware('permission:members.delete')->only([
+            'destroy'
+        ]);
+    }
 
     public function list()
     {

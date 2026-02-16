@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Routing\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
@@ -12,17 +12,57 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletes;
- use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Storage;
 
 class StaffController extends Controller
 {
+
+
+
+
+
+    public function __construct()
+    {
+        $this->middleware('permission:staff.view')->only([
+            'index',
+            'show',
+            'getStaff'
+        ]);
+
+        $this->middleware('permission:staff.add')->only([
+            'store'
+        ]);
+
+        $this->middleware('permission:staff.edit')->only([
+            'update',
+            'updateProfile',
+            'updateAvatar',
+            'changeRole'
+        ]);
+
+        $this->middleware('permission:staff.delete')->only([
+            'destroy'
+        ]);
+
+        $this->middleware('permission:staff.suspend')->only([
+            'suspend',
+            'activate',
+         ]);
+    }
+
+
+
+
+
     // Page
     public function index()
     {
         return view('staff.profile');
     }
+
+
 
     // Server-side DataTable
     public function getStaff(Request $request)
@@ -89,6 +129,10 @@ class StaffController extends Controller
             'password' => Hash::make($temporaryPassword),
             'role' => $request->role,
         ]);
+
+        $user->assignRole($request->role);
+
+
         $user->profile()->create();
         // attach plain password for email
         $user->password_plain = $temporaryPassword;
@@ -145,6 +189,8 @@ class StaffController extends Controller
         $user->update([
             'role' => $request->role,
         ]);
+
+        $user->syncRoles([$request->role]);
 
         return response()->json(['success' => true]);
     }
@@ -258,4 +304,17 @@ class StaffController extends Controller
         return redirect()->route('dashboard')
             ->with('success', 'Account activated successfully.');
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

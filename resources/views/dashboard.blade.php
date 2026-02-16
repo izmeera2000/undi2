@@ -61,13 +61,13 @@
 
 
     <div class="col-md-4">
-          <!-- Upcoming Events -->
-          <div class="card mb-3 h-100">
-            <div class="card-header">Upcoming Events</div>
-            <div class="card-body p-2" id="upcomingEvents">
-              <!-- JS will populate this -->
-            </div>
-          </div>
+      <!-- Upcoming Events -->
+      <div class="card mb-3 h-100">
+        <div class="card-header">Upcoming Events</div>
+        <div class="card-body p-2" id="upcomingEventsA">
+          <!-- JS will populate this -->
+        </div>
+      </div>
 
     </div>
 
@@ -77,82 +77,21 @@
         <div class="card-header">
           <h5 class="card-title">Tasks</h5>
           <div class="card-actions">
-            <button class="btn btn-sm btn-primary"><i class="bi bi-plus me-1"></i>Add Task</button>
+
+            <a href="{{ route('task.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
           </div>
         </div>
         <div class="card-body">
-          <div class="task-list">
-            <div class="task-item">
-              <div class="task-checkbox">
-                <input type="checkbox" id="task1">
-                <label for="task1"></label>
-              </div>
-              <div class="task-info">
-                <div class="task-title">Review dashboard design mockups</div>
-                <div class="task-meta">
-                  <span class="task-due"><i class="bi bi-calendar"></i> Today</span>
-                  <span class="badge badge-soft-danger">High</span>
-                </div>
-              </div>
-            </div>
-            <div class="task-item">
-              <div class="task-checkbox">
-                <input type="checkbox" id="task2" checked="">
-                <label for="task2"></label>
-              </div>
-              <div class="task-info">
-                <div class="task-title">Team standup meeting at 10 AM</div>
-                <div class="task-meta">
-                  <span class="task-due"><i class="bi bi-clock"></i> 10:00 AM</span>
-                  <span class="badge badge-soft-warning">Medium</span>
-                </div>
-              </div>
-            </div>
-            <div class="task-item">
-              <div class="task-checkbox">
-                <input type="checkbox" id="task3">
-                <label for="task3"></label>
-              </div>
-              <div class="task-info">
-                <div class="task-title">Prepare quarterly report</div>
-                <div class="task-meta">
-                  <span class="task-due"><i class="bi bi-calendar"></i> Tomorrow</span>
-                  <span class="badge badge-soft-primary">Normal</span>
-                </div>
-              </div>
-            </div>
-            <div class="task-item">
-              <div class="task-checkbox">
-                <input type="checkbox" id="task4">
-                <label for="task4"></label>
-              </div>
-              <div class="task-info">
-                <div class="task-title">Update user documentation</div>
-                <div class="task-meta">
-                  <span class="task-due"><i class="bi bi-calendar"></i> Jan 25</span>
-                  <span class="badge badge-soft-success">Low</span>
-                </div>
-              </div>
-            </div>
-            <div class="task-item">
-              <div class="task-checkbox">
-                <input type="checkbox" id="task5" checked="">
-                <label for="task5"></label>
-              </div>
-              <div class="task-info">
-                <div class="task-title">Fix authentication bug</div>
-                <div class="task-meta">
-                  <span class="task-due"><i class="bi bi-check-circle text-success"></i> Completed</span>
-                  <span class="badge badge-soft-danger">High</span>
-                </div>
-              </div>
-            </div>
+          <!-- Todo List -->
+          <div class="todo-list" id="taskList">
+
+
           </div>
         </div>
       </div>
     </div>
 
-
+    {{--
     <div class="col-lg-6">
       <div class="card">
         <div class="card-header">
@@ -214,7 +153,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> --}}
 
   </div>
 
@@ -225,6 +164,10 @@
 
 @push('scripts')
   <script>
+
+    const upcomingEl = document.getElementById('upcomingEventsA');
+
+
     function updateDateTime() {
       // Create a new Date object
       const now = new Date();
@@ -262,13 +205,29 @@
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         },
       })
-        .then(response => response.json())
-        .then(events => {
-          const upcomingEl = document.getElementById('upcomingEvents');
+        .then(response => {
+          console.log('Raw response:', response);  // Log the raw response object
+
+          if (!response.ok) {
+            // If the response is not OK (e.g., status code 404 or 500), throw an error
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          return response.json();  // Proceed to convert the response to JSON
+        }).then(events => {
+
+          console.log('Events data:', events);  // Log the events data after parsing it as JSON
+
 
 
           if (!events.length) {
-            upcomingEl.innerHTML = '<small>No upcoming events</small>';
+            upcomingEl.innerHTML = `
+                                <div class="text-center text-muted my-4">
+                                  <i class="bi bi-calendar-x fs-2 mb-2"></i> <!-- Bootstrap Icons -->
+                                  <p class="mb-0"><strong>No upcoming events</strong></p>
+                                  <small>Check back later for new events!</small>
+                                </div>
+                              `;
             return;
           }
 
@@ -289,9 +248,16 @@
           upcomingEl.innerHTML = ''; // Clear the content before adding new events
 
           if (!futureEvents.length) {
-            upcomingEl.innerHTML = '<small>No upcoming events</small>';
+            upcomingEl.innerHTML = `
+                                <div class="text-center text-muted my-4">
+                                  <i class="bi bi-calendar-x fs-2 mb-2"></i> <!-- Bootstrap Icons -->
+                                  <p class="mb-0"><strong>No upcoming events</strong></p>
+                                  <small>Check back later for new events!</small>
+                                </div>
+                              `;
             return;
           }
+
 
           // Loop through the upcoming events and display them
           futureEvents.forEach(event => {
@@ -307,18 +273,18 @@
             upcomingEl.insertAdjacentHTML(
               'beforeend',
               `
-                    <div class="upcoming-event-item">
-                        <div class="upcoming-event-color" style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
-                        <div class="upcoming-event-date text-center me-2">
-                            <div class="fw-bold">${day}</div>
-                            <div>${month}</div>
-                        </div>
-                        <div>
-                            <div class="fw-semibold">${event.title}</div>
-                            <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
-                        </div>
-                    </div>
-                    `
+                                                    <div class="upcoming-event-item">
+                                                        <div class="upcoming-event-color" style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
+                                                        <div class="upcoming-event-date text-center me-2">
+                                                            <div class="fw-bold">${day}</div>
+                                                            <div>${month}</div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold">${event.title}</div>
+                                                            <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
+                                                        </div>
+                                                    </div>
+                                                    `
             );
           });
         })
@@ -326,6 +292,29 @@
           console.error('Error fetching events:', error);
           upcomingEl.innerHTML = '<small>Error loading events</small>';
         });
+    }
+
+
+
+
+    function fetchWeather() {
+      const location = 'Pasir Mas'; // optional, can be dynamic
+      const weatherApi = "{{ route('weather.today', ['location' => '__location__']) }}".replace('__location__', encodeURIComponent(location));
+
+      fetch(weatherApi)
+        .then(res => res.json())
+        .then(data => {
+          if (!data) return;
+
+          document.querySelector(".widget-weather-location").textContent = data.location_name;
+          document.querySelector(".widget-weather-temp-large span").textContent = `${data.max_temp}° / ${data.min_temp}°`;
+
+          const date = new Date(data.forecast_date);
+          document.querySelector(".widget-weather-day").textContent = date.toLocaleDateString("en-MY", { weekday: 'long' });
+
+          // document.querySelector(".widget-weather-summary").textContent = data.summary_forecast || '';
+        })
+        .catch(err => console.error("Error fetching weather:", err));
     }
 
 
@@ -337,8 +326,162 @@
       // Set an interval to update the time every second
       setInterval(updateDateTime, 1000);
       renderUpcomingEvents();
+      fetchWeather();
+
 
     });
+
+
+
+
+    let tasks = [];
+    let users = [];
+    let categories = [];
+
+    $(document).ready(function () {
+
+      // Setup CSRF token for all AJAX
+      const token = $('meta[name="csrf-token"]').attr('content');
+
+      if (token) {
+        $.ajaxSetup({
+          headers: {
+            'X-CSRF-TOKEN': token
+          }
+        });
+      } else {
+        console.error('CSRF token not found.');
+      }
+
+      // Initial load
+      getTasks();
+    });
+
+
+    // --------------------------------------
+    // Utility
+    // --------------------------------------
+    function getRelativeTime(date) {
+      const now = new Date();
+      const diff = date - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      if (days === 0) return 'Today';
+      if (days === 1) return 'Tomorrow';
+      if (days > 1) return `${days} days`;
+      if (days === -1) return 'Yesterday';
+      return `${Math.abs(days)} days ago`;
+    }
+
+
+    // --------------------------------------
+    // Task CRUD / Actions
+    // --------------------------------------
+
+    // Get all tasks
+    function getTasks() {
+      $.post('{{ route("task.data") }}')
+        .done(function (data) {
+          tasks = data;
+          renderTasks(tasks);
+        })
+        .fail(function (xhr) {
+
+          if (xhr.status === 401) {
+            window.location.href = "{{ route('login') }}";
+          }
+          else if (xhr.status === 419) {
+            location.reload();
+          }
+
+        });
+    }
+
+
+    // Render tasks in sections
+    function renderTasks(tasks) {
+      const today = new Date().toISOString().split('T')[0];
+      const sections = { Today: [], Overdue: [] };
+
+
+
+      tasks.forEach(task => {
+        if (task.status === 'todo') {
+          const taskDate = task.due_at ? task.due_at.split('T')[0] : null;
+
+          if (taskDate === today) {
+            sections.Today.push(task);  // Tasks due today
+          } else if (taskDate < today) {
+            sections.Overdue.push(task);  // Tasks overdue (before today)
+          }
+        }
+      });
+
+
+
+
+      let html = '';
+
+      Object.keys(sections).forEach(sectionName => {
+        const sectionTasks = sections[sectionName];
+        if (!sectionTasks.length) return;
+
+        html += `<div class="todo-section">
+                                                                        <div class="todo-section-header">
+                                                                          <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
+                                                                          <h6>${sectionName}</h6>
+                                                                          <span class="todo-section-count">${sectionTasks.length}</span>
+                                                                        </div>
+                                                                        <div class="todo-section-content">`;
+
+        sectionTasks.forEach(task => {
+          html += renderTaskItem(task);
+        });
+
+        html += `</div></div>`;
+      });
+
+      $('#taskList').html(html);
+    }
+
+    // Render a single task HTML
+    function renderTaskItem(task) {
+      const checked = task.status === 'done' ? 'checked' : '';
+      const tagsHtml = Array.isArray(task.tags) && task.tags.length
+        ? task.tags.map(tag => `<span class="todo-item-tag">${tag}</span>`).join(' ')
+        : '';
+      const relativeTime = task.due_at ? getRelativeTime(new Date(task.due_at)) : '';
+
+      return `<div class="todo-item" data-id="${task.id}">
+
+
+                                                                        <div class="todo-item-content">
+                                                                          <div class="todo-item-title">${task.title}</div>
+                                                                          <div class="todo-item-meta">
+                                                                            ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
+                                                                            ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
+                                                                            ${tagsHtml}
+                                                                            ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                                          </div>
+                                                                        </div>
+
+                                                                      </div>`;
+    }
+
+
+
+
+
+
+    $(document).on('click', '.todo-item-content', e => {
+      e.preventDefault();
+
+      // Generate the task route dynamically
+      const taskRoute = `/task/${taskId}`;  // Adjust this to your actual task route if needed
+
+      // Navigate to the task page
+      window.location.href = taskRoute;
+    });
+
 
 
   </script>

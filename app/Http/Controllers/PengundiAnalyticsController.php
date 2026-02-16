@@ -10,11 +10,18 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
 
+use Illuminate\Routing\Controller;
 
 class PengundiAnalyticsController extends Controller
 {
     //
-
+    public function __construct()
+    {
+        // Only users with the corresponding permissions can access the methods
+        $this->middleware('permission:pengundi.view')->only(['dropdowns', 'index']);
+        $this->middleware('permission:pengundi.add')->only(['importpage']);
+        $this->middleware('permission:pengundi.export')->only(['generatePdf']);
+    }
 
     public function dropdowns()
     {
@@ -151,9 +158,9 @@ class PengundiAnalyticsController extends Controller
     {
         $charts = $request->input('charts');
 
-        $user = User::find(1);
+        // $user = User::find(1);
 
-        $user->notify(new NewPengundiNotification("New Pengundi registered"));
+        // $user->notify(new NewPengundiNotification("New Pengundi registered"));
 
         return Pdf::loadView('pengundi.pdf', [
             'charts' => $charts
@@ -179,12 +186,73 @@ class PengundiAnalyticsController extends Controller
 
 
 
+    public function importpage()
+    {
+        return view('pengundi.bulkimport');
+    }
 
 
 
 
 
+    public function importFromPaste(Request $request)
+    {
+        // Validate that the data is not empty
+        $request->validate([
+            'data' => 'required|string',
+        ]);
 
+        // Get the pasted data
+        $rawData = $request->input('data');
 
+        // Split the data into rows by new lines
+        $rows = explode("\n", $rawData);
+
+        // Initialize an array to hold the processed data
+        $processedData = [];
+
+        // Loop through each row
+        foreach ($rows as $row) {
+            // Trim any extra spaces from the row
+            $row = trim($row);
+
+            // Skip empty rows
+            if (empty($row)) {
+                continue;
+            }
+
+            // Normalize spaces: Replace multiple spaces/tabs with a single space, and then split by space
+            // This allows us to handle inconsistent spacing between columns.
+            $normalizedRow = preg_replace('/\s+/', ' ', $row);
+
+            // Split the row into columns (by spaces now, after normalization)
+            $columns = explode(' ', $normalizedRow);
+
+            // Optional: Check if the row has the expected number of columns (e.g., 5)
+            // If you want to check for an exact number of columns, you can validate here.
+            if (count($columns) >= 5) { // You can adjust this check based on the expected number of columns
+                $processedData[] = [
+                    'column1' => $columns[0] ?? null,
+                    'column2' => $columns[1] ?? null,
+                    'column3' => $columns[2] ?? null,
+                    'column4' => $columns[3] ?? null,
+                    'column5' => $columns[4] ?? null,
+                    // Add more columns if needed
+                ];
+            } else {
+                // Log a warning if the row doesn't match the expected column count
+                \Log::warning('Row skipped due to incorrect number of columns: ' . $row);
+            }
+        }
+
+        // Log the processed data for debugging or testing purposes
+        \Log::info('Processed Data:', $processedData);
+
+        // Optionally use dd() or dump() to view data in browser or console
+        // dd($processedData); // Uncomment if you want to dump the data
+
+        // Return success message (or simulate it in a console context)
+        return response()->json(['message' => 'Data imported successfully!', 'data' => $processedData]);
+    }
 
 }
