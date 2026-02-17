@@ -10,7 +10,7 @@ use App\Models\{Dun, Dm, Lokaliti, Parlimen, Pengundi};
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-
+use Carbon\Carbon;
 
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
@@ -45,7 +45,7 @@ class PengundiAnalyticsController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only([
-            'dm_id',
+            'koddm',
             'tarikh_undian',
             'jantina',
             'status_umno',
@@ -53,18 +53,18 @@ class PengundiAnalyticsController extends Controller
             'negeri',
         ]);
 
-        // Base query with robust join: try dm_id first, fallback to koddm
+        // Base query with joins
         $query = DB::table('pengundi as p')
-            ->leftJoin('dm as d', function ($join) {
-                $join->on('p.dm_id', '=', 'd.id')
-                    ->orOn('p.koddm', '=', 'd.koddm');
-            })
-            ->leftJoin('dun as du', 'd.dun_id', '=', 'du.id')
+            ->join('lokaliti as l', 'p.kod_lokaliti', '=', 'l.kod_lokaliti')
+            ->join('dm as d', 'l.koddm', '=', 'd.koddm')
+            ->join('dun as du', 'd.dun_id', '=', 'du.id')
             ->selectRaw("
+            d.dun_id AS dm_dun_id,
+            du.kod_dun,
             du.namadun,
+            d.koddm,
             d.namadm,
             p.negeri,  
-
             CASE
                 WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
                 WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
@@ -73,20 +73,17 @@ class PengundiAnalyticsController extends Controller
                 WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
                 ELSE '60+'
             END AS umur_group,
-
             CASE
                 WHEN p.jantina = 'L' THEN 'Lelaki'
                 WHEN p.jantina = 'P' THEN 'Perempuan'
                 ELSE p.jantina
             END AS jantina2,
-
             CASE
                 WHEN LOWER(p.bangsa) LIKE '%melayu%' THEN 'Melayu'
                 WHEN LOWER(p.bangsa) LIKE '%cina%' OR LOWER(p.bangsa) LIKE '%chinese%' THEN 'Cina'
                 WHEN LOWER(p.bangsa) LIKE '%india%' THEN 'India'
                 ELSE 'Lain-lain'
             END AS bangsa_group,
-
             p.jantina,
             p.status_umno,
             p.status_baru,
@@ -111,7 +108,10 @@ class PengundiAnalyticsController extends Controller
         // Analytics data
         $analytics = $query
             ->groupBy([
+                'd.dun_id',
+                'du.kod_dun',
                 'du.namadun',
+                'd.koddm',
                 'd.namadm',
                 'p.negeri',
                 'umur_group',
@@ -123,7 +123,7 @@ class PengundiAnalyticsController extends Controller
             ])
             ->get();
 
-        // Totals query (reuse filters)
+        // Totals (reuse filters)
         $totalsQuery = DB::table('pengundi as p');
 
         if ($request->mode === 'compare' && $request->year1 && $request->year2) {
@@ -153,11 +153,6 @@ class PengundiAnalyticsController extends Controller
             'totals' => $totals,
         ]);
     }
-
-
-
-
-
 
 
 
