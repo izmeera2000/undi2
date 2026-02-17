@@ -420,17 +420,11 @@
 
         const t = totals.data[0];
 
-        elPengundi.innerHTML = `
-                                        ${t.totalPengundi.toLocaleString()}
-                                      `;
+        elPengundi.innerHTML = `${t.totalPengundi.toLocaleString()}`;
 
-        elUmno.innerHTML = `
-                                        ${t.totalUmno.toLocaleString()}
-                                      `;
+        elUmno.innerHTML = `${t.totalUmno.toLocaleString()}`;
 
-        elFirstTime.innerHTML = `
-                                        ${t.totalFirstTime.toLocaleString()}
-                                      `;
+        elFirstTime.innerHTML = `${t.totalFirstTime.toLocaleString()}`;
 
 
         elPengundib.innerHTML = '';
@@ -456,13 +450,12 @@
           const icon = isPositive ? 'bi-arrow-up' : 'bi-arrow-down';
           const className = isPositive ? 'positive' : 'negative';
 
-          return `
-
-                                      <div class="widget-stat-change ${className}">
-                                        <i class="bi ${icon}"></i>
-                                        ${Math.abs(change).toFixed(1)}% vs ${previous.year}
-                                      </div>
-                                    `;
+          return 
+          `<div class="widget-stat-change ${className}">
+              <i class="bi ${icon}"></i>
+              ${Math.abs(change).toFixed(1)}% vs ${previous.year}
+            </div>
+          `;
         };
 
         elPengundib.innerHTML = buildHTML(current.totalPengundi, pChange);

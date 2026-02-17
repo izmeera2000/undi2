@@ -9,7 +9,7 @@ class Pengundi extends Model
     protected $table = 'pengundi';
 
     protected $fillable = [
-        'lokaliti_id', // 🔥 changed from dm_id
+        'kod_lokaliti', // 🔥 changed from dm_id
         'nokp_baru',
         'nokp_lama',
         'nama',
@@ -30,10 +30,10 @@ class Pengundi extends Model
     ];
 
     protected $casts = [
-            'tarikh_undian' => 'integer', // treat as YEAR
+        'tarikh_undian' => 'integer', // treat as YEAR
 
-         'tahun_lahir'   => 'integer',
-        'umur'          => 'integer',
+        'tahun_lahir' => 'integer',
+        'umur' => 'integer',
     ];
 
     /*

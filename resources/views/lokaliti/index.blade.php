@@ -82,10 +82,11 @@
 
                         <div class="mb-3">
                             <label class="form-label">DM</label>
-                            <select name="dm_id" class="form-select" required>
-                                @foreach($dms as $dm)
-                                    <option value="{{ $dm->id }}">{{ $dm->namadm }}</option>
+                            <select name="koddm" class="form-select"  required>
+                                @foreach($dms->unique('koddm') as $dm)
+                                    <option value="{{ $dm->koddm }}">{{ $dm->koddm }}</option>
                                 @endforeach
+
                             </select>
                         </div>
 

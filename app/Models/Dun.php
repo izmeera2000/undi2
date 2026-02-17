@@ -14,44 +14,52 @@ class Dun extends Model
 
     protected $fillable = [
         'parlimen_id',
-        'kod_dun',
+        'kod_dun',       // Ensure 'kod_dun' is part of fillable fields
         'namadun',
         'status',
         'effective_from',
         'effective_to'
     ];
 
-
     protected $casts = [
         'effective_from' => 'date',
         'effective_to' => 'date',
     ];
+
     /**
      * Get the Parlimen that owns the Dun
      */
-
-
-
     public function parlimen()
     {
         return $this->belongsTo(Parlimen::class, 'parlimen_id');
     }
-public function lokalitis()
-{
-    return $this->hasManyThrough(Lokaliti::class, Dm::class);
-}
 
     /**
-     * Get all DMs under this Dun
+     * Get all Lokaliti through Dm
+     */
+    public function lokalitis()
+    {
+        // Ensure correct relationship via 'kod_dun' if necessary
+        return $this->hasManyThrough(Lokaliti::class, Dm::class, 'kod_dun', 'kod_lokaliti');
+    }
+
+    /**
+     * Get all DMs under this Dun (updated to use 'kod_dun')
      */
     public function dms()
     {
-        return $this->hasMany(Dm::class, 'dun_id');
+        // Ensure the relationship uses 'kod_dun' as the foreign key
+        return $this->hasMany(Dm::class, 'kod_dun')->orderBy('koddm', 'asc'); // or 'desc' for descending
     }
+
+    /**
+     * Get all Pengundis through Dm
+     */
     public function pengundis()
     {
         return $this->hasManyThrough(Pengundi::class, Dm::class);
     }
+
     /**
      * Get the activity log options.
      *

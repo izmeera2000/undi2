@@ -13,7 +13,7 @@ class Dm extends Model
     protected $table = 'dm';
 
     protected $fillable = [
-        'dun_id',
+        'kod_dun',        // Change dun_id to kod_dun
         'koddm',
         'namadm',
         'status',
@@ -25,29 +25,38 @@ class Dm extends Model
         'effective_from' => 'date',
         'effective_to' => 'date',
     ];
+
     /**
      * Get the Dun that owns the Dm
      */
     public function dun()
     {
-        return $this->belongsTo(Dun::class);
+        // Update the foreign key to 'kod_dun' instead of 'dun_id'
+        return $this->belongsTo(Dun::class, 'kod_dun', 'id'); // Ensure 'kod_dun' is the correct foreign key
     }
 
+    /**
+     * Get the related Parlimen via Dun
+     */
     public function parlimen()
     {
         return $this->hasOneThrough(
             Parlimen::class,
             Dun::class,
-            'id',
-            'id',
-            'dun_id',
-            'parlimen_id'
+            'id',            // Foreign key on the Dun model
+            'id',            // Foreign key on the Parlimen model
+            'kod_dun',       // Local key on the Dm model (updated to kod_dun)
+            'parlimen_id'    // Local key on the Dun model
         );
     }
-public function lokalitis()
-{
-    return $this->hasMany(Lokaliti::class);
-}
+
+    /**
+     * Get the Lokalitis that belong to this Dm
+     */
+    public function lokalitis()
+    {
+        return $this->hasMany(Lokaliti::class, 'koddm')->orderBy('kod_dun', 'asc'); // Updated to use kod_dun
+    }
 
     /**
      * Get the activity log options.
@@ -58,7 +67,7 @@ public function lokalitis()
     {
         return LogOptions::defaults()
             ->useLogName('dm')  // Set log name to 'dm'
-            ->logOnly(['koddm', 'namadm', 'dun_id']) // Only log changes to these attributes
+            ->logOnly(['koddm', 'namadm', 'kod_dun']) // Log changes to kod_dun instead of dun_id
             ->logOnlyDirty() // Log only dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
             ->setDescriptionForEvent(fn(string $eventName) => "Dm with ID {$this->id} was {$eventName}"); // Custom log description

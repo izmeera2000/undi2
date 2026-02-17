@@ -3,7 +3,7 @@
 use App\Http\Controllers\MembersController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PengundiImportController;
- use App\Http\Controllers\MembersTransferController;
+use App\Http\Controllers\MembersTransferController;
 use App\Http\Controllers\MembersUploadController;
 use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\NotificationController;
@@ -151,15 +151,33 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::get('bulkimport', [PengundiAnalyticsController::class, 'importpage'])->name('bulkimport');
 
-        Route::get('import/progress', [PengundiImportController::class, 'progress'])
-            ->name('import.progress');
+        Route::get('importProgress', [PengundiImportController::class, 'importProgress'])
+            ->name('importProgress');
+
+
+        Route::get('transferProgress', [PengundiImportController::class, 'transferProgress'])
+            ->name('transferProgress');
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
-         Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
+        Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
             ->name('analytics.pdf');
 
 
         Route::post('import/paste', [PengundiAnalyticsController::class, 'importFromPaste'])->name('import.paste');
+
+
+
+
+
+        // Display Paste Import page
+        Route::get('pasteimport', [PengundiAnalyticsController::class, 'pasteimportpage'])
+            ->name('pasteimport');
+
+        // Handle submission of pasted data
+        Route::post('pasteimport', [PengundiAnalyticsController::class, 'submit'])
+            ->name('pasteimport.submit');
+
+
 
 
 
@@ -257,7 +275,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
 
 
-        Route::prefix('lokaliti')->name('lokaliti.')->group(function () {
+    Route::prefix('lokaliti')->name('lokaliti.')->group(function () {
         Route::get('/', [LokalitiController::class, 'index'])->name('index');   // list page
         Route::post('/', [LokalitiController::class, 'store'])->name('store');
 

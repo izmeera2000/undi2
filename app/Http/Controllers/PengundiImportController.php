@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\TransferPengundiJob;
+use App\Models\{Dun, Dm, Lokaliti, Parlimen};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -11,7 +12,8 @@ use Illuminate\Validation\ValidationException;
 
 class PengundiImportController extends Controller
 {
-    protected string $cacheKey = 'pengundi_import_progress';
+    protected string $importCacheKey = 'pengundi_import_progress';
+    protected string $transferCacheKey = 'pengundi_transfer_progress';
     protected int $batchSize = 300;
 
     protected array $headerMap = [
@@ -44,127 +46,136 @@ class PengundiImportController extends Controller
     ];
 
     protected array $integerColumns = [
- 
         'tahun_lahir',
         'umur',
-     ];
+    ];
 
     /**
      * Import CSV → pengundi_raw
      */
-public function import(Request $request)
-{
-    try {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt|max:30720',
-            'tarikh_undian' => 'required|integer',
-        ]);
-        
-        $file = $request->file('file');
-        $path = $file->getRealPath();
-$tarikhUndian = (int) $request->tarikh_undian; // e.g., 2022
+    public function import(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => 'required|mimes:csv,txt|max:30720',
+                'tarikh_undian' => 'required|integer',
+                'effective_from' => 'nullable|date',
+                'effective_to' => 'nullable|date',
+            ]);
 
-        /** 1️⃣ Count total rows */
-        $total = 0;
-        if (($h = fopen($path, 'r')) !== false) {
-            fgetcsv($h); // header
-            while (fgetcsv($h))
-                $total++;
-            fclose($h);
-        }
+            $file = $request->file('file');
+            $path = $file->getRealPath();
+            $tarikhUndian = (int) $request->tarikh_undian;
 
-        Cache::put($this->cacheKey, [
-            'count' => 0,
-            'total' => $total,
-        ]);
+            // Use defaults if not provided
+            $effectiveFrom = $request->input('effective_from') 
+                ? $request->input('effective_from') 
+                : now();
+            $effectiveTo = $request->input('effective_to') 
+                ? $request->input('effective_to') 
+                : null;
 
-        /** 2️⃣ Import data */
-        $handle = fopen($path, 'r');
-        $header = array_map('strtoupper', fgetcsv($handle));
-
-        $rows = [];
-        $count = 0;
-
-        while (($data = fgetcsv($handle)) !== false) {
-            if (!array_filter($data))
-                continue;
-
-            $row = [];
-            foreach ($this->headerMap as $csv => $db) {
-                $idx = array_search(strtoupper($csv), $header);
-                $val = $idx !== false ? trim($data[$idx]) : null;
-
-                if ($val === '')
-                    $val = null;
-                if (in_array($db, $this->integerColumns) && $val !== null) {
-                    $val = is_numeric($val) ? (int) $val : null;
-                }
-
-                $row[$db] = $val;
+            // 1️⃣ Count total rows
+            $total = 0;
+            if (($h = fopen($path, 'r')) !== false) {
+                fgetcsv($h); // skip header
+                while (fgetcsv($h)) $total++;
+                fclose($h);
             }
 
-            $rows[] = $row;
-            $count++;
+            Cache::put($this->importCacheKey, [
+                'count' => 0,
+                'total' => $total,
+            ]);
 
-            if ($count % $this->batchSize === 0) {
-                // Insert data in batches
-                try {
+            // 2️⃣ Import data
+            $handle = fopen($path, 'r');
+            $header = array_map('strtoupper', fgetcsv($handle));
+
+            $rows = [];
+            $count = 0;
+
+            while (($data = fgetcsv($handle)) !== false) {
+                if (!array_filter($data)) continue;
+
+                $row = [];
+                foreach ($this->headerMap as $csv => $db) {
+                    $idx = array_search(strtoupper($csv), $header);
+                    $val = $idx !== false ? trim($data[$idx]) : null;
+
+                    if ($val === '') $val = null;
+                    if (in_array($db, $this->integerColumns) && $val !== null) {
+                        $val = is_numeric($val) ? (int) $val : null;
+                    }
+
+                    $row[$db] = $val;
+                }
+
+                $rows[] = $row;
+                $count++;
+
+                if ($count % $this->batchSize === 0) {
                     DB::table('pengundi_raw')->insert($rows);
                     $rows = [];
-
-                    Cache::put($this->cacheKey, [
+                    Cache::put($this->importCacheKey, [
                         'count' => $count,
                         'total' => $total,
                     ]);
-                } catch (\Exception $e) {
-                    return response()->json(['error' => 'Database insertion failed: ' . $e->getMessage()], 500);
                 }
             }
-        }
 
-        if ($rows) {
-            try {
+            if ($rows) {
                 DB::table('pengundi_raw')->insert($rows);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Database insertion failed: ' . $e->getMessage()], 500);
             }
-        }
 
-        fclose($handle);
+            fclose($handle);
 
-        Cache::put($this->cacheKey, [
-            'count' => $count,
-            'total' => $total,
-        ]);
+            Cache::put($this->importCacheKey, [
+                'count' => $count,
+                'total' => $total,
+            ]);
 
-        /** 3️⃣ Dispatch transfer job */
-        try {
-            $job = new TransferPengundiJob($tarikhUndian);
-            $job->handle();
+            // 3️⃣ Dispatch transfer job (pass effective dates and transfer cache)
+            try {
+                $job = new TransferPengundiJob(
+                    $tarikhUndian, 
+                    $effectiveFrom, 
+                    $effectiveTo
+                );
+                $job->handleWithCache($this->transferCacheKey);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error dispatching transfer job: ' . $e->getMessage()], 500);
+            }
+
+            Cache::forget($this->importCacheKey);
+
+            return response()->json([
+                'success' => "Imported $count rows. Transfer started."
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json(['error' => 'Invalid CSV file'], 422);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Error dispatching transfer job: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
         }
-
-        Cache::forget($this->cacheKey);
-
-        return response()->json([
-            'success' => "Imported $count rows. Transfer started."
-        ]);
-    } catch (ValidationException $e) {
-        return response()->json(['error' => 'Invalid CSV file'], 422);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'An unexpected error occurred: ' . $e->getMessage()], 500);
     }
-}
-
 
     /**
-     * Progress polling
+     * Import progress
      */
-    public function progress()
+    public function importProgress()
     {
         return response()->json(
-            Cache::get($this->cacheKey, ['count' => 0, 'total' => 1])
+            Cache::get($this->importCacheKey, ['count' => 0, 'total' => 1])
+        );
+    }
+
+    /**
+     * Transfer progress
+     */
+    public function transferProgress()
+    {
+        return response()->json(
+            Cache::get($this->transferCacheKey, ['count' => 0, 'total' => 1])
         );
     }
 }

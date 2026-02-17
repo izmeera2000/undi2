@@ -3,9 +3,14 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\Dun;
-use App\Models\Pengundi;
+
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Jobs\TransferPengundiJob;
+use App\Models\{Dun, Dm, Lokaliti, Parlimen, Pengundi};
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
+
 
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
@@ -36,7 +41,7 @@ class PengundiAnalyticsController extends Controller
         return view('pengundi.analysis', compact('duns', 'years'));
     }
 
-    
+
     public function index(Request $request)
     {
         $filters = $request->only([
@@ -255,6 +260,67 @@ class PengundiAnalyticsController extends Controller
 
         // Return success message (or simulate it in a console context)
         return response()->json(['message' => 'Data imported successfully!', 'data' => $processedData]);
+    }
+
+
+
+
+
+
+
+
+
+
+    public function pasteimportpage()
+    {
+        $parlimens = Parlimen::all();
+        $duns = Dun::all();
+        $dms = Dm::all();
+        $lokalitis = Lokaliti::all();
+
+
+        return view('pengundi.pasteimport', compact('parlimens', 'duns', 'dms', 'lokalitis'));
+    }
+    /**
+     * Handle pasted data submission
+     */
+    public function submit(Request $request)
+    {
+        $rows = json_decode($request->paste_data, true);
+
+        if (!$rows) {
+            return response()->json(['error' => 'No data received'], 422);
+        }
+
+        foreach ($rows as $row) {
+
+            if (empty($row[0]))
+                continue;
+
+            Pengundi::updateOrCreate(
+                [
+                    'nokp_baru' => $row[0],
+                    'tarikh_undian' => $request->tarikh_undian,
+                ],
+                [
+                    'kod_lokaliti' => $request->kod_lokaliti,
+                    'nokp_lama' => $row[1] ?? null,
+                    'nama' => $row[2] ?? null,
+                    'jantina' => $row[3] ?? null,
+                    'bangsa' => $row[4] ?? null,
+                    'umur' => $row[5] ?? null,
+                    'tahun_lahir' => $row[6] ?? null,
+                    'alamat_spr' => $row[7] ?? null,
+                    'poskod' => $row[8] ?? null,
+                    'bandar' => $row[9] ?? null,
+                    'negeri' => $row[10] ?? null,
+                ]
+            );
+        }
+
+        return response()->json([
+            'success' => count($rows) . ' records imported successfully.'
+        ]);
     }
 
 }

@@ -56,11 +56,11 @@ class DmController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'koddm' => 'required|unique:dm,koddm',
+            'koddm' => 'required',
             'namadm' => 'required',
             'dun_id' => 'required|exists:dun,id', // ensure selected DUN exists
             'effective_from' => 'nullable|date', // Add validation for effective_from
-            'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
+            'effective_to' => 'nullable|date', // Ensure effective_to is after effective_from
         ]);
 
         // Create DM record

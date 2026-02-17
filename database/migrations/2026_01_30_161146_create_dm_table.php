@@ -12,10 +12,8 @@ return new class extends Migration {
     {
         Schema::create('dm', function (Blueprint $table) {
             $table->id();
-
-            $table->foreignId('dun_id')
-                ->constrained('dun')
-                ->cascadeOnDelete();
+ 
+            $table->string('kod_dun');
 
             $table->string('koddm');
             $table->string('namadm');

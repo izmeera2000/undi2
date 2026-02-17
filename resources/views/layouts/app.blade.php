@@ -57,15 +57,17 @@
     <i class="bi bi-arrow-up"></i>
   </a>
 
+   <!-- Add somewhere in your HTML -->
+  <div id="pdfSpinner" class="overlay-spinner d-none">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
   @include('layouts.modern_script')
 
 
-  <!-- Add somewhere in your HTML -->
-<div id="pdfSpinner" class="overlay-spinner d-none">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Loading...</span>
-  </div>
-</div>
+ 
 
 
   @stack('scripts')

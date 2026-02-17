@@ -111,6 +111,8 @@ class DunController extends Controller
     // Optional: show single
     public function show(Dun $dun)
     {
+        $dms = $dun->dms->sortByDesc('koddm');
+
         return view('dun.show', compact('dun'));
     }
 

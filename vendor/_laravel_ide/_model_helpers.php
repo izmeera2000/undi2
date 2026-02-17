@@ -12,7 +12,7 @@ namespace App\Models {
      * @property mixed $status
      * @property string $namadm
      * @property string $koddm
-     * @property int $dun_id
+     * @property string $kod_dun
      * @property int $id
      * @property-read \App\Models\Dun $dun
      * @property-read \App\Models\Parlimen $parlimen
@@ -21,7 +21,7 @@ namespace App\Models {
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
      * @property-read int|null $activities_count
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereDunId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKodDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKoddm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereNamadm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereStatus($value)
@@ -1685,7 +1685,7 @@ namespace App\Models {
      * @property mixed $status
      * @property string $nama_lokaliti
      * @property string|null $kod_lokaliti
-     * @property int $dm_id
+     * @property string|null $koddm
      * @property int $id
      * @property-read \App\Models\Dm $dm
      * @property-read \App\Models\Dun $dun
@@ -1693,7 +1693,7 @@ namespace App\Models {
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Pengundi> $pengundis
      * @property-read int|null $pengundis_count
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereDmId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereKoddm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereKodLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereNamaLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereStatus($value)
@@ -3754,14 +3754,14 @@ namespace App\Models {
      * @property string $nama
      * @property string|null $nokp_lama
      * @property string $nokp_baru
-     * @property int $lokaliti_id
+     * @property string|null $kod_lokaliti
      * @property int $id
      * @property-read \App\Models\Lokaliti $lokaliti
      * @property-read \App\Models\Dm $dm
      * @property-read \App\Models\Dun $dun
      * @property-read \App\Models\Parlimen $parlimen
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereLokalitiId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereKodLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNokpBaru($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNokpLama($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNama($value)
