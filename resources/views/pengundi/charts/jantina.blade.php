@@ -1,14 +1,13 @@
 <script>
-
-    
 function renderJantinaChart() {
-  const mode = document.getElementById('modeSelect').value;
+  console.log('--- renderJantinaChart START ---');
+
+  const mode  = document.getElementById('modeSelect').value;
   const year1 = document.getElementById('year1').value;
   const year2 = document.getElementById('year2').value;
 
   const categories = ['Lelaki', 'Perempuan'];
 
-  // Base colors
   const baseColors = {
     'UMNO': '#991b1b',
     'Bukan UMNO': '#f87171'
@@ -18,98 +17,51 @@ function renderJantinaChart() {
     const r = parseInt(hex.substr(1, 2), 16);
     const g = parseInt(hex.substr(3, 2), 16);
     const b = parseInt(hex.substr(5, 2), 16);
-    const newR = Math.round(r + (255 - r) * factor);
-    const newG = Math.round(g + (255 - g) * factor);
-    const newB = Math.round(b + (255 - b) * factor);
-    return `rgb(${newR}, ${newG}, ${newB})`;
+    return `rgb(${Math.round(r + (255 - r) * factor)}, 
+                ${Math.round(g + (255 - g) * factor)}, 
+                ${Math.round(b + (255 - b) * factor)})`;
   };
 
+  const dataSource = DashboardState.jantinaChart || [];
+
+  const buildSeries = (dataset, yearLabel = null, lighten = false) => {
+    const statuses = ['UMNO', 'Bukan UMNO'];
+
+    return statuses.map(status => {
+
+      const data = categories.map(gender => {
+        return dataset
+          .filter(x => x.jantina === gender && x.status_umno === status)
+          .reduce((sum, x) => sum + Number(x.total || 0), 0);
+      });
+
+      const color = lighten 
+        ? lightenColor(baseColors[status]) 
+        : baseColors[status];
+
+      return {
+        name: yearLabel ? `${yearLabel} - ${status}` : status,
+        data,
+        color,
+        stack: yearLabel || 'single'
+      };
+    });
+  };
+
+  let series = [];
+
   if (mode === 'single') {
-    const cube = DashboardState.cube.filter(x => x.tarikh_undian === year1);
+    const filtered = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
+    series = buildSeries(filtered);
+  } else {
+    const filtered1 = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
+    const filtered2 = dataSource.filter(x => String(x.tarikh_undian) === String(year2));
 
-    const series = [
-      {
-        name: 'UMNO',
-        data: categories.map(group =>
-          cube
-            .filter(x => x.jantina2 === group && x.status_umno === '1')
-            .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-        ),
-        color: baseColors['UMNO']
-      },
-      {
-        name: 'Bukan UMNO',
-        data: categories.map(group =>
-          cube
-            .filter(x => x.jantina2 === group && x.status_umno === '0')
-            .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-        ),
-        color: baseColors['Bukan UMNO']
-      }
+    series = [
+      ...buildSeries(filtered1, year1, false),
+      ...buildSeries(filtered2, year2, true)
     ];
-
-    renderStackedBar(
-      document.querySelector('#jantinaChart'),
-      DashboardState.charts.jantina,
-      categories,
-      series,
-      'Jumlah Pengundi',
-      'Jantina',
-      [],
-      'Jantina × Status UMNO'
-    );
-
-    return;
   }
-
-  // 🔵 COMPARE MODE
-  const cube1 = DashboardState.cube.filter(x => x.tarikh_undian === year1);
-  const cube2 = DashboardState.cube.filter(x => x.tarikh_undian === year2);
-
-  const series = [
-    // Year 1 - full color
-    {
-      name: `${year1} - UMNO`,
-      group: 'year1',
-      data: categories.map(group =>
-        cube1
-          .filter(x => x.jantina2 === group && x.status_umno === '1')
-          .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-      ),
-      color: baseColors['UMNO']
-    },
-    {
-      name: `${year1} - Bukan UMNO`,
-      group: 'year1',
-      data: categories.map(group =>
-        cube1
-          .filter(x => x.jantina2 === group && x.status_umno === '0')
-          .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-      ),
-      color: baseColors['Bukan UMNO']
-    },
-    // Year 2 - lighter / grayed out
-    {
-      name: `${year2} - UMNO`,
-      group: 'year2',
-      data: categories.map(group =>
-        cube2
-          .filter(x => x.jantina2 === group && x.status_umno === '1')
-          .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-      ),
-      color: lightenColor(baseColors['UMNO'], 0.5)
-    },
-    {
-      name: `${year2} - Bukan UMNO`,
-      group: 'year2',
-      data: categories.map(group =>
-        cube2
-          .filter(x => x.jantina2 === group && x.status_umno === '0')
-          .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
-      ),
-      color: lightenColor(baseColors['Bukan UMNO'], 0.5)
-    }
-  ];
 
   renderStackedBar(
     document.querySelector('#jantinaChart'),
@@ -119,11 +71,13 @@ function renderJantinaChart() {
     'Jumlah Pengundi',
     'Jantina',
     [],
-    `Perbandingan ${year1} vs ${year2} — Jantina × Status UMNO`,
-    false, // horizontal
-    true   // grouped stacks for comparison
+    mode === 'single'
+      ? `Jantina × Status UMNO (${year1})`
+      : `Perbandingan ${year1} vs ${year2} — Jantina × Status UMNO`,
+    false,
+    true
   );
+
+  console.log('--- renderJantinaChart END ---');
 }
-  
-  
 </script>

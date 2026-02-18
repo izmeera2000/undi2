@@ -146,10 +146,32 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     // Pengundi Analytics
     Route::prefix('pengundi')->name('pengundi.')->group(function () {
-        Route::get('analytics', [PengundiAnalyticsController::class, 'dropdowns'])->name('analysis');
 
 
-        Route::get('bulkimport', [PengundiAnalyticsController::class, 'importpage'])->name('bulkimport');
+        ///list
+        Route::get('list', [PengundiAnalyticsController::class, 'list'])->name('list');
+        ///ajax lsit
+        Route::post('list/data', [PengundiAnalyticsController::class, 'list_data'])->name('list_data');
+
+
+
+
+        ////lsit details saluran page
+
+        Route::get(
+            'list/{parlimen}/{dun}/{dm}/{lokaliti}/{saluran}/{pr_type}/{pr_series}',
+            [PengundiAnalyticsController::class, 'list_details']
+        )->name('list_details');
+        ///ajax before
+        Route::post('list/details/data', [PengundiAnalyticsController::class, 'list_details_data'])
+            ->name('list_details_data');
+
+        ///page bulk import
+
+        Route::get('bulkimport', [PengundiAnalyticsController::class, 'bulkimport'])->name('bulkimport');
+        Route::get('bulkimport2', [PengundiAnalyticsController::class, 'bulkimport2'])->name('bulkimport2');
+
+        ////import progress
 
         Route::get('importProgress', [PengundiImportController::class, 'importProgress'])
             ->name('importProgress');
@@ -158,24 +180,53 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('transferProgress', [PengundiImportController::class, 'transferProgress'])
             ->name('transferProgress');
 
+
+
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
+
+
+        ///analytics page
+        Route::get('analytics', [PengundiAnalyticsController::class, 'analytics'])->name('analytics');
+
+        ///analytics data
+
+
+        Route::post('analytics/data', [PengundiAnalyticsController::class, 'analytics_data'])->name('analytics_data');
+        Route::get('analytics/test', [PengundiAnalyticsController::class, 'analytics_test'])->name('analytics_test');
+
+
+
+        ///////////// naalytics import pdf
         Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
             ->name('analytics.pdf');
 
 
-        Route::post('import/paste', [PengundiAnalyticsController::class, 'importFromPaste'])->name('import.paste');
+        // Route::post('import/paste', [PengundiAnalyticsController::class, 'importFromPaste'])->name('import.paste');
 
+
+
+
+
+
+
+
+
+
+
+
+
+        // Route::post('import2', [PengundiImportController::class, 'import2   '])->name('import2');
 
 
 
 
         // Display Paste Import page
-        Route::get('pasteimport', [PengundiAnalyticsController::class, 'pasteimportpage'])
-            ->name('pasteimport');
+        // Route::get('pasteimport', [PengundiAnalyticsController::class, 'pasteimportpage'])
+        //     ->name('pasteimport');
 
         // Handle submission of pasted data
-        Route::post('pasteimport', [PengundiAnalyticsController::class, 'submit'])
-            ->name('pasteimport.submit');
+        // Route::post('pasteimport', [PengundiAnalyticsController::class, 'submit'])
+        //     ->name('pasteimport.submit');
 
 
 
@@ -346,15 +397,6 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-
-    // Analytics AJAX Charts
-    Route::prefix('analytics/chart')->group(function () {
-        Route::post('overview', [PengundiAnalyticsController::class, 'overview']);
-
-    });
-
-    Route::post('analytics/pengundi', [PengundiAnalyticsController::class, 'index']);
-    Route::get('analytics/pengundi2', [PengundiAnalyticsController::class, 'index']);
 
     // Mail
     Route::post('mail/send', [MailController::class, 'sendEmail'])->name('mail.send');

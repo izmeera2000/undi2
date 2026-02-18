@@ -46,10 +46,9 @@ class Dun extends Model
     /**
      * Get all DMs under this Dun (updated to use 'kod_dun')
      */
-    public function dms()
+      public function dms()
     {
-        // Ensure the relationship uses 'kod_dun' as the foreign key
-        return $this->hasMany(Dm::class, 'kod_dun')->orderBy('koddm', 'asc'); // or 'desc' for descending
+        return $this->hasMany(Dm::class, 'dun_id');
     }
 
     /**

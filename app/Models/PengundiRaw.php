@@ -35,5 +35,9 @@ class PengundiRaw extends Model
         'poskod',
         'bandar',
         'negeri',
+        'saluran',
+        'no_siri',
+        'pilihan_raya_type',
+        'pilihan_raya_series',
     ];
 }

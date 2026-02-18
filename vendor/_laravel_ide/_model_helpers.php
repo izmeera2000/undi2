@@ -3737,6 +3737,11 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $pilihan_raya_series
+     * @property string|null $pilihan_raya_type
+     * @property string|null $type_data_id
+     * @property string|null $no_siri
+     * @property string|null $saluran
      * @property integer $tarikh_undian
      * @property string|null $status_baru
      * @property string|null $status_umno
@@ -3779,6 +3784,11 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereStatusUmno($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereStatusBaru($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereTarikhUndian($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereSaluran($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNoSiri($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereTypeDataId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi wherePilihanRayaType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi wherePilihanRayaSeries($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi newModelQuery()
@@ -4096,6 +4106,11 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $pilihan_raya_series
+     * @property string|null $pilihan_raya_type
+     * @property string|null $type_data_id
+     * @property string|null $saluran
+     * @property string|null $no_siri
      * @property string|null $negeri
      * @property string|null $bandar
      * @property string|null $poskod
@@ -4150,6 +4165,11 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw wherePoskod($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereBandar($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNegeri($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNoSiri($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereSaluran($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereTypeDataId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw wherePilihanRayaType($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw wherePilihanRayaSeries($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw newModelQuery()

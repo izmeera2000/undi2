@@ -582,7 +582,7 @@ async function renderStackedBar(
             type: "bar",
             stacked: true,
             height: isHorizontal ? 800 : 600,
-             animations: {
+            animations: {
                 enabled: isAnimated,
             },
             events: {
@@ -591,51 +591,50 @@ async function renderStackedBar(
                         const index = config.dataPointIndex;
                         const w = config.w;
 
-                        // Determine clicked category for modal title
-                        const category = w.globals.labels
-                            ? w.globals.labels[index]
-                            : w.globals.categories
-                              ? w.globals.categories[index]
-                              : `Data Point ${index + 1}`;
+                        if (index < 0) return;
 
-                        // Fix: get the correct series array
-                        const seriesData =
-                            config.series || config.w.config.series || [];
+                        const category =
+                            w.globals.categories?.[index] ??
+                            w.globals.labels?.[index] ??
+                            `Data Point ${index + 1}`;
+
+                        const seriesData = w.config.series || [];
 
                         const items = seriesData
                             .map((s, i) => ({
-                                name: w.globals.seriesNames[i],
-                                value: s.data ? s.data[index] : s[index], // handle both formats
+                                name: s.name,
+                                value: s.data?.[index] ?? null,
                                 color: w.globals.colors[i],
                             }))
-                            .filter((item) => item.value !== null)
+                            .filter(
+                                (item) =>
+                                    item.value !== null &&
+                                    item.value !== undefined,
+                            )
                             .sort((a, b) => b.value - a.value)
                             .slice(0, 4);
 
                         const html = items
                             .map(
                                 (i) => `
-                    <div class="tooltip-row">
-                      <span class="tooltip-color" style="background:${i.color}"></span>
-                      <span>${i.name}</span>
-                      <strong class="ms-auto">${i.value}</strong>
-                    </div>
-                  `,
+                <div class="tooltip-row">
+                    <span class="tooltip-color" style="background:${i.color}"></span>
+                    <span>${i.name}</span>
+                    <strong class="ms-auto">${i.value}</strong>
+                </div>
+            `,
                             )
                             .join("");
 
-                        // Insert modal title
                         document.getElementById("tooltipModalLabel").innerText =
                             category;
-
-                        // Insert modal body
                         document.getElementById("tooltipModalBody").innerHTML =
                             html;
 
-                        // Show Bootstrap modal
                         const tooltipModal = new bootstrap.Modal(
                             document.getElementById("tooltipModal"),
                         );
+
                         tooltipModal.show();
                     }
                 },
@@ -728,13 +727,27 @@ async function renderStackedBar(
         ],
     };
 
+  try {
+    console.log('Chart element:', el);
+    console.log('Chart options:', options);
+    console.log('Existing chart instance:', chartRef.chart);
+
     if (chartRef.chart) {
+        console.log('Updating existing chart...');
         chartRef.chart.updateOptions(options);
-        return chartRef.chart.render();
+        console.log('Options updated, rendering chart...');
+        chartRef.chart.render();
+        console.log('Chart render completed.');
     } else {
+        console.log('Creating new chart...');
         chartRef.chart = new ApexCharts(el, options);
         await chartRef.chart.render();
+        console.log('New chart rendered.');
     }
+} catch (error) {
+    console.error('Error in chart rendering:', error);
+}
+
 }
 
 async function renderTreemap(el, chartRef, series) {

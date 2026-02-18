@@ -29,11 +29,16 @@
           <i class="ph-light ph-caret-down nav-arrow"></i>
         </a>
         <ul class="nav-submenu ">
-          <li><a class="nav-link " href="{{ route('pengundi.analysis') }}">Analytics</a></li>
+          <li><a class="nav-link " href="{{ route('pengundi.list') }}">List</a></li>
+
+          <li><a class="nav-link " href="{{ route('pengundi.analytics') }}">Analytics</a></li>
 
           @can('pengundi.add')
 
             <li><a class="nav-link " href="{{ route('pengundi.bulkimport') }}">Bulk Import</a></li>
+            <li><a class="nav-link " href="{{ route('pengundi.bulkimport2') }}">Bulk Import 2</a></li>
+
+          
           @endcan
         </ul>
       </li>

@@ -16,12 +16,16 @@ class TransferPengundiJob
     protected int $tarikhUndian;
     protected $effectiveFrom;
     protected $effectiveTo;
+    protected $pilihanRayaType;
+    protected $pilihanRayaSeries;
 
-    public function __construct(int $tarikhUndian, $effectiveFrom = null, $effectiveTo = null)
+    public function __construct($tarikhUndian, $effectiveFrom = null, $effectiveTo = null, $pilihanRayaType = null, $pilihanRayaSeries = null)
     {
         $this->tarikhUndian = $tarikhUndian;
-        $this->effectiveFrom = $effectiveFrom ?? now();
-        $this->effectiveTo = $effectiveTo; // null by default
+        $this->effectiveFrom = $effectiveFrom;
+        $this->effectiveTo = $effectiveTo;
+        $this->pilihanRayaType = $pilihanRayaType;       // 🔹 assign
+        $this->pilihanRayaSeries = $pilihanRayaSeries;   // 🔹 assign
     }
 
     /**
@@ -29,148 +33,6 @@ class TransferPengundiJob
      */
 
 
-    // public function handleWithCache(string $cacheKey = null)
-    // {
-    //     try {
-    //         $total = PengundiRaw::count();
-    //         $processed = 0;
-
-    //         PengundiRaw::orderBy('id')->chunk(1000, function ($rows) use (&$processed, $total, $cacheKey) {
-    //             DB::transaction(function () use ($rows) {
-    //                 foreach ($rows as $row) {
-    //                     try {
-    //                         // 1️⃣ Parlimen
-    //                         $parlimen = Parlimen::firstOrCreate(
-    //                             ['kod_par' => $row->kod_par],
-    //                             ['namapar' => $row->namapar]
-    //                         );
-
-    //                         // 2️⃣ DUN with effective_from / effective_to
-    //                         $dun = Dun::where('kod_dun', $row->kod_dun)
-    //                             ->where('status', 'active')
-    //                             ->latest('effective_from')
-    //                             ->first();
-
-    //                         if ($dun && $dun->namadun !== $row->namadun) {
-    //                             $dun->update(['effective_to' => $this->effectiveFrom]);
-    //                             $dun = Dun::create([
-    //                                 'kod_dun' => $row->kod_dun,
-    //                                 'parlimen_id' => $parlimen->id,
-    //                                 'namadun' => $row->namadun,
-    //                                 'status' => 'active',
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         } elseif (!$dun) {
-    //                             $dun = Dun::create([
-    //                                 'kod_dun' => $row->kod_dun,
-    //                                 'parlimen_id' => $parlimen->id,
-    //                                 'namadun' => $row->namadun,
-    //                                 'status' => 'active',
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         }
-
-    //                         // 3️⃣ DM with effective_from / effective_to
-    //                         $dm = Dm::where('koddm', $row->koddm)
-    //                             ->where('status', 'active')
-    //                             ->latest('effective_from')
-    //                             ->first();
-
-    //                         if ($dm && $dm->namadm !== $row->namadm) {
-    //                             $dm->update(['effective_to' => $this->effectiveFrom]);
-    //                             $dm = Dm::create([
-    //                                 'koddm' => $row->koddm,
-    //                                 'dun_id' => $dun->id,
-    //                                 'namadm' => $row->namadm,
-    //                                 'status' => 'active',
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         } elseif (!$dm) {
-    //                             $dm = Dm::create([
-    //                                 'koddm' => $row->koddm,
-    //                                 'dun_id' => $dun->id,
-    //                                 'namadm' => $row->namadm,
-    //                                 'status' => 'active',
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         }
-
-    //                         // 4️⃣ Lokaliti with effective_from / effective_to
-    //                         $lokaliti = Lokaliti::where('kod_lokaliti', $row->kodlokaliti)
-    //                             ->where('dm_id', $dm->id)
-    //                             ->latest('effective_from')
-    //                             ->first();
-
-    //                         if ($lokaliti && $lokaliti->nama_lokaliti !== $row->namalokaliti) {
-    //                             $lokaliti->update(['effective_to' => $this->effectiveFrom]);
-    //                             $lokaliti = Lokaliti::create([
-    //                                 'kod_lokaliti' => $row->kodlokaliti,
-    //                                 'dm_id' => $dm->id,
-    //                                 'nama_lokaliti' => $row->namalokaliti,
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         } elseif (!$lokaliti) {
-    //                             $lokaliti = Lokaliti::create([
-    //                                 'kod_lokaliti' => $row->kodlokaliti,
-    //                                 'dm_id' => $dm->id,
-    //                                 'nama_lokaliti' => $row->namalokaliti,
-    //                                 'effective_from' => $this->effectiveFrom,
-    //                                 'effective_to' => $this->effectiveTo,
-    //                             ]);
-    //                         }
-
-    //                         // 5️⃣ Pengundi (store only kod_lokaliti)
-    //                         Pengundi::updateOrCreate(
-    //                             [
-    //                                 'nokp_baru' => $row->nokp_baru,
-    //                                 'tarikh_undian' => $this->tarikhUndian,
-    //                             ],
-    //                             [
-    //                                 'kod_lokaliti' => $row->kodlokaliti,
-    //                                 'nokp_lama' => $row->nokp_lama,
-    //                                 'nama' => $row->nama,
-    //                                 'jantina' => $row->jantina,
-    //                                 'bangsa' => $row->bangsa_spr,
-    //                                 'umur' => $row->umur,
-    //                                 'tahun_lahir' => $row->tahun_lahir,
-    //                                 'alamat_spr' => $row->alamat_spr,
-    //                                 'alamat_jpn_1' => $row->alamat_jpn_1,
-    //                                 'alamat_jpn_2' => $row->alamat_jpn_2,
-    //                                 'alamat_jpn_3' => $row->alamat_jpn_3,
-    //                                 'poskod' => $row->poskod,
-    //                                 'bandar' => $row->bandar,
-    //                                 'negeri' => $row->negeri,
-    //                                 'status_umno' => $row->status_umno,
-    //                                 'status_baru' => $row->status_baru,
-    //                             ]
-    //                         );
-    //                     } catch (\Exception $e) {
-    //                         Log::error('Error processing row: ' . $e->getMessage(), ['row' => $row]);
-    //                     }
-    //                 }
-    //             });
-
-    //             $processed += count($rows);
-    //             if ($cacheKey) {
-    //                 Cache::put($cacheKey, ['count' => $processed, 'total' => $total]);
-    //             }
-    //         });
-
-    //         // Clear raw table
-    //         DB::table('pengundi_raw')->truncate();
-
-    //         if ($cacheKey) {
-    //             Cache::forget($cacheKey);
-    //         }
-    //     } catch (\Exception $e) {
-    //         Log::error('Error in TransferPengundiJob: ' . $e->getMessage());
-    //     }
-    // }
 
 
     public function handleWithCache(string $cacheKey = null)
@@ -269,6 +131,13 @@ class TransferPengundiJob
                                 'negeri' => $row->negeri,
                                 'status_umno' => $row->status_umno,
                                 'status_baru' => $row->status_baru,
+                                'saluran' => null,
+                                'type_data_id' => 1,
+
+                                'pilihan_raya_type' => $this->pilihanRayaType,
+                                'pilihan_raya_series' => $this->pilihanRayaSeries,
+
+
                             ];
                         } catch (\Exception $e) {
                             Log::error('Error processing row: ' . $e->getMessage(), ['row' => $row]);
@@ -319,6 +188,93 @@ class TransferPengundiJob
         }
     }
 
+
+
+
+
+    public function handleWithCache2(string $cacheKey = null)
+    {
+        try {
+            $total = PengundiRaw::count();
+            $processed = 0;
+
+            PengundiRaw::orderBy('id')->chunk(1000, function ($rows) use (&$processed, $total, $cacheKey) {
+                // Start a new transaction for each chunk of data
+                DB::transaction(function () use ($rows) {
+                    // Initialize arrays to collect data for batch insert or upsert
+
+                    $pengundiData = [];
+
+                    $bangsaMap = [
+                        'M' => 'melayu',
+                        'C' => 'cina',
+                        'I' => 'india',
+                        'L' => 'lain-lain',
+                    ];
+
+                    foreach ($rows as $row) {
+                        try {
+
+                            // Normalize bangsa
+                            $bangsaCode = strtoupper(trim($row->bangsa_spr ?? ''));
+
+
+
+                            $bangsa = $bangsaMap[$bangsaCode] ?? strtolower($row->bangsa_spr ?? null);
+
+                            $pengundiData[] = [
+                                'nokp_baru' => $row->nokp_baru,
+                                'tarikh_undian' => $this->tarikhUndian,
+                                'kod_lokaliti' => $row->kodlokaliti,
+                                'nama' => $row->nama,
+                                'jantina' => $row->jantina,
+                                'bangsa' => $bangsa,
+                                'umur' => $row->umur,
+                                'alamat_spr' => $row->alamat_spr,
+                                'saluran' => $row->saluran,
+                                'no_siri' => $row->no_siri,
+                                'type_data_id' => 2,
+
+
+                                'negeri' => $row->negeri,
+                                         'pilihan_raya_type' => $this->pilihanRayaType,
+                                'pilihan_raya_series' => $this->pilihanRayaSeries,
+
+                            ];
+
+                        } catch (\Exception $e) {
+                            Log::error('Error processing row: ' . $e->getMessage(), ['row' => $row]);
+                        }
+                    }
+
+
+
+
+
+
+                    // 5️⃣ Insert or Upsert Pengundi
+                    if (count($pengundiData) > 0) {
+                        Pengundi::upsert($pengundiData, ['nokp_baru', 'tarikh_undian'], ['kod_lokaliti']);
+                    }
+                });
+
+                // Track progress
+                $processed += count($rows);
+                if ($cacheKey) {
+                    Cache::put($cacheKey, ['count' => $processed, 'total' => $total]);
+                }
+            });
+
+            // Clear raw table
+            DB::table('pengundi_raw')->truncate();
+
+            if ($cacheKey) {
+                Cache::forget($cacheKey);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error in TransferPengundiJob: ' . $e->getMessage());
+        }
+    }
 
 
 

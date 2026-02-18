@@ -48,7 +48,12 @@ return new class extends Migration {
             $table->string('poskod')->nullable();
             $table->string('bandar')->nullable();
             $table->string('negeri')->nullable();
+            $table->text('no_siri')->nullable();
 
+            $table->text('saluran')->nullable();
+            $table->text('type_data_id')->nullable();
+            $table->text('pilihan_raya_type')->nullable();
+            $table->text('pilihan_raya_series')->nullable();
             $table->timestamps();
         });
     }

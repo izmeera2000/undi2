@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Bulk Import')
+@section('title', 'Bulk Import 2')
 
 @section('breadcrumb')
     @php
         $crumbs = [
             ['label' => 'Pengundi'],
-      ['label' => 'Bulk Import', 'url' => route('pengundi.bulkimport')],
+      ['label' => 'Bulk Import 2', 'url' => route('pengundi.bulkimport2')],
         ];
     @endphp
 @endsection
@@ -34,7 +34,6 @@
       <input type="date" name="effective_from" class="form-control mt-2" placeholder="Effective From">
       <input type="date" name="effective_to" class="form-control mt-2" placeholder="Effective To">
 
-      
       <select name="pilihan_raya_type" class="form-control mt-2" required>
         <option value="" disabled selected>Pilih Jenis Pilihan Raya</option>
         <option value="PRU">PRU</option>
@@ -44,6 +43,7 @@
 
       <input type="number" name="pilihan_raya_series" class="form-control mt-2"
         placeholder="Nombor Siri Pilihan Raya (contoh: 15)" required min="1">
+
 
       <button type="submit" class="btn btn-success mt-2" id="submitBtn">Upload CSV</button>
     </form>
@@ -87,7 +87,7 @@
 
       const formData = new FormData(form);
 
-      fetch("{{ route('pengundi.import') }}", {
+      fetch("{{ route('pengundi.import2') }}", {
         method: 'POST',
         body: formData,
         headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }

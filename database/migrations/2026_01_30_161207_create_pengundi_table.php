@@ -32,7 +32,12 @@ return new class extends Migration {
             $table->string('status_umno')->nullable();
             $table->string('status_baru')->nullable();
             $table->year('tarikh_undian'); // 👈 YEAR type
-
+            $table->text('saluran')->nullable();
+            $table->text('no_siri')->nullable();
+            $table->text('type_data_id')->nullable();
+            $table->text('pilihan_raya_type')->nullable();
+            $table->text('pilihan_raya_series')->nullable();
+ 
             // ✅ COMPOSITE UNIQUE
             $table->unique(['nokp_baru', 'tarikh_undian']);
 

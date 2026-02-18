@@ -82,9 +82,9 @@
 
                         <div class="mb-3">
                             <label class="form-label">DUN</label>
-                            <select name="dun_id" class="form-select" required>
+                            <select name="kod_dun" class="form-select" required>
                                 @foreach($duns as $dun)
-                                    <option value="{{ $dun->id }}">{{ $dun->namadun }}</option>
+                                    <option value="{{ $dun->kod_dun }}">{{ $dun->namadun }}</option>
                                 @endforeach
                             </select>
                         </div>

@@ -45,12 +45,12 @@ class DmController extends Controller
         return view('dm.index', compact('dms', 'duns'));
     }
 
-    // Show create form
-    public function create()
-    {
-        $duns = Dun::all(); // for dropdown
-        return view('dm.create', compact('duns'));
-    }
+    // // Show create form
+    // public function create()
+    // {
+    //     $duns = Dun::all(); // for dropdown
+    //     return view('dm.create', compact('duns'));
+    // }
 
     // Store new DM
     public function store(Request $request)
@@ -58,7 +58,7 @@ class DmController extends Controller
         $request->validate([
             'koddm' => 'required',
             'namadm' => 'required',
-            'dun_id' => 'required|exists:dun,id', // ensure selected DUN exists
+            'kod_dun' => 'required|exists:dun,kod_dun', // ensure selected DUN exists
             'effective_from' => 'nullable|date', // Add validation for effective_from
             'effective_to' => 'nullable|date', // Ensure effective_to is after effective_from
         ]);

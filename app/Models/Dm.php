@@ -29,10 +29,10 @@ class Dm extends Model
     /**
      * Get the Dun that owns the Dm
      */
-    public function dun()
+      public function dun()
     {
-        // Update the foreign key to 'kod_dun' instead of 'dun_id'
-        return $this->belongsTo(Dun::class, 'kod_dun', 'id'); // Ensure 'kod_dun' is the correct foreign key
+        // DM belongs to a DUN
+        return $this->belongsTo(Dun::class, 'kod_dun');
     }
 
     /**
@@ -53,9 +53,9 @@ class Dm extends Model
     /**
      * Get the Lokalitis that belong to this Dm
      */
-    public function lokalitis()
+   public function lokalitis()
     {
-        return $this->hasMany(Lokaliti::class, 'koddm')->orderBy('kod_dun', 'asc'); // Updated to use kod_dun
+        return $this->hasMany(Lokaliti::class, 'koddm', 'koddm');
     }
 
     /**

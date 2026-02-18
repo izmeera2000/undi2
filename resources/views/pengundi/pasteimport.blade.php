@@ -57,9 +57,7 @@
                         <select id="dmSelect" class="form-select" disabled required>
                             <option value="">-- Pilih DM --</option>
                             @foreach($dms as $dm)
-                                <option value="{{ $dm->koddm }}" data-parent="{{ $dm->dun?->kod_dun ?? '' }}">
-                                    {{ $dm->namadm }} ({{ $dm->koddm }})
-                                </option>
+                                <option value="{{ $dm->koddm }}" data-parent="{{ $dm->dun->kod_dun  }}">{{ $dm->koddm }}</option>
 
                             @endforeach
                         </select>
@@ -70,8 +68,7 @@
                         <select id="lokalitiSelect" name="kod_lokaliti" class="form-select" disabled required>
                             <option value="">-- Pilih Lokaliti --</option>
                             @foreach($lokalitis as $loc)
-                                <option value="{{ $loc->kod_lokaliti }}" data-parent="{{ $loc->dm->koddm }}">
-                                    {{ $loc->nama_lokaliti }} ({{ $loc->kod_lokaliti }})
+                                <option value="{{ $loc->kod_lokaliti }}" data-parent="{{ $loc->dm->koddm }}">{{ $loc->kod_lokaliti }}
                                 </option>
                             @endforeach
                         </select>
@@ -234,30 +231,30 @@
                 // Optionally log the entire `hot` Handsontable instance
                 console.log('Handsontable instance:', hot);
 
-                // fetch("{{ route('pengundi.pasteimport.submit') }}", {
-                //     method: 'POST',
-                //     body: formData,
-                // })
-                //     .then(res => res.json())
-                //     .then(data => {
+                fetch("{{ route('pengundi.pasteimport.submit') }}", {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(res => res.json())
+                    .then(data => {
 
-                //         if (data.success) {
-                //             successMsg.innerText = data.success;
-                //             successMsg.classList.remove('d-none');
-                // hot.loadData([]);
-                //         } else {
-                //             throw data;
-                //         }
+                        if (data.success) {
+                            successMsg.innerText = data.success;
+                            successMsg.classList.remove('d-none');
+                hot.loadData([]);
+                        } else {
+                            throw data;
+                        }
 
-                //     })
-                //     .catch(err => {
-                //         errorMsg.innerText = err.error || 'Import failed';
-                //         errorMsg.classList.remove('d-none');
-                //     })
-                //     .finally(() => {
-                //         submitBtn.disabled = false;
-                //         loading.classList.add('d-none');
-                //     });
+                    })
+                    .catch(err => {
+                        errorMsg.innerText = err.error || 'Import failed';
+                        errorMsg.classList.remove('d-none');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        loading.classList.add('d-none');
+                    });
 
             });
 

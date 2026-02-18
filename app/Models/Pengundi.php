@@ -9,7 +9,7 @@ class Pengundi extends Model
     protected $table = 'pengundi';
 
     protected $fillable = [
-        'kod_lokaliti', // 🔥 changed from dm_id
+        'kod_lokaliti',
         'nokp_baru',
         'nokp_lama',
         'nama',
@@ -27,6 +27,11 @@ class Pengundi extends Model
         'status_umno',
         'status_baru',
         'tarikh_undian',
+        'saluran',
+        'no_siri',
+        'type_data_id',
+        'pilihan_raya_type',
+        'pilihan_raya_series',
     ];
 
     protected $casts = [

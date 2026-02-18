@@ -6,14 +6,11 @@
 
 @section('breadcrumb')
   @php
-    // Build dynamic crumbs based on request
     $crumbs = [
-      ['label' => 'Pengundi', 'url' => route('pengundi.analysis')],
-      ['label' => 'Analytics', 'url' => route('pengundi.analysis')],
+      ['label' => 'Pengundi'],
+      ['label' => 'Analytics', 'url' => route('pengundi.analytics')],
     ];
-
   @endphp
-
 @endsection
 
 
@@ -29,22 +26,23 @@
       <div class="form-actions-buttons d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
         <!-- Selects stack vertically on small screens -->
         <div class="d-flex flex-column flex-md-row gap-2 flex-grow-1">
-          <select id="modeSelect" class="form-select form-select-lg {{ $years->count() <= 1 ? 'd-none' : '' }}">
+          <select id="modeSelect" class="form-select form-select-lg {{ $datas->count() <= 1 ? 'd-none' : '' }}">
             <option value="single" selected>Single Year</option>
             <option value="compare">Compare Years</option>
           </select>
 
           <select id="year1" class="form-select form-select-lg">
-            @foreach($years as $year)
-              <option value="{{ $year }}" {{ $loop->first ? 'selected' : '' }}>
-                {{ $year }}
+            @foreach($datas as $data)
+              <option value="{{ $data->year  }}" {{ $loop->first ? 'selected' : '' }}>
+                {{ $data->year }} ({{ $data->pilihan_raya_type }}{{ $data->pilihan_raya_series }})
               </option>
             @endforeach
           </select>
 
-          <select id="year2" class="form-select form-select-lg d-none {{ $years->count() <= 1 ? 'd-none' : '' }}">
-            @foreach($years as $year)
-              <option value="{{ $year }}">{{ $year }}</option>
+          <select id="year2" class="form-select form-select-lg d-none {{ $data->count() <= 1 ? 'd-none' : '' }}">
+            @foreach($datas as $data)
+              <option value="{{ $data->year }}">{{ $data->year }}
+                ({{ $data->pilihan_raya_type }}{{ $data->pilihan_raya_series }})</option>
             @endforeach
           </select>
         </div>
@@ -286,67 +284,72 @@
 
 
     async function loadDashboard(payload) {
-      const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
-      const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-      // console.log(payload);
+      // const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
+      // const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+      console.log(payload);
 
 
-      const cached = sessionStorage.getItem(cacheKey);
+      // const cached = sessionStorage.getItem(cacheKey);
 
 
-      if (cached) {
-        const { data, expires } = JSON.parse(cached);
-        if (Date.now() < expires) {
-          // console.log('using cache');
-          applyDashboardData(data);
-          return;
-        }
-        sessionStorage.removeItem(cacheKey);
-      }
+      // if (cached) {
+      //   const { data, expires } = JSON.parse(cached);
+      //   if (Date.now() < expires) {
+      //     // console.log('using cache');
+      //     applyDashboardData(data);
+      //     return;
+      //   }
+      //   sessionStorage.removeItem(cacheKey);
+      // }
 
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      try {
+        const res = await fetch('{{ route('pengundi.analytics_data') }}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+          },
+          body: JSON.stringify(payload)
+        });
 
-      const res = await fetch('/analytics/pengundi', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify(payload)
-      });
+        // Check HTTP status
+        if (!res.ok) {
+          const errorText = await res.text(); // in case response is not JSON
+          console.error('HTTP Error:', res.status, res.statusText);
+          console.error('Response body:', errorText);
+          return;
+        }
 
-      const data = await res.json();
-      // console.log('rendering (fresh)');
+        const data = await res.json();
+        console.log('Success:', data);
+        applyDashboardData(data);
 
 
-      sessionStorage.setItem(cacheKey, JSON.stringify({
-        data,
-        expires: Date.now() + CACHE_TTL
-      }));
 
-      applyDashboardData(data);
+        // sessionStorage.setItem(cacheKey, JSON.stringify({
+        //   data,
+        //   expires: Date.now() + CACHE_TTL
+        // }));
+
+      } catch (error) {
+        console.error('Fetch Error:', error);
+      }
+
+
+
+
+
+
     }
 
     function applyDashboardData(data) {
-      DashboardState.cube = data.cube;
-
-
-
-      if (Array.isArray(data.totals)) {
-
-
-        DashboardState.totals.mode =
-          data.totals.length > 1 ? 'compare' : 'single';
-
-        DashboardState.totals.data = data.totals.map(t => ({
-          year: t.tarikh_undian,
-          totalPengundi: t.total_pengundi,
-          totalUmno: t.total_umno,
-          totalFirstTime: t.total_first_time_voter
-        }));
-
-      }
+      DashboardState.bangsaChart = Array.isArray(data.bangsaChart) ? data.bangsaChart : [];
+      DashboardState.negeriChart = Array.isArray(data.negeriChart) ? data.negeriChart : [];
+      DashboardState.dmUmurChart = Array.isArray(data.dmUmurChart) ? data.dmUmurChart : [];
+      DashboardState.jantinaChart = Array.isArray(data.jantinaChart) ? data.jantinaChart : [];
+      DashboardState.umurChart = Array.isArray(data.umurChart) ? data.umurChart : [];
 
       renderAll();
     }
@@ -355,18 +358,18 @@
 
 
 
+
+
     function renderAll() {
-
-      renderKPIs(DashboardState.cube, DashboardState.totals);
-      renderBangsaChart();
-      renderUmurChart(DashboardState.cube);
-      renderJantinaChart(DashboardState.cube);
-      renderDmUmurChart(DashboardState.cube);
-      renderNegeriChart(DashboardState.cube);
-
-
-      // renderMalaysiaGeoChart(DashboardState.cube);
+      renderBangsaChart(DashboardState.bangsaChart);
+      renderNegeriChart(DashboardState.negeriChart);
+      renderDmUmurChart(DashboardState.dmUmurChart);
+      renderJantinaChart(DashboardState.jantinaChart);
+      renderUmurChart(DashboardState.umurChart);
     }
+
+
+
 
   </script>
 
@@ -450,12 +453,12 @@
           const icon = isPositive ? 'bi-arrow-up' : 'bi-arrow-down';
           const className = isPositive ? 'positive' : 'negative';
 
-          return 
+          return
           `<div class="widget-stat-change ${className}">
-              <i class="bi ${icon}"></i>
-              ${Math.abs(change).toFixed(1)}% vs ${previous.year}
-            </div>
-          `;
+                          <i class="bi ${icon}"></i>
+                          ${Math.abs(change).toFixed(1)}% vs ${previous.year}
+                        </div>
+                      `;
         };
 
         elPengundib.innerHTML = buildHTML(current.totalPengundi, pChange);
@@ -467,83 +470,81 @@
   </script>
 
   <script>
+ 
+      $(document).ready(function() {
 
-    document.addEventListener('DOMContentLoaded', () => {
-
-      const modeSelect = document.getElementById('modeSelect');
-      const year1Select = document.getElementById('year1');
-      const year2Select = document.getElementById('year2');
+    const $modeSelect = $('#modeSelect');
+      const $year1Select = $('#year1');
+      const $year2Select = $('#year2');
 
       // ----------------------------
       // Compare Mode Logic
       // ----------------------------
       function updateCompareMode() {
+      if ($modeSelect.val() === 'compare') {
+        $year2Select.removeClass('d-none');
 
-        if (modeSelect.value === 'compare') {
+      const selectedYear1 = parseInt($year1Select.val());
+      const options = $year2Select.find('option').map(function() {
+          return parseInt($(this).val());
+        }).get();
 
-          year2Select.classList.remove('d-none');
+      // Auto pick different year (prefer highest other year)
+      const autoYear = options
+          .filter(y => y !== selectedYear1)
+          .sort((a, b) => b - a)[0];
 
-          const selectedYear1 = parseInt(year1Select.value);
-          const options = [...year2Select.options].map(o => parseInt(o.value));
-
-          // Auto pick different year (prefer highest other year)
-          const autoYear = options
-            .filter(y => y !== selectedYear1)
-            .sort((a, b) => b - a)[0];
-
-          if (autoYear) {
-            year2Select.value = autoYear;
-          }
-
-        } else {
-          year2Select.classList.add('d-none');
+      if (autoYear) {
+        $year2Select.val(autoYear);
         }
+
+      } else {
+        $year2Select.addClass('d-none');
       }
+    }
 
       function preventSameYear() {
-        if (modeSelect.value === 'compare' &&
-          year1Select.value === year2Select.value) {
+      if ($modeSelect.val() === 'compare' && $year1Select.val() === $year2Select.val()) {
+        const alternative = $year2Select.find('option').filter(function() {
+          return $(this).val() !== $year1Select.val();
+        }).first();
 
-          const alternative = [...year2Select.options]
-            .find(opt => opt.value !== year1Select.value);
-
-          if (alternative) {
-            year2Select.value = alternative.value;
-          }
+      if (alternative.length) {
+        $year2Select.val(alternative.val());
         }
       }
+    }
 
       // ----------------------------
       // Load Dashboard
       // ----------------------------
       function onFilterChange() {
-
         updateCompareMode();
-        preventSameYear();
+      preventSameYear();
 
-        loadDashboard({
-          year1: year1Select.value,
-          year2: modeSelect.value === 'compare' ? year2Select.value : null,
-          mode: modeSelect.value,
-        });
-      }
+      loadDashboard({
+        year1: $year1Select.val(),
+      year2: $modeSelect.val() === 'compare' ? $year2Select.val() : null,
+      mode: $modeSelect.val(),
+      });
+    }
 
       // ----------------------------
       // Events
       // ----------------------------
-      modeSelect.addEventListener('change', onFilterChange);
-      year1Select.addEventListener('change', onFilterChange);
-      year2Select.addEventListener('change', onFilterChange);
+      $modeSelect.on('change', onFilterChange);
+      $year1Select.on('change', onFilterChange);
+      $year2Select.on('change', onFilterChange);
 
       // Initial load
       onFilterChange();
 
-    });
+
+  });
 
 
-
-    function lightenColor(hex, factor = 0.5) {
-      const r = parseInt(hex.substr(1, 2), 16);
+      function lightenColor(hex, factor = 0.5) {
+        const r = parseInt(hex.substr(1, 2), 16);
       const g = parseInt(hex.substr(3, 2), 16);
       const b = parseInt(hex.substr(5, 2), 16);
 
@@ -552,21 +553,21 @@
       const newB = Math.round(b + (255 - b) * factor);
 
       return `rgb(${newR}, ${newG}, ${newB})`;
-    }
-
-    // Ensure chartRef exists
-    function ensureChartRef(ref) {
-      if (!ref || typeof ref !== "object") return { chart: null };
-      return ref;
-    }
-
-    // Destroy chart safely
-    function destroyChart(chartRef) {
-      if (chartRef.chart) {
-        chartRef.chart.destroy();
-        chartRef.chart = null;
       }
-    }
+
+      // Ensure chartRef exists
+      function ensureChartRef(ref) {
+        if (!ref || typeof ref !== "object") return {chart: null };
+      return ref;
+      }
+
+      // Destroy chart safely
+      function destroyChart(chartRef) {
+        if (chartRef.chart) {
+        chartRef.chart.destroy();
+      chartRef.chart = null;
+        }
+      }
 
 
 
