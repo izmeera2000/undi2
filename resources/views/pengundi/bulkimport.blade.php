@@ -3,16 +3,16 @@
 @section('title', 'Bulk Import')
 
 @section('breadcrumb')
-    @php
-        $crumbs = [
-            ['label' => 'Pengundi'],
+  @php
+    $crumbs = [
+      ['label' => 'Pengundi'],
       ['label' => 'Bulk Import', 'url' => route('pengundi.bulkimport')],
-        ];
-    @endphp
+    ];
+  @endphp
 @endsection
 
 @section('content')
-  <div class="row g-4 mb-4">
+  <div class="section">
 
     {{-- SUCCESS --}}
     <div id="successMsg" class="alert alert-success d-none"></div>
@@ -20,50 +20,212 @@
     {{-- ERRORS --}}
     <div id="errorMsg" class="alert alert-danger d-none"></div>
 
-    <form id="importForm" enctype="multipart/form-data">
-      @csrf
-      <div class="mb-3">
-        <label for="basicFile" class="form-label">CSV File</label>
-        <input class="form-control" type="file" id="basicFile" name="file">
+    <div class="row ">
+
+      {{-- LEFT SIDE - FORM --}}
+      <div class="col-lg-6">
+        <div class="card shadow-sm border-0">
+          <div class="card-header">
+            <h5 class="mb-0"> Upload Pengundi CSV</h5>
+          </div>
+
+          <div class="card-body">
+            <form id="importForm" enctype="multipart/form-data">
+              @csrf
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">CSV File</label>
+                <input class="form-control" type="file" name="file" required>
+                <small class="text-muted">Only CSV format is allowed.</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Tahun Undian</label>
+                <input type="number" name="tarikh_undian" class="form-control" placeholder="Contoh: 2022" required>
+              </div>
+
+              <h6 class="fw-bold mb-3">Data Validity Period</h6>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Effective From
+                </label>
+                <input type="date" name="effective_from" class="form-control">
+                <small class="text-muted">
+                  Date when this Kod DM / Lokaliti structure started being used.
+                </small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  Effective To
+                </label>
+                <input type="date" name="effective_to" class="form-control">
+                <small class="text-muted">
+                  Leave empty if this structure is still active.
+                </small>
+              </div>
+
+              <div class="alert alert-info py-2">
+                <strong>When should you fill this?</strong>
+                <ul class="mb-0 mt-2">
+                  <li>If constituency codes changed due to redelineation.</li>
+                  <li>If importing historical election data (old PRU / PRN).</li>
+                  <li>If DM or Lokaliti moved under different Parlimen / DUN.</li>
+                </ul>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Jenis Pilihan Raya</label>
+                <select name="pilihan_raya_type" class="form-select" required>
+                  <option value="" disabled selected>Pilih Jenis Pilihan Raya</option>
+                  <option value="PRU">PRU</option>
+                  <option value="PRN">PRN</option>
+                  <option value="PRK">PRK</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label fw-semibold">Nombor Siri Pilihan Raya</label>
+                <input type="number" name="pilihan_raya_series" class="form-control" placeholder="Contoh: 15" required
+                  min="1">
+              </div>
+
+              <button type="submit" class="btn btn-success w-100" id="submitBtn">
+                Upload & Import
+              </button>
+            </form>
+
+            {{-- Loading --}}
+            <div id="loading" class="mt-3 d-none text-center">
+              <div class="spinner-border spinner-border-sm text-success"></div>
+              <span class="ms-2">Importing… please wait</span>
+            </div>
+
+            {{-- Import Progress --}}
+            <div class="progress mt-3 d-none" id="importProgressWrapper">
+              <div id="importProgressBar" class="progress-bar progress-bar-striped progress-bar-animated"
+                style="width:0%">0%</div>
+            </div>
+
+            {{-- Transfer Progress --}}
+            <div class="progress mt-2 d-none" id="transferProgressWrapper">
+              <div id="transferProgressBar" class="progress-bar bg-info progress-bar-striped progress-bar-animated"
+                style="width:0%">0%</div>
+            </div>
+
+          </div>
+        </div>
       </div>
 
-      <input type="number" name="tarikh_undian" class="form-control mt-2" placeholder="Tahun Undian (contoh: 2022)"
-        required>
 
-      {{-- Optional effective dates --}}
-      <input type="date" name="effective_from" class="form-control mt-2" placeholder="Effective From">
-      <input type="date" name="effective_to" class="form-control mt-2" placeholder="Effective To">
+      {{-- RIGHT SIDE - INSTRUCTIONS --}}
+      <div class="col-lg-6">
 
-      
-      <select name="pilihan_raya_type" class="form-control mt-2" required>
-        <option value="" disabled selected>Pilih Jenis Pilihan Raya</option>
-        <option value="PRU">PRU</option>
-        <option value="PRN">PRN</option>
-        <option value="PRK">PRK</option>
-      </select>
+        {{-- Instruction Card --}}
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-header ">
+            <h5 class="mb-0">Import Instructions</h5>
+          </div>
+          <div class="card-body">
+            <ul class="mb-0">
+              <li>File must be in <strong>CSV format</strong> (.csv).</li>
+              <li>First row must contain <strong>column headers</strong>.</li>
+              <li>No empty rows in between data.</li>
+              <li>Make sure IC numbers do not contain spaces or symbols.</li>
+              <li>Large files will take time — do not refresh the page.</li>
+              <li>Import process has 2 stages:
+                <ul>
+                  <li>Stage 1: Import to temporary table</li>
+                  <li>Stage 2: Transfer to main table</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
 
-      <input type="number" name="pilihan_raya_series" class="form-control mt-2"
-        placeholder="Nombor Siri Pilihan Raya (contoh: 15)" required min="1">
+        {{-- Required Columns Card --}}
+        <div class="card shadow-sm border-0">
+          <div class="card-header">
+            <h5 class="mb-0">Required CSV Columns</h5>
+          </div>
+          <div class="card-body">
 
-      <button type="submit" class="btn btn-success mt-2" id="submitBtn">Upload CSV</button>
-    </form>
+            <div class="alert alert-warning">
+              ⚠ Column names must match <strong>exactly</strong> (including spaces).
+            </div>
 
-    <div id="loading" class="mt-3 d-none">
-      <div class="spinner-border spinner-border-sm"></div>
-      Importing… please wait
+            <div class="table-responsive">
+              <table class="table table-bordered table-sm table-striped">
+                <thead class="table-light">
+                  <tr>
+                    <th>No</th>
+                    <th>Column Name (Exact Header Required)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @php
+                    $columns = [
+                      "KOD PAR",
+                      "NAMAPAR",
+                      "KOD DUN",
+                      "NAMADUN",
+                      "KODDM",
+                      "NAMADM",
+                      "KODLOKALITI",
+                      "NAMALOKALITI",
+                      "NOKP BARU",
+                      "NOKP LAMA",
+                      "NAMA",
+                      "ALAMAT SPR",
+                      "BANGSA",
+                      "BANGSA SPR",
+                      "JANTINA",
+                      "STATUS BARU",
+                      "KODPAR PRU12",
+                      "TAHUN LAHIR",
+                      "UMUR",
+                      "STATUS UMNO",
+                      "ALAMAT JPN 1",
+                      "ALAMAT JPN 2",
+                      "ALAMAT JPN 3",
+                      "POSKOD",
+                      "BANDAR",
+                      "NEGERI",
+                    ];
+                  @endphp
+
+                  @foreach($columns as $index => $column)
+                    <tr>
+                      <td>{{ $index + 1 }}</td>
+                      <td><code class="fs-5">{{ $column }}</code></td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-3">
+              <strong>Important Notes:</strong>
+              <ul class="mb-0 mt-2">
+                <li>Header row must be the first row.</li>
+                <li>No additional columns allowed.</li>
+                <li>Do not rename headers.</li>
+                <li>Spaces must match exactly (example: <code>NOKP BARU</code> not <code>NOKPBARU</code>).</li>
+                <li>Encoding must be UTF-8.</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
     </div>
-
-
-    <div class="progress mt-2 d-none" id="importProgressWrapper">
-      <div id="importProgressBar" class="progress-bar" style="width:0%">0</div>
-    </div>
-
-    <div class="progress mt-2 d-none" id="transferProgressWrapper">
-      <div id="transferProgressBar" class="progress-bar bg-info" style="width:0%">0</div>
-    </div>
-
   </div>
 
+
+  {{-- SCRIPT --}}
   <script>
     document.getElementById('importForm').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -111,47 +273,7 @@
           submitBtn.disabled = false;
         });
 
-      // Poll both import and transfer progress
-      let polling = false;
-      let interval = setInterval(async () => {
-        if (polling) return;
-        polling = true;
-
-        try {
-          // Import progress
-          const importRes = await fetch("{{ route('pengundi.importProgress') }}");
-          const importData = await importRes.json();
-
-          if (importData.total > 0) {
-            let importPercent = Math.round((importData.count / importData.total) * 100);
-            importBar.style.width = importPercent + '%';
-            importBar.innerText = importPercent + '%';
-          }
-
-          // Only fetch transfer progress if import is complete
-          if (importData.count >= importData.total) {
-            const transferRes = await fetch("{{ route('pengundi.transferProgress') }}");
-            const transferData = await transferRes.json();
-
-            if (transferData.total > 0) {
-              let transferPercent = Math.round((transferData.count / transferData.total) * 100);
-              transferBar.style.width = transferPercent + '%';
-              transferBar.innerText = transferPercent + '%';
-
-              // Stop interval when transfer is complete
-              if (transferPercent >= 100) clearInterval(interval);
-            }
-          }
-
-        } catch (error) {
-          console.error('Error during polling:', error);
-        } finally {
-          polling = false;
-        }
-
-      }, 1000);
-
-
     });
   </script>
+
 @endsection

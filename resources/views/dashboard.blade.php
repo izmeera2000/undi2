@@ -194,47 +194,40 @@
     }
 
 
-
-
     function renderUpcomingEvents() {
-      // API call to fetch upcoming events from the server
+
+      const emptyStateHTML = `
+        <div class="text-center text-muted py-4">
+          <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
+          <div class="mt-2 fw-semibold">No upcoming events</div>
+          <div class="small">Check back later for new events.</div>
+        </div>
+      `;
+
       fetch('{{ route('events.upcoming') }}', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
+        }
       })
         .then(response => {
-          console.log('Raw response:', response);  // Log the raw response object
-
           if (!response.ok) {
-            // If the response is not OK (e.g., status code 404 or 500), throw an error
             throw new Error(`HTTP error! status: ${response.status}`);
           }
+          return response.json();
+        })
+        .then(events => {
 
-          return response.json();  // Proceed to convert the response to JSON
-        }).then(events => {
-
-          console.log('Events data:', events);  // Log the events data after parsing it as JSON
-
-
-
-          if (!events.length) {
-            upcomingEl.innerHTML = `
-                                <div class="text-center text-muted my-4">
-                                  <i class="bi bi-calendar-x fs-2 mb-2"></i> <!-- Bootstrap Icons -->
-                                  <p class="mb-0"><strong>No upcoming events</strong></p>
-                                  <small>Check back later for new events!</small>
-                                </div>
-                              `;
+          // 🔥 Safety check
+          if (!Array.isArray(events) || events.length === 0) {
+            upcomingEl.innerHTML = emptyStateHTML;
             return;
           }
 
           const now = new Date();
-          now.setHours(0, 0, 0, 0); // Set time to midnight for today
+          now.setHours(0, 0, 0, 0);
 
-          // Filter and sort upcoming events
           const futureEvents = events
             .map(e => ({
               ...e,
@@ -245,57 +238,71 @@
             .sort((a, b) => a.start - b.start)
             .slice(0, 5);
 
-          upcomingEl.innerHTML = ''; // Clear the content before adding new events
-
+          // 🔥 If no future events after filtering
           if (!futureEvents.length) {
-            upcomingEl.innerHTML = `
-                                <div class="text-center text-muted my-4">
-                                  <i class="bi bi-calendar-x fs-2 mb-2"></i> <!-- Bootstrap Icons -->
-                                  <p class="mb-0"><strong>No upcoming events</strong></p>
-                                  <small>Check back later for new events!</small>
-                                </div>
-                              `;
+            upcomingEl.innerHTML = emptyStateHTML;
             return;
           }
 
+          upcomingEl.innerHTML = '';
 
-          // Loop through the upcoming events and display them
           futureEvents.forEach(event => {
+
             const startDate = event.start;
             const endDate = event.end;
 
             const day = startDate.getDate();
             const month = startDate.toLocaleString('default', { month: 'short' });
+
             const timeText = event.allDay
               ? 'All Day'
-              : `${startDate.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })} - ${endDate ? endDate.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' }) : ''}`;
+              : `${startDate.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })}${endDate
+                ? ' - ' + endDate.toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' })
+                : ''
+              }`;
 
             upcomingEl.insertAdjacentHTML(
               'beforeend',
               `
-                                                    <div class="upcoming-event-item">
-                                                        <div class="upcoming-event-color" style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
-                                                        <div class="upcoming-event-date text-center me-2">
-                                                            <div class="fw-bold">${day}</div>
-                                                            <div>${month}</div>
-                                                        </div>
-                                                        <div>
-                                                            <div class="fw-semibold">${event.title}</div>
-                                                            <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
-                                                        </div>
-                                                    </div>
-                                                    `
+            <div class="upcoming-event-item">
+              <div class="upcoming-event-color"
+                   style="background:${event.backgroundColor || '#0d6efd'}; width:8px;">
+              </div>
+
+              <div class="upcoming-event-date text-center me-2">
+                <div class="fw-bold">${day}</div>
+                <div>${month}</div>
+              </div>
+
+              <div>
+                <div class="fw-semibold">${event.title}</div>
+                <div class="upcoming-event-time">
+                  <i class="bi bi-clock me-1"></i>${timeText}
+                </div>
+              </div>
+            </div>
+            `
             );
           });
+
         })
         .catch(error => {
           console.error('Error fetching events:', error);
-          upcomingEl.innerHTML = '<small>Error loading events</small>';
+
+          const emptyStateHTML = `
+    <div class="d-flex flex-column justify-content-center align-items-center text-muted"
+         style="min-height: 180px;">
+
+        <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
+
+        <div class="mt-3 fw-semibold">No upcoming events</div>
+        <div class="small">Check back later for new events.</div>
+    </div>
+  `;
+
+          upcomingEl.innerHTML = emptyStateHTML;
         });
     }
-
-
-
 
     function fetchWeather() {
       const location = 'Pasir Mas'; // optional, can be dynamic
@@ -318,19 +325,6 @@
     }
 
 
-    document.addEventListener('DOMContentLoaded', function () {
-
-      // Call the function once to initialize the date and time
-      updateDateTime();
-
-      // Set an interval to update the time every second
-      setInterval(updateDateTime, 1000);
-      renderUpcomingEvents();
-      fetchWeather();
-
-
-    });
-
 
 
 
@@ -352,6 +346,15 @@
       } else {
         console.error('CSRF token not found.');
       }
+
+
+      // Call the function once to initialize the date and time
+      updateDateTime();
+
+      // Set an interval to update the time every second
+      setInterval(updateDateTime, 1000);
+      renderUpcomingEvents();
+      fetchWeather();
 
       // Initial load
       getTasks();
@@ -397,51 +400,74 @@
     }
 
 
-    // Render tasks in sections
     function renderTasks(tasks) {
+
       const today = new Date().toISOString().split('T')[0];
       const sections = { Today: [], Overdue: [] };
 
-
-
       tasks.forEach(task => {
         if (task.status === 'todo') {
+
           const taskDate = task.due_at ? task.due_at.split('T')[0] : null;
 
           if (taskDate === today) {
-            sections.Today.push(task);  // Tasks due today
-          } else if (taskDate < today) {
-            sections.Overdue.push(task);  // Tasks overdue (before today)
+            sections.Today.push(task);
+          } else if (taskDate && taskDate < today) {
+            sections.Overdue.push(task);
           }
         }
       });
 
-
-
-
       let html = '';
+      let totalCount = 0;
 
       Object.keys(sections).forEach(sectionName => {
+
         const sectionTasks = sections[sectionName];
         if (!sectionTasks.length) return;
 
-        html += `<div class="todo-section">
-                                                                        <div class="todo-section-header">
-                                                                          <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
-                                                                          <h6>${sectionName}</h6>
-                                                                          <span class="todo-section-count">${sectionTasks.length}</span>
-                                                                        </div>
-                                                                        <div class="todo-section-content">`;
+        totalCount += sectionTasks.length;
+
+        html += `
+            <div class="todo-section">
+              <div class="todo-section-header">
+                <button class="todo-section-toggle">
+                  <i class="bi bi-chevron-down"></i>
+                </button>
+                <h6>${sectionName}</h6>
+                <span class="todo-section-count">${sectionTasks.length}</span>
+              </div>
+              <div class="todo-section-content">
+          `;
 
         sectionTasks.forEach(task => {
           html += renderTaskItem(task);
         });
 
-        html += `</div></div>`;
+        html += `
+              </div>
+            </div>
+          `;
       });
+
+      // 🔥 EMPTY STATE
+      if (totalCount === 0) {
+        html = `
+            <div class="text-center py-5">
+              <div class="mb-3">
+                <i class="bi bi-check2-circle" style="font-size: 40px; opacity: .4;"></i>
+              </div>
+              <h6 class="mb-1">No pending tasks 🎉</h6>
+              <p class="text-muted small mb-0">
+                You're all caught up. Enjoy your day!
+              </p>
+            </div>
+          `;
+      }
 
       $('#taskList').html(html);
     }
+
 
     // Render a single task HTML
     function renderTaskItem(task) {
@@ -454,17 +480,17 @@
       return `<div class="todo-item" data-id="${task.id}">
 
 
-                                                                        <div class="todo-item-content">
-                                                                          <div class="todo-item-title">${task.title}</div>
-                                                                          <div class="todo-item-meta">
-                                                                            ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
-                                                                            ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
-                                                                            ${tagsHtml}
-                                                                            ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
-                                                                          </div>
-                                                                        </div>
+                                                                              <div class="todo-item-content">
+                                                                                <div class="todo-item-title">${task.title}</div>
+                                                                                <div class="todo-item-meta">
+                                                                                  ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
+                                                                                  ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
+                                                                                  ${tagsHtml}
+                                                                                  ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                                                </div>
+                                                                              </div>
 
-                                                                      </div>`;
+                                                                            </div>`;
     }
 
 

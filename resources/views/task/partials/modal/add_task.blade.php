@@ -83,7 +83,7 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="createTaskBtn">
+                    <button type="button" class="btn btn-primary" id="createTaskBtn">
                         Add Task
                     </button>
                 </div>

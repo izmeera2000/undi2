@@ -71,6 +71,38 @@
 
   <script>
 
+
+    const eventAllDay = document.getElementById('eventAllDay');
+    const eventTime = document.getElementById('eventTime');
+    const eventEndTime = document.getElementById('eventEndTime');
+
+    // Toggle time inputs for all-day events
+    eventAllDay.addEventListener('change', () => {
+      if (eventAllDay.checked) {
+        eventTime.disabled = true;
+        eventEndTime.disabled = true;
+        eventTime.value = '';
+        eventEndTime.value = '';
+      } else {
+        eventTime.disabled = false;
+        eventEndTime.disabled = false;
+      }
+    });
+
+    // Participant search
+    const participantSearch = document.getElementById('participantSearch');
+    participantSearch.addEventListener('input', () => {
+      const filter = participantSearch.value.toLowerCase();
+      document.querySelectorAll('.participant-checkbox').forEach(cb => {
+        const label = cb.nextElementSibling.textContent.toLowerCase();
+        cb.parentElement.style.display = label.includes(filter) ? '' : 'none';
+      });
+    });
+
+
+
+
+
     function updateEventDates(info) {
 
       fetch(`/events/${info.event.id}`, {
@@ -329,24 +361,34 @@
 
       calendar.render();
 
-      // Handle create modal save button
       document.getElementById('saveEventBtn').addEventListener('click', () => {
-
         const form = document.getElementById('createEventForm');
-        if (!form.reportValidity()) return;
+        if (!form.reportValidity()) return; // Basic HTML5 validation
 
-        const title = document.getElementById('eventTitle').value;
+        const title = document.getElementById('eventTitle').value.trim();
         const date = document.getElementById('eventDate').value;
         const endDateInput = document.getElementById('eventEndDate').value;
+        const startTime = document.getElementById('eventTime').value;
+        const endTime = document.getElementById('eventEndTime').value;
+        const description = document.getElementById('eventDescription').value.trim();
+        const color = document.getElementById('eventColor')?.value || '#3788d8'; // default color
+        const participants = Array.from(
+          document.querySelectorAll('.participant-checkbox:checked')
+        ).map(cb => cb.value);
 
-        let startTime = document.getElementById('eventTime').value;
-        let endTime = document.getElementById('eventEndTime').value;
+        // Validate required fields
+        if (!title) {
+          alert('Event title is required!');
+          return;
+        }
+        if (!date) {
+          alert('Start date is required!');
+          return;
+        }
 
         let allDay = false;
-        let startDateTime;
-        let endDateTime;
+        let startDateTime, endDateTime;
 
-        // Helper to format local datetime → YYYY-MM-DD HH:MM:SS
         function formatDateTime(dateObj) {
           const y = dateObj.getFullYear();
           const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -357,31 +399,27 @@
           return `${y}-${m}-${d} ${h}:${min}:${s}`;
         }
 
+        // Parse start and end dates
         const start = new Date(date);
-        const end = new Date(endDateInput);
+        const end = endDateInput ? new Date(endDateInput) : new Date(date);
 
         // ==========================
-        // RULE 1: No start time = All Day
+        // RULE 1: No start time → All day
         // ==========================
         if (!startTime) {
-
           allDay = true;
-
           start.setHours(0, 0, 0, 0);
           end.setHours(23, 59, 59, 999);
-
-        }
-        else {
-
-          // If start time exists
+        } else {
+          // Start time exists
           const [sh, sm] = startTime.split(':');
           start.setHours(sh, sm, 0, 0);
 
           if (!endTime) {
-            // RULE 2: Start time only → until 23:59
+            // Start time only → end at 23:59 of end date
             end.setHours(23, 59, 59, 999);
           } else {
-            // RULE 3: Start + End time normal
+            // Start + End time normal
             const [eh, em] = endTime.split(':');
             end.setHours(eh, em, 0, 0);
           }
@@ -390,6 +428,7 @@
         startDateTime = formatDateTime(start);
         endDateTime = formatDateTime(end);
 
+        // Send to backend
         fetch('/events', {
           method: 'POST',
           headers: {
@@ -401,21 +440,28 @@
             start_date: startDateTime,
             end_date: endDateTime,
             all_day: allDay,
-            description: document.getElementById('eventDescription').value,
-            participants: Array.from(
-              document.querySelectorAll('.participant-checkbox:checked')
-            ).map(cb => cb.value)
+            description,
+            color,
+            participants
           })
         })
           .then(res => res.json())
-          .then(() => {
-            bootstrap.Modal.getInstance(
-              document.getElementById('createEventModal')
-            ).hide();
-            calendar.refetchEvents();
-            form.reset();
+          .then(data => {
+            if (data.success) {
+              // Hide modal and refresh calendar
+              bootstrap.Modal.getInstance(
+                document.getElementById('createEventModal')
+              ).hide();
+              calendar.refetchEvents();
+              form.reset();
+            } else {
+              alert('Failed to create event. Please try again.');
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            alert('Error creating event. Check console for details.');
           });
-
       });
 
 
@@ -511,19 +557,19 @@
           upcomingEl.insertAdjacentHTML(
             'beforeend',
             `
-                                        <div class="upcoming-event-item">
-                                          <div class="upcoming-event-color"
-                                                style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
-                                          <div class="upcoming-event-date text-center me-2">
-                                            <div class="fw-bold">${day}</div>
-                                            <div>${month}</div>
-                                          </div>
-                                          <div>
-                                            <div class="fw-semibold">${title}</div>
-                                            <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
-                                            </div>
-                                        </div>
-                                      `
+                                              <div class="upcoming-event-item">
+                                                <div class="upcoming-event-color"
+                                                      style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
+                                                <div class="upcoming-event-date text-center me-2">
+                                                  <div class="fw-bold">${day}</div>
+                                                  <div>${month}</div>
+                                                </div>
+                                                <div>
+                                                  <div class="fw-semibold">${title}</div>
+                                                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
+                                                  </div>
+                                              </div>
+                                            `
           );
         });
 

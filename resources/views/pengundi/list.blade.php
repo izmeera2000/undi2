@@ -103,18 +103,19 @@
             <table id="pengundiTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Lokaliti</th>
-
-                        <th>Saluran 1</th>
-                        <th>Saluran 2</th>
-                        <th>Saluran 3</th>
-                        <th>Saluran 4</th>
-                        <th>Saluran 5</th>
-                        <th>Saluran 6</th>
-                        <th>Saluran 7</th>
-                        {{-- <th>Saluran 8</th> --}}
-                        <th>Total</th>
-
+                        <th rowspan="2" style="display:none;">Kod Lokaliti</th>
+                        <th rowspan="2">Lokaliti</th>
+                        <th colspan="7" class="text-center">Saluran</th>
+                        <th rowspan="2">Total</th>
+                    </tr>
+                    <tr>
+                        <th>1</th>
+                        <th>2</th>
+                        <th>3</th>
+                        <th>4</th>
+                        <th>5</th>
+                        <th>6</th>
+                        <th>7</th>
                     </tr>
                 </thead>
             </table>
@@ -134,268 +135,197 @@
     <script>
         $(document).ready(function () {
 
-            // function setupCascade(parent, child) {
-            //     parent.addEventListener('change', function () {
-            //         const value = this.value;
-
-            //         child.value = "";
-            //         child.disabled = true;
-
-            //         Array.from(child.options).forEach(opt => {
-            //             if (!opt.value) return;
-            //             opt.hidden = opt.dataset.parent != value;
-            //         });
-
-            //         if (value) child.disabled = false;
-            //         child.dispatchEvent(new Event('change'));
-            //     });
-            // }
-
-            // const par = document.getElementById('parlimenSelect');
-            // const dun = document.getElementById('dunSelect');
-            // const dm = document.getElementById('dmSelect');
-
-            // setupCascade(par, dun);
-            // setupCascade(dun, dm);
-
-            // ===============================
-            // DataTable Init
-            // ===============================
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
 
-            let table;  // Declare table variable outside so it's accessible globally
+            let table;
 
-            // Function to initialize or reload the table
-            function reloadTableIfReady() {
-                const par = document.getElementById('parlimenSelect');
-                const dun = document.getElementById('dunSelect');
-                const dm = document.getElementById('dmSelect');
-                const series = document.getElementById('pilihanRayaSeries');
-                const type = document.getElementById('pilihanRayaType');
+            const parSelect = document.getElementById('parlimenSelect');
+            const dunSelect = document.getElementById('dunSelect');
+            const dmSelect = document.getElementById('dmSelect');
+            const typeSelect = document.getElementById('pilihanRayaType');
+            const seriesSelect = document.getElementById('pilihanRayaSeries');
 
-                // Only proceed if all required filters are selected
-                const allSelected = par.value && dun.value && dm.value && type.value && series.value;
+            // ==============================
+            // LOAD HIERARCHY
+            // ==============================
+            async function loadHierarchy() {
 
-                // Clear table if filters are not ready
-                if (!allSelected) {
-                    if ($.fn.dataTable.isDataTable('#pengundiTable')) {
-                        table.clear().draw();  // Clear table
-                    }
-                    return;
-                }
+                if (!typeSelect.value || !seriesSelect.value) return;
 
-                // Initialize DataTable if not yet
-                if (!$.fn.dataTable.isDataTable('#pengundiTable')) {
-                    table = $('#pengundiTable').DataTable({
-                        processing: true,
-                        serverSide: false,
-                        searching: true,
-                        paging: true,
-                        info: true,
-                        columns: [
-                            { data: 'kod_lokaliti', title: 'Kod Lokaliti', visible: false },
-                            { data: 'nama_lokaliti', title: 'Lokaliti' },
-                            { data: 'saluran_1', title: 'Saluran 1', render: renderSaluranLink },
-                            { data: 'saluran_2', title: 'Saluran 2', render: renderSaluranLink },
-                            { data: 'saluran_3', title: 'Saluran 3', render: renderSaluranLink },
-                            { data: 'saluran_4', title: 'Saluran 4', render: renderSaluranLink },
-                            { data: 'saluran_5', title: 'Saluran 5', render: renderSaluranLink },
-                            { data: 'saluran_6', title: 'Saluran 6', render: renderSaluranLink },
-                            { data: 'saluran_7', title: 'Saluran 7', render: renderSaluranLink },
-                            { data: 'total', title: 'Total' },
-                            { data: 'kod_lokaliti', title: 'Kod Lokaliti', visible: false }
-                        ],
-                        ajax: {
-                            url: "{{ route('pengundi.list_data') }}",
-                            type: "POST",
-                            data: function (d) {
-                                d.parlimen = par.value;
-                                d.dun = dun.value;
-                                d.dm = dm.value;
-                                d.type = type.value;
-                                d.series = series.value;
-                                d._token = $('meta[name="csrf-token"]').attr('content');
-                            },
-                            dataSrc: function (json) {
-                                return json.data;  // Return only data array
-                            }
-                        },
-                        language: {
-                            emptyTable: "Sila pilih filter untuk lihat data"
-                        },
-                        order: [[0, 'asc']] // Sort by kod_lokaliti
-                    });
-                } else {
-                    // Table already exists → just reload
-                    table.ajax.reload();
-                }
+                const res = await fetch(
+                    `{{ route('pengundi.ajax.pru.hierarchy') }}?type=${typeSelect.value}&series=${seriesSelect.value}`
+                );
+
+                const data = await res.json();
+
+                const hierarchy = {};
+
+                data.forEach(row => {
+
+                    if (!hierarchy[row.parlimen_id])
+                        hierarchy[row.parlimen_id] = { namapar: row.namapar, duns: {} };
+
+                    if (!hierarchy[row.parlimen_id].duns[row.kod_dun])
+                        hierarchy[row.parlimen_id].duns[row.kod_dun] = { namadun: row.namadun, dms: {} };
+
+                    if (!hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm])
+                        hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm] = { namadm: row.namadm };
+
+                });
+
+                window.pruHierarchy = hierarchy;
+
+                buildParlimen();
             }
 
-            parlimenSelect.addEventListener('change', reloadTableIfReady);
-            dunSelect.addEventListener('change', reloadTableIfReady);
-            dmSelect.addEventListener('change', reloadTableIfReady);
-            pilihanRayaType.addEventListener('change', reloadTableIfReady);
-            pilihanRayaSeries.addEventListener('change', reloadTableIfReady);
-
-
-
-            function renderSaluranLink(data, type, row, meta) {
-                if (data > 0) {
-                    const columnName = meta.settings.aoColumns[meta.col].data; // e.g., 'saluran_1'
-                    return `<a href="${row['link_' + columnName]}" target="_blank">${data}</a>`;
+            function buildParlimen() {
+                parSelect.innerHTML = '<option value="">-- Pilih Parlimen --</option>';
+                for (const id in window.pruHierarchy) {
+                    parSelect.innerHTML += `<option value="${id}">${window.pruHierarchy[id].namapar}</option>`;
                 }
-                return data;
+                parSelect.disabled = false;
             }
 
-
-
-            // // Trigger reloadTableIfReady whenever there's a change in the filters
-            // $('#parlimenSelect, #dunSelect, #dmSelect, #pilihanRayaType, #pilihanRayaSeries').on('change', reloadTableIfReady);
-
-
-            // $('#parlimenSelect, #dunSelect, #dmSelect, #pilihanRayaType, #pilihanRayaSeries')
-            //     .on('change', reloadTableIfReady);
-        });
-        const typeSelect = document.getElementById('pilihanRayaType');
-        const seriesSelect = document.getElementById('pilihanRayaSeries');
-        typeSelect.addEventListener('change', loadHierarchyDropdowns);
-        seriesSelect.addEventListener('change', loadHierarchyDropdowns);
-
-        function loadHierarchyDropdowns() {
-
-            // Require both type and series to be selected
-            if (!typeSelect.value || !seriesSelect.value) return;
-            console.log('ok');
-            fetch(`{{ route('pengundi.ajax.pru.hierarchy') }}?type=${typeSelect.value}&series=${seriesSelect.value}`)
-                .then(res => res.json())
-                .then(data => {
-
-                    const hierarchy = {};
-
-                    data.forEach(row => {
-
-                        // Parlimen level
-                        if (!hierarchy[row.parlimen_id]) {
-                            hierarchy[row.parlimen_id] = { namapar: row.namapar, duns: {} };
-                        }
-
-                        // DUN level
-                        if (!hierarchy[row.parlimen_id].duns[row.kod_dun]) {
-                            hierarchy[row.parlimen_id].duns[row.kod_dun] = { namadun: row.namadun, dms: {} };
-                        }
-
-                        // DM level
-                        if (!hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm]) {
-                            hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm] = { namadm: row.namadm, lokalitis: [] };
-                        }
-
-                        // Lokaliti level
-                        hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm].lokalitis.push({
-                            kod_lokaliti: row.kod_lokaliti,
-                            nama_lokaliti: row.nama_lokaliti
-                        });
-                    });
-
-                    console.log(hierarchy);
-
-                    // Save globally for other dropdowns
-                    window.pruHierarchy = hierarchy;
-
-                    // Build the first dropdown
-                    buildParlimenDropdown(hierarchy);
-
-                    // Reset lower dropdowns
-                    resetDropdown(document.getElementById('dunSelect'));
-                    resetDropdown(document.getElementById('dmSelect'));
-                    resetDropdown(document.getElementById('lokalitiSelect'));
-                })
-                .catch(err => console.error("Error loading PRU hierarchy:", err));
-        }
-
-        // Utility to reset a dropdown
-        function resetDropdown(select) {
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Pilih --</option>';
-            select.disabled = true;
-        }
-
-        function buildParlimenDropdown(hierarchy) {
-
-            const select = document.getElementById('parlimenSelect');
-            select.innerHTML = '<option value="">-- Pilih Parlimen --</option>';
-
-            for (const parId in hierarchy) {
-                select.innerHTML += `
-                                                        <option value="${parId}">
-                                                            ${hierarchy[parId].namapar}
-                                                        </option>
-                                                    `;
-            }
-
-            select.disabled = false;
-        }
-
-
-
-
-        document.getElementById('parlimenSelect')
-            .addEventListener('change', function () {
-
-                const parId = this.value;
-                const dunSelect = document.getElementById('dunSelect');
-
+            function buildDun(parId) {
                 dunSelect.innerHTML = '<option value="">-- Pilih DUN --</option>';
-
                 if (!parId) return;
 
                 const duns = window.pruHierarchy[parId].duns;
 
-                for (const kodDun in duns) {
-                    dunSelect.innerHTML += `
-                                                <option value="${kodDun}">
-                                                    ${duns[kodDun].namadun}
-                                                </option>
-                                            `;
+                for (const kod in duns) {
+                    dunSelect.innerHTML += `<option value="${kod}">${duns[kod].namadun}</option>`;
                 }
 
                 dunSelect.disabled = false;
-            });
+            }
 
-
-        document.getElementById('dunSelect')
-            .addEventListener('change', function () {
-
-                const parId = document.getElementById('parlimenSelect').value;
-                const kodDun = this.value;
-                const dmSelect = document.getElementById('dmSelect');
-
+            function buildDm(parId, dunId) {
                 dmSelect.innerHTML = '<option value="">-- Pilih DM --</option>';
+                if (!dunId) return;
 
-                if (!kodDun) return;
+                const dms = window.pruHierarchy[parId].duns[dunId].dms;
 
-                const dms = window.pruHierarchy[parId].duns[kodDun].dms;
-
-                for (const koddm in dms) {
-                    dmSelect.innerHTML += `
-                                            <option value="${koddm}">
-                                                ${dms[koddm].namadm}
-                                            </option>
-                                        `;
+                for (const kod in dms) {
+                    dmSelect.innerHTML += `<option value="${kod}">${dms[kod].namadm}</option>`;
                 }
 
                 dmSelect.disabled = false;
+            }
+
+            // ==============================
+            // DATATABLE
+            // ==============================
+            table = $('#pengundiTable').DataTable({
+
+                processing: true,
+                serverSide: false,
+                stateSave: true,
+                searching: true,
+                paging: true,
+                fixedHeader: true,
+                orderCellsTop: true,
+
+                columns: [
+                    { data: 'kod_lokaliti', visible: false },
+                    { data: 'nama_lokaliti' },
+                    { data: 'saluran_1', render: renderSaluranLink },
+                    { data: 'saluran_2', render: renderSaluranLink },
+                    { data: 'saluran_3', render: renderSaluranLink },
+                    { data: 'saluran_4', render: renderSaluranLink },
+                    { data: 'saluran_5', render: renderSaluranLink },
+                    { data: 'saluran_6', render: renderSaluranLink },
+                    { data: 'saluran_7', render: renderSaluranLink },
+                    { data: 'total' }
+                ],
+
+                ajax: {
+                    url: "{{ route('pengundi.list_data') }}",
+                    type: "POST",
+                    data: function (d) {
+                        d.parlimen = parSelect.value;
+                        d.dun = dunSelect.value;
+                        d.dm = dmSelect.value;
+                        d.type = typeSelect.value;
+                        d.series = seriesSelect.value;
+                    },
+                    dataSrc: json => json.data
+                },
+
+                // 🔥 SAVE FILTERS INSIDE DATATABLE STATE
+                stateSaveParams: function (settings, data) {
+                    data.filters = {
+                        type: typeSelect.value,
+                        series: seriesSelect.value,
+                        par: parSelect.value,
+                        dun: dunSelect.value,
+                        dm: dmSelect.value
+                    };
+                },
+
+                // 🔥 RESTORE FILTERS CLEANLY
+                stateLoadParams: async function (settings, data) {
+
+                    if (!data.filters) return;
+
+                    typeSelect.value = data.filters.type;
+                    seriesSelect.value = data.filters.series;
+
+                    await loadHierarchy();
+
+                    parSelect.value = data.filters.par;
+                    buildDun(parSelect.value);
+
+                    dunSelect.value = data.filters.dun;
+                    buildDm(parSelect.value, dunSelect.value);
+
+                    dmSelect.value = data.filters.dm;
+                },
+
+                language: {
+                    emptyTable: "Sila pilih filter untuk lihat data"
+                }
             });
 
+            // ==============================
+            // EVENTS
+            // ==============================
+            typeSelect.addEventListener('change', async function () {
+                await loadHierarchy();
+                table.ajax.reload();
+            });
 
+            seriesSelect.addEventListener('change', async function () {
+                await loadHierarchy();
+                table.ajax.reload();
+            });
 
+            parSelect.addEventListener('change', function () {
+                buildDun(this.value);
+                table.ajax.reload();
+            });
 
+            dunSelect.addEventListener('change', function () {
+                buildDm(parSelect.value, this.value);
+                table.ajax.reload();
+            });
 
+            dmSelect.addEventListener('change', function () {
+                table.ajax.reload();
+            });
 
+            function renderSaluranLink(data, type, row, meta) {
+                if (data > 0) {
+                    const columnName = meta.settings.aoColumns[meta.col].data;
+                    return `<a href="${row['link_' + columnName]}">${data}</a>`;
+                }
+                return data;
+            }
 
+        });
     </script>
 
 @endpush

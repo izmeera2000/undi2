@@ -36,26 +36,25 @@
       <!-- Todo Main -->
       <div class="todo-main" id="todoMain">
         <!-- Todo Header -->
-<div class="row align-items-center todo-header mb-3">
+        <div class="row align-items-center todo-header mb-3">
 
-  <!-- Button Column -->
-  <div class="col-12 col-md-auto mb-2 mb-md-0">
-    <button class="btn btn-primary d-block d-md-inline-block w-100 w-md-auto" 
-            data-bs-toggle="modal" 
-            data-bs-target="#addTaskModal">
-      <i class="bi bi-plus-lg me-2"></i>Add Task
-    </button>
-  </div>
+          <!-- Button Column -->
+          <div class="col-12 col-md-auto mb-2 mb-md-0">
+            <button class="btn btn-primary d-block d-md-inline-block w-100 w-md-auto" data-bs-toggle="modal"
+              data-bs-target="#addTaskModal">
+              <i class="bi bi-plus-lg me-2"></i>Add Task
+            </button>
+          </div>
 
-  <!-- Title Column -->
-  <div class="col d-flex justify-content-center justify-content-md-end">
-    <div class="todo-header-title text-center text-md-end">
-      <h5>All Tasks</h5>
-      <span class="todo-header-count" id="taskCount">24 tasks</span>
-    </div>
-  </div>
+          <!-- Title Column -->
+          <div class="col d-flex justify-content-center justify-content-md-end">
+            <div class="todo-header-title text-center text-md-end">
+              <h5>All Tasks</h5>
+              <span class="todo-header-count" id="taskCount">24 tasks</span>
+            </div>
+          </div>
 
-</div>
+        </div>
 
 
 
@@ -202,12 +201,12 @@
         if (!sectionTasks.length) return;
 
         html += `<div class="todo-section">
-                                                        <div class="todo-section-header">
-                                                          <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
-                                                          <h6>${sectionName}</h6>
-                                                          <span class="todo-section-count">${sectionTasks.length}</span>
-                                                        </div>
-                                                        <div class="todo-section-content">`;
+                                                            <div class="todo-section-header">
+                                                              <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
+                                                              <h6>${sectionName}</h6>
+                                                              <span class="todo-section-count">${sectionTasks.length}</span>
+                                                            </div>
+                                                            <div class="todo-section-content">`;
 
         sectionTasks.forEach(task => {
           html += renderTaskItem(task);
@@ -228,38 +227,38 @@
       const relativeTime = task.due_at ? getRelativeTime(new Date(task.due_at)) : '';
 
       return `<div class="todo-item" data-id="${task.id}">
-                                                        <div class="todo-item-check">
-                                                          <input type="checkbox" class="todo-checkbox" id="task${task.id}"  data-id="${task.id}" ${checked}>
-                                                          <label for="task${task.id}"></label>
-                                                        </div>
+                                                            <div class="todo-item-check">
+                                                              <input type="checkbox" class="todo-checkbox" id="task${task.id}"  data-id="${task.id}" ${checked}>
+                                                              <label for="task${task.id}"></label>
+                                                            </div>
 
-                                                        <div class="todo-item-content">
-                                                          <div class="todo-item-title">${task.title}</div>
-                                                          <div class="todo-item-meta">
-                                                            ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
-                                                            ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
-                                                            ${tagsHtml}
-                                                            ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
-                                                          </div>
-                                                        </div>
+                                                            <div class="todo-item-content">
+                                                              <div class="todo-item-title">${task.title}</div>
+                                                              <div class="todo-item-meta">
+                                                                ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
+                                                                ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
+                                                                ${tagsHtml}
+                                                                ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                              </div>
+                                                            </div>
 
-                                                        <div class="todo-item-actions">
-                                                          <span class="todo-item-priority ${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
-                                                          <div class="dropdown">
-                                                            <button class="todo-item-more" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
-                                                            <ul class="dropdown-menu dropdown-menu-end">
-                                                              <li><a class="dropdown-item todo-view-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-eye me-2"></i>View Details</a></li>
-                                                              <li><a class="dropdown-item todo-edit-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-                                                              <li><a class="dropdown-item todo-delete-btn-trigger text-danger" href="#" data-id="${task.id}"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                            </ul>
-                                                          </div>
-                                                        </div>
-                                                      </div>`;
+                                                            <div class="todo-item-actions">
+                                                              <span class="todo-item-priority ${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+                                                              <div class="dropdown">
+                                                                <button class="todo-item-more" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                                  <li><a class="dropdown-item todo-view-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                                                  <li><a class="dropdown-item todo-edit-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                                  <li><a class="dropdown-item todo-delete-btn-trigger text-danger" href="#" data-id="${task.id}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                                                                </ul>
+                                                              </div>
+                                                            </div>
+                                                          </div>`;
     }
 
 
 
-    
+
     // View task
     function viewTask(taskId) {
       const task = tasks.find(t => t.id == taskId);
@@ -292,21 +291,21 @@
 
       $('#viewTaskSubtasks').html(Array.isArray(task.subtasks) && task.subtasks.length
         ? task.subtasks.map((st, i) => `<div class="todo-subtask">
-                                                          <input type="checkbox" class="todo-subtask-check" id="subtask${st.id}"  data-id="${st.id}" ${st.is_completed ? 'checked' : ''}>
-                                                          <label for="subtask${st.id}">${st.title}</label>
-                                                        </div>`).join('')
+                                                              <input type="checkbox" class="todo-subtask-check" id="subtask${st.id}"  data-id="${st.id}" ${st.is_completed ? 'checked' : ''}>
+                                                              <label for="subtask${st.id}">${st.title}</label>
+                                                            </div>`).join('')
         : '<p>No Subtasks</p>');
 
       $('#viewTaskActivity').html(Array.isArray(task.activities) && task.activities.length
         ? task.activities.map(act => {
           const profileUrl = act.causer?.profile?.profile_picture || 'assets/img/avatars/avatar-placeholder.webp';
           return `<div class="todo-activity-item">
-                                                                    <img src="${profileUrl}" alt="${act.causer?.name || 'User'}">
-                                                                    <div class="todo-activity-content">
-                                                                      <span class="todo-activity-text"><strong>${act.causer?.name || 'Unknown'}</strong> ${act.description}</span>
-                                                                      <span class="todo-activity-time">${new Date(act.created_at).toLocaleString()}</span>
-                                                                    </div>
-                                                                  </div>`;
+                                                                        <img src="${profileUrl}" alt="${act.causer?.name || 'User'}">
+                                                                        <div class="todo-activity-content">
+                                                                          <span class="todo-activity-text"><strong>${act.causer?.name || 'Unknown'}</strong> ${act.description}</span>
+                                                                          <span class="todo-activity-time">${new Date(act.created_at).toLocaleString()}</span>
+                                                                        </div>
+                                                                      </div>`;
         }).join('')
         : '<p>No Activity</p>');
 
@@ -334,11 +333,11 @@
       const $subtasks = $('#editTaskSubtasks').empty();
       task.subtasks?.forEach(st => {
         $subtasks.append(`<div class="todo-edit-subtask">
-                                                        <input type="text" class="form-control" value="${st.title}">
-                                                        <button type="button" class="todo-edit-subtask-remove">
-                                                          <i class="bi bi-x-lg"></i>
-                                                        </button>
-                                                      </div>`);
+                                                            <input type="text" class="form-control" value="${st.title}">
+                                                            <button type="button" class="todo-edit-subtask-remove">
+                                                              <i class="bi bi-x-lg"></i>
+                                                            </button>
+                                                          </div>`);
       });
 
       $('#editTaskModal').modal('show');
@@ -474,15 +473,17 @@
     });
     $(document).on('click', '.todo-delete-btn-trigger', e => { e.preventDefault(); deleteTask($(e.currentTarget).data('id')); });
     $('#saveTaskBtn').click(saveTask);
-    $('#createTaskBtn').click(createTask);
-
+    $('#createTaskBtn').on('click', function (e) {
+      e.preventDefault();
+      createTask();
+    });
 
 
     $('#addSubtaskBtn').click(() => {
       $('#editTaskSubtasks').append(`<div class="todo-edit-subtask">
-                                                        <input type="text" class="form-control" placeholder="New subtask">
-                                                        <button type="button" class="todo-edit-subtask-remove"><i class="bi bi-x-lg"></i></button>
-                                                      </div>`);
+                                                            <input type="text" class="form-control" placeholder="New subtask">
+                                                            <button type="button" class="todo-edit-subtask-remove"><i class="bi bi-x-lg"></i></button>
+                                                          </div>`);
     });
 
 

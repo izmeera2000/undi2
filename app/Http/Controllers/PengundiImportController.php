@@ -187,11 +187,11 @@ class PengundiImportController extends Controller
     public function import2(Request $request)
     {
         try {
-          $request->validate([
+            $request->validate([
                 'file' => 'required|mimes:csv,txt|max:30720',
                 'tarikh_undian' => 'required|integer',
-                'effective_from' => 'nullable|date',
-                'effective_to' => 'nullable|date',
+                // 'effective_from' => 'nullable|date',
+                // 'effective_to' => 'nullable|date',
 
                 'pilihan_raya_type' => 'required|string|in:PRU,PRN,PRK',
                 'pilihan_raya_series' => 'required|integer|min:1',
@@ -274,7 +274,7 @@ class PengundiImportController extends Controller
 
             // 3️⃣ Dispatch transfer job (pass effective dates and transfer cache)
             try {
-             $job = new TransferPengundiJob(
+                $job = new TransferPengundiJob(
                     $tarikhUndian,
                     $effectiveFrom,
                     $effectiveTo,
