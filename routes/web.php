@@ -184,6 +184,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
 
+        Route::post('import2', [PengundiImportController::class, 'import2   '])->name('import2');
 
         ///analytics page
         Route::get('analytics', [PengundiAnalyticsController::class, 'analytics'])->name('analytics');
@@ -217,7 +218,6 @@ Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHiera
 
 
 
-        // Route::post('import2', [PengundiImportController::class, 'import2   '])->name('import2');
 
 
 
