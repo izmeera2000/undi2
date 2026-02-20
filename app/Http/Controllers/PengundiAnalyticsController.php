@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
+use Yajra\DataTables\Facades\DataTables;
 
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
@@ -22,9 +23,15 @@ class PengundiAnalyticsController extends Controller
     //
 
 
-    protected array $PRUMAP = [
-        '12' => '2008',
-        '15' => '2022',
+    protected array $PRMAP = [
+        'PRU' => [
+            '12' => 2008,
+            '15' => 2022,
+        ],
+        // 'PRN' => [
+        //     '12' => 2008,
+        //     '15' => 2022,
+        // ],
     ];
 
     public function __construct()
@@ -655,183 +662,253 @@ class PengundiAnalyticsController extends Controller
 
     public function list()
     {
-        $parlimens = Parlimen::all();
-        $duns = Dun::all();
-
-        $lokalitis = Lokaliti::select('kod_lokaliti', 'koddm')
+        // ----------------------------
+        // 1️⃣ Get distinct pilihan_raya_type and series
+        // ----------------------------
+        $pengundiData = Pengundi::where('type_data_id', 2)
+            ->select('pilihan_raya_type', 'pilihan_raya_series')
             ->distinct()
-            ->orderBy('kod_lokaliti', 'asc')
             ->get();
 
-        $dms = Dm::select('koddm', 'kod_dun')
-            ->distinct('koddm')
-            ->orderBy('koddm', 'asc')
-            ->get();
+        $pilihanRayaTypes = $pengundiData->pluck('pilihan_raya_type')->unique()->sort()->values();
+        $pilihanRayaSeries = $pengundiData->pluck('pilihan_raya_series')->unique()->sort()->values();
 
-        // 🔹 Distinct pilihan_raya_type and series
-        $pilihanRayaTypes = Pengundi::select('pilihan_raya_type')
-            ->distinct()
-            ->orderBy('pilihan_raya_type')
-            ->pluck('pilihan_raya_type');
 
-        $pilihanRayaSeries = Pengundi::select('pilihan_raya_series')
-            ->distinct()
-            ->orderBy('pilihan_raya_series')
-            ->pluck('pilihan_raya_series');
+
+        // For this example, let's pick the first PRU year as default
+        // $selectedPRUYear = 2022;
+
+        // ----------------------------
+        // 2️⃣ Get Parlimens active for selected PRU year
+        // ----------------------------
+        // $parlimens = Parlimen::select('id', 'namapar')
+        //     ->orderBy('namapar')
+        //     ->get();
+
+        // ----------------------------
+        // 3️⃣ Get DUNs for those Parlimens, filtered by PRU year
+        // ----------------------------
+        // $duns = Dun::whereIn('parlimen_id', $parlimens->pluck('id'))
+        //     ->where('effective_from', '<=', $selectedPRUYear)
+        //     ->where(function ($q) use ($selectedPRUYear) {
+        //         $q->whereNull('effective_to')
+        //             ->orWhere('effective_to', '>=', $selectedPRUYear);
+        //     })
+        //     ->select('kod_dun', 'namadun', 'parlimen_id')
+        //     ->orderBy('namadun')
+        //     ->get();
+
+        // dd($selectedPRUYear);
+
+        // ----------------------------
+        // 4️⃣ Get DMs based on the DUNs, filtered by PRU year
+        // ----------------------------
+        // $dms = Dm::whereIn('kod_dun', $duns->pluck('kod_dun'))
+        //     ->where('effective_from', '<=', $selectedPRUYear)
+        //     ->where(function ($q) use ($selectedPRUYear) {
+        //         $q->whereNull('effective_to')
+        //             ->orWhere('effective_to', '>=', $selectedPRUYear);
+        //     })
+        //     ->select('koddm', 'kod_dun', 'namadm')
+        //     ->orderBy('namadm')
+        //     ->get();
+
+        // ----------------------------
+        // 5️⃣ Get Lokalitis based on the DMs, filtered by PRU year
+        // ----------------------------
+        // $lokalitis = Lokaliti::whereIn('koddm', $dms->pluck('koddm'))
+        //     ->where('effective_from', '<=', $selectedPRUYear)
+        //     ->where(function ($q) use ($selectedPRUYear) {
+        //         $q->whereNull('effective_to')
+        //             ->orWhere('effective_to', '>=', $selectedPRUYear);
+        //     })
+        //     ->select('kod_lokaliti', 'koddm', 'nama_lokaliti')
+        //     ->orderBy('nama_lokaliti')
+        //     ->get();
 
         return view('pengundi.list', compact(
-            'parlimens',
-            'duns',
-            'dms',
-            'lokalitis',
             'pilihanRayaTypes',
-            'pilihanRayaSeries'
+            'pilihanRayaSeries',
+
         ));
     }
+    public function getHierarchyByPru(Request $request)
+    {
+        $request->validate([
+            'type' => 'required',
+            'series' => 'required',
+        ]);
+
+        $selectedPRUYear = $this->PRMAP[$request->type][$request->series] ?? 2022;
+
+        $selectedPRUDate = $selectedPRUYear . '-12-31';
 
 
+        $data = DB::table('pengundi')
+            ->join('lokaliti', function ($join) use ($selectedPRUDate) {
+                $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
+                    ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('lokaliti.effective_to')
+                            ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('dm', function ($join) use ($selectedPRUDate) {
+                $join->on('lokaliti.koddm', '=', 'dm.koddm')
+                    ->where('dm.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('dm.effective_to')
+                            ->orWhere('dm.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('dun', function ($join) use ($selectedPRUDate) {
+                $join->on('dm.kod_dun', '=', 'dun.kod_dun')
+                    ->where('dun.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('dun.effective_to')
+                            ->orWhere('dun.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
+            // ->where('pengundi.pilihan_raya_type', $request->type)
+            // ->where('pengundi.pilihan_raya_series', $request->series)
+            ->select(
+                'pengundi.kod_lokaliti',
+                'lokaliti.koddm',
+                'lokaliti.nama_lokaliti',
+                'dm.kod_dun',
+                'dm.namadm',
+                'dun.parlimen_id',
+                'dun.namadun',
+                'parlimen.namapar'
+            )
+            ->distinct()
+            ->get();
 
+        return response()->json($data);
+    }
 
     public function list_data(Request $request)
     {
+        // $request->validate([
+        //     'type' => 'required',
+        //     'series' => 'required',
+        // ]);
 
-
-
-        // Access the PRUMAP array inside a method
-        $year = $this->PRUMAP[$request->pilihan_raya_series];
+        $selectedPRUYear = $this->PRMAP[$request->type][$request->series] ?? 2022;
+        $selectedPRUDate = $selectedPRUYear . '-12-31';
 
         // -------------------------------
-        // Step 1: Filter DM based on selected Parlimen and DUN
+        // Step 1: Join pengundi → lokaliti → dm → dun → parlimen (effective dates)
         // -------------------------------
-        $dmQuery = DB::table('dm')
-            ->whereYear('effective_from', '<=', $year)
-            ->where(function ($q) use ($year) {
-                $q->whereYear('effective_to', '>=', $year)
-                    ->orWhereNull('effective_to');
-            });
+        $pengundi = DB::table('pengundi')
+            ->join('lokaliti', function ($join) use ($selectedPRUDate) {
+                $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
+                    ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('lokaliti.effective_to')
+                            ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('dm', function ($join) use ($selectedPRUDate) {
+                $join->on('lokaliti.koddm', '=', 'dm.koddm')
+                    ->where('dm.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('dm.effective_to')
+                            ->orWhere('dm.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('dun', function ($join) use ($selectedPRUDate) {
+                $join->on('dm.kod_dun', '=', 'dun.kod_dun')
+                    ->where('dun.effective_from', '<=', $selectedPRUDate)
+                    ->where(function ($q) use ($selectedPRUDate) {
+                        $q->whereNull('dun.effective_to')
+                            ->orWhere('dun.effective_to', '>=', $selectedPRUDate);
+                    });
+            })
+            ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id');
 
+        // -------------------------------
+        // Step 2: Apply filters from request
+        // -------------------------------
         if ($request->parlimen) {
-            // Join through DUNs
-            $dmQuery->whereIn('kod_dun', function ($q) use ($request) {
-                $q->select('kod_dun')
-                    ->from('dun')
-                    ->where('parlimen_id', $request->parlimen);
-            });
+            $pengundi->where('dun.parlimen_id', $request->parlimen);
         }
-
         if ($request->dun) {
-            $dmQuery->where('kod_dun', $request->dun);
+            $pengundi->where('dm.kod_dun', $request->dun);
         }
-
         if ($request->dm) {
-            $dmQuery->where('koddm', $request->dm);
+            $pengundi->where('lokaliti.koddm', $request->dm);
+        }
+        if ($request->pilihan_raya_type) {
+            $pengundi->where('pengundi.pilihan_raya_type', $request->pilihan_raya_type);
+        }
+        if ($request->pilihan_raya_series) {
+            $pengundi->where('pengundi.pilihan_raya_series', $request->pilihan_raya_series);
         }
 
-        $validDMs = $dmQuery->pluck('koddm')->toArray();
+        $pengundi = $pengundi
+            ->select(
+                'pengundi.id',
+                'pengundi.nama',
+                'pengundi.kod_lokaliti',
+                'pengundi.saluran',
+                'lokaliti.koddm',
+                'lokaliti.nama_lokaliti',
+                'dm.kod_dun',
+                'dm.namadm',
+                'dun.parlimen_id',
+                'dun.namadun',
+                'parlimen.namapar'
+            )
+            ->get();
 
         // -------------------------------
-        // Step 2: Get valid lokaliti codes & names
-        // -------------------------------
-        $lokalitiQuery = DB::table('lokaliti')
-            ->whereIn('koddm', $validDMs)
-            ->whereYear('effective_from', '<=', $year)
-            ->where(function ($q) use ($year) {
-                $q->whereYear('effective_to', '>=', $year)
-                    ->orWhereNull('effective_to');
-            });
-
-        $validLokaliti = $lokalitiQuery
-            ->select('kod_lokaliti', 'nama_lokaliti', 'koddm')
-            ->get()
-            ->keyBy('kod_lokaliti');
-
-        $validLokalitiCodes = $validLokaliti->keys()->toArray();
-
-        // -------------------------------
-        // Step 3: Filter pengundi by lokaliti + pilihan_raya_type + series
-        // -------------------------------
-        $pengundiQuery = DB::table('pengundi')
-            ->where('type_data_id', 2)
-            ->whereIn('kod_lokaliti', $validLokalitiCodes);
-
-        // if ($request->pilihan_raya_type) {
-        //     $pengundiQuery->where('pilihan_raya_type', $request->pilihan_raya_type);
-        // }
-
-        // if ($request->pilihan_raya_series) {
-        //     $pengundiQuery->where('pilihan_raya_series', $request->pilihan_raya_series);
-        // }
-
-        $pengundi = $pengundiQuery
-            ->select('id', 'nama', 'kod_lokaliti', 'saluran')
-            ->get()
-            ->map(function ($p) use ($validLokaliti) {
-                $p->nama_lokaliti = $validLokaliti[$p->kod_lokaliti]->nama_lokaliti ?? null;
-                return $p;
-            });
-
-        // -------------------------------
-        // Step 4: Aggregate totals per saluran
-        // -------------------------------
-        $saluranTotals = $pengundi
-            ->groupBy('saluran')
-            ->map(fn($group, $saluran) => count($group))
-            ->sortKeys()
-            ->toArray();
-
-        // -------------------------------
-        // Step 5: Prepare DataTable rows grouped by lokaliti
+        // Step 3: Aggregate totals per lokaliti & saluran
         // -------------------------------
         $dataByLokaliti = $pengundi
             ->groupBy('kod_lokaliti')
-            ->map(function ($group, $kod_lokaliti) use ($request, $year) {
+            ->map(function ($group, $kod_lokaliti) use ($request) {
+
                 $row = [
-                    'parlimen_id' => $request->parlimen ?? null,
-                    'dun' => $request->dun ?? null,
-                    'dm' => $request->dm ?? null,
+                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id,
+                    'dun' => $request->dun ?? $group[0]->kod_dun,
+                    'dm' => $request->dm ?? $group[0]->koddm,
                     'kod_lokaliti' => $kod_lokaliti,
                     'nama_lokaliti' => $group[0]->nama_lokaliti,
-                    'pilihan_raya_type' => $request->pilihan_raya_type ?? null,
-                    'pilihan_raya_series' => $request->pilihan_raya_series ?? null,
+                    'pilihan_raya_type' => $request->type ?? null,
+                    'pilihan_raya_series' => $request->series ?? null,
                     'total' => count($group),
                 ];
 
-                // Saluran counts per lokaliti
+                // Saluran counts
                 $saluranCounts = $group->groupBy('saluran')->map(fn($g) => count($g))->toArray();
                 foreach ($saluranCounts as $s => $count) {
                     $row["saluran_$s"] = $count;
-
-                    // Create RESTful-style link for each saluran
                     $row["link_saluran_$s"] = "/pengundi/list/"
                         . ($row['parlimen_id'] ?? '0') . "/"
                         . ($row['dun'] ?? '0') . "/"
                         . ($row['dm'] ?? '0') . "/"
                         . ($row['kod_lokaliti'] ?? '0') . "/"
-                        . $s . "/" // saluran
+                        . $s . "/"
                         . ($row['pilihan_raya_type'] ?? '0') . "/"
                         . ($row['pilihan_raya_series'] ?? '0');
                 }
-
 
                 return $row;
             })
             ->values();
 
-
-        // -------------------------------
-        // Step 6: Grand total
-        // -------------------------------
         $grandTotal = $pengundi->count();
 
         return response()->json([
             'draw' => intval($request->draw ?? 1),
             'recordsTotal' => $grandTotal,
             'recordsFiltered' => $grandTotal,
-            'saluranTotals' => $saluranTotals,
-            'year' => $year,
             'data' => $dataByLokaliti
         ]);
     }
+
 
 
     public function list_details(
@@ -846,8 +923,8 @@ class PengundiAnalyticsController extends Controller
         // -------------------------------
         // Step 0: Determine year
         // -------------------------------
-        $year = $pilihan_raya_series && isset($this->PRUMAP[$pilihan_raya_series])
-            ? $this->PRUMAP[$pilihan_raya_series]
+        $year = $pilihan_raya_series
+            ? $this->PRMAP[$pilihan_raya_type][$pilihan_raya_series]
             : date('Y');
 
         // -------------------------------
@@ -982,7 +1059,6 @@ class PengundiAnalyticsController extends Controller
 
     public function list_details_data(Request $request)
     {
-        // Read filters from POST
         $parlimen = $request->input('parlimen');
         $dun_kod = $request->input('dun');
         $dm = $request->input('dm');
@@ -991,11 +1067,11 @@ class PengundiAnalyticsController extends Controller
         $pilihan_raya_type = $request->input('pilihan_raya_type');
         $pilihan_raya_series = $request->input('pilihan_raya_series');
 
-        $year = $pilihan_raya_series && isset($this->PRUMAP[$pilihan_raya_series])
-            ? $this->PRUMAP[$pilihan_raya_series]
+        $year = $pilihan_raya_series
+            ? $this->PRMAP[$pilihan_raya_type][$pilihan_raya_series] ?? date('Y')
             : date('Y');
 
-        // Filter DM
+        // Step 1: Get valid DMs
         $validDMs = DB::table('dm')
             ->whereYear('effective_from', '<=', $year)
             ->where(function ($q) use ($year) {
@@ -1010,33 +1086,34 @@ class PengundiAnalyticsController extends Controller
             ->pluck('koddm')
             ->toArray();
 
-        // Filter Lokaliti
-        $validLokaliti = DB::table('lokaliti')
+        // Step 2: Get valid Lokaliti
+        $validLokalitiCodes = DB::table('lokaliti')
             ->whereIn('koddm', $validDMs)
             ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
-            ->select('kod_lokaliti', 'nama_lokaliti', 'koddm')
-            ->get()
-            ->keyBy('kod_lokaliti');
+            ->pluck('kod_lokaliti')
+            ->toArray();
 
-        $validLokalitiCodes = $validLokaliti->keys()->toArray();
-
-        // Filter Pengundi
-        $pengundi = DB::table('pengundi')
+        // Step 3: Build query for pengundi
+        $query = DB::table('pengundi')
             ->where('type_data_id', 2)
             ->whereIn('kod_lokaliti', $validLokalitiCodes)
             ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
-            ->when($saluran, fn($q) => $q->where('saluran', $saluran))
-            ->select('*')
-            ->get();
+            ->when($saluran, fn($q) => $q->where('saluran', $saluran));
 
-        // Return plain JSON
-        return response()->json([
-            'success' => true,
-            'year' => $year,
-            'count' => $pengundi->count(),
-            'data' => $pengundi
-        ]);
+        // Step 4: Use DataTables for server-side processing
+        return DataTables::of($query)
+            ->filter(function ($query) use ($request) {
+                if ($search = $request->input('search.value')) {
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%")
+                            ->orWhere('nokp_baru', 'like', "%{$search}%")
+                            ->orWhere('jantina', 'like', "%{$search}%")
+                            ->orWhere('bangsa', 'like', "%{$search}%")
+                            ->orWhere('alamat_spr', 'like', "%{$search}%");
+                    });
+                }
+            })
+            ->make(true);
     }
-
 }
 

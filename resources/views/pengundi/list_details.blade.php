@@ -39,7 +39,6 @@
 @endsection
 
 @push('scripts')
-    <!-- Make sure jQuery is loaded BEFORE DataTables -->
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
@@ -72,9 +71,13 @@
                     { data: 'alamat_spr' }
                 ],
                 pageLength: 25,
+                ordering: true,
+                searching: true,
                 order: [[0, 'asc']],
                 responsive: true
             });
+
+
         });
     </script>
 @endpush

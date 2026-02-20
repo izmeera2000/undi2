@@ -211,6 +211,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
+Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHierarchyByPru'])
+    ->name('ajax.pru.hierarchy');
 
 
 
