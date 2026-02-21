@@ -25,7 +25,7 @@
         <div class="widget-banner-content">
           <p class="widget-banner-text">Good Day,</p>
 
-          <h4 class="widget-banner-title">David Dev!</h4>
+          <h4 class="widget-banner-title">{{ucfirst(auth()->user()->name)}}</h4>
           <div class="welcome-date">
 
             <i class="bi bi-calendar3"></i>
@@ -197,12 +197,12 @@
     function renderUpcomingEvents() {
 
       const emptyStateHTML = `
-        <div class="text-center text-muted py-4">
-          <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
-          <div class="mt-2 fw-semibold">No upcoming events</div>
-          <div class="small">Check back later for new events.</div>
-        </div>
-      `;
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
+              <div class="mt-2 fw-semibold">No upcoming events</div>
+              <div class="small">Check back later for new events.</div>
+            </div>
+          `;
 
       fetch('{{ route('events.upcoming') }}', {
         method: 'GET',
@@ -264,24 +264,24 @@
             upcomingEl.insertAdjacentHTML(
               'beforeend',
               `
-            <div class="upcoming-event-item">
-              <div class="upcoming-event-color"
-                   style="background:${event.backgroundColor || '#0d6efd'}; width:8px;">
-              </div>
+                <div class="upcoming-event-item">
+                  <div class="upcoming-event-color"
+                       style="background:${event.backgroundColor || '#0d6efd'}; width:8px;">
+                  </div>
 
-              <div class="upcoming-event-date text-center me-2">
-                <div class="fw-bold">${day}</div>
-                <div>${month}</div>
-              </div>
+                  <div class="upcoming-event-date text-center me-2">
+                    <div class="fw-bold">${day}</div>
+                    <div>${month}</div>
+                  </div>
 
-              <div>
-                <div class="fw-semibold">${event.title}</div>
-                <div class="upcoming-event-time">
-                  <i class="bi bi-clock me-1"></i>${timeText}
+                  <div>
+                    <div class="fw-semibold">${event.title}</div>
+                    <div class="upcoming-event-time">
+                      <i class="bi bi-clock me-1"></i>${timeText}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            `
+                `
             );
           });
 
@@ -290,15 +290,15 @@
           console.error('Error fetching events:', error);
 
           const emptyStateHTML = `
-    <div class="d-flex flex-column justify-content-center align-items-center text-muted"
-         style="min-height: 180px;">
+        <div class="d-flex flex-column justify-content-center align-items-center text-muted"
+             style="min-height: 180px;">
 
-        <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
+            <i class="bi bi-calendar-x" style="font-size: 36px; opacity:.4;"></i>
 
-        <div class="mt-3 fw-semibold">No upcoming events</div>
-        <div class="small">Check back later for new events.</div>
-    </div>
-  `;
+            <div class="mt-3 fw-semibold">No upcoming events</div>
+            <div class="small">Check back later for new events.</div>
+        </div>
+      `;
 
           upcomingEl.innerHTML = emptyStateHTML;
         });
@@ -429,40 +429,40 @@
         totalCount += sectionTasks.length;
 
         html += `
-            <div class="todo-section">
-              <div class="todo-section-header">
-                <button class="todo-section-toggle">
-                  <i class="bi bi-chevron-down"></i>
-                </button>
-                <h6>${sectionName}</h6>
-                <span class="todo-section-count">${sectionTasks.length}</span>
-              </div>
-              <div class="todo-section-content">
-          `;
+                <div class="todo-section">
+                  <div class="todo-section-header">
+                    <button class="todo-section-toggle">
+                      <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <h6>${sectionName}</h6>
+                    <span class="todo-section-count">${sectionTasks.length}</span>
+                  </div>
+                  <div class="todo-section-content">
+              `;
 
         sectionTasks.forEach(task => {
           html += renderTaskItem(task);
         });
 
         html += `
-              </div>
-            </div>
-          `;
+                  </div>
+                </div>
+              `;
       });
 
       // 🔥 EMPTY STATE
       if (totalCount === 0) {
         html = `
-            <div class="text-center py-5">
-              <div class="mb-3">
-                <i class="bi bi-check2-circle" style="font-size: 40px; opacity: .4;"></i>
-              </div>
-              <h6 class="mb-1">No pending tasks 🎉</h6>
-              <p class="text-muted small mb-0">
-                You're all caught up. Enjoy your day!
-              </p>
-            </div>
-          `;
+                <div class="text-center py-5">
+                  <div class="mb-3">
+                    <i class="bi bi-check2-circle" style="font-size: 40px; opacity: .4;"></i>
+                  </div>
+                  <h6 class="mb-1">No pending tasks 🎉</h6>
+                  <p class="text-muted small mb-0">
+                    You're all caught up. Enjoy your day!
+                  </p>
+                </div>
+              `;
       }
 
       $('#taskList').html(html);
@@ -480,17 +480,17 @@
       return `<div class="todo-item" data-id="${task.id}">
 
 
-                                                                              <div class="todo-item-content">
-                                                                                <div class="todo-item-title">${task.title}</div>
-                                                                                <div class="todo-item-meta">
-                                                                                  ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
-                                                                                  ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
-                                                                                  ${tagsHtml}
-                                                                                  ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
-                                                                                </div>
-                                                                              </div>
+                                                                                  <div class="todo-item-content">
+                                                                                    <div class="todo-item-title">${task.title}</div>
+                                                                                    <div class="todo-item-meta">
+                                                                                      ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
+                                                                                      ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
+                                                                                      ${tagsHtml}
+                                                                                      ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                                                    </div>
+                                                                                  </div>
 
-                                                                            </div>`;
+                                                                                </div>`;
     }
 
 

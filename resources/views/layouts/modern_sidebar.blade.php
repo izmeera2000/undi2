@@ -92,38 +92,39 @@
         </a>
       </li>
 
+<li class="nav-heading">
+    <span>
+        <i class="ph-light ph-gear me-2"></i> Settings
+    </span>
+</li>
 
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
+        <i class="ph-light ph-buildings"></i>
+        <span>Parlimen</span>
+    </a>
+</li>
 
-      <li class="nav-heading"><span>Settings</span></li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
-          <i class="ph-light ph-file"></i>
-          <span>Parlimen</span>
-        </a>
-      </li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
+        <i class="ph-light ph-map-trifold"></i>
+        <span>Dun</span>
+    </a>
+</li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
-          <i class="ph-light ph-file"></i>
-          <span>Dun</span>
-        </a>
-      </li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
+        <i class="ph-light ph-map-pin"></i>
+        <span>DM</span>
+    </a>
+</li>
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
-          <i class="ph-light ph-file"></i>
-          <span>DM</span>
-        </a>
-      </li>
-
-            <li class="nav-item">
-        <a class="nav-link" href="{{ route('lokaliti.index') }}" data-sidebar-tooltip="DM">
-          <i class="ph-light ph-file"></i>
-          <span>Lokaliti</span>
-        </a>
-      </li>
-
-
+<li class="nav-item">
+    <a class="nav-link" href="{{ route('lokaliti.index') }}" data-sidebar-tooltip="Lokaliti">
+        <i class="ph-light ph-house-line"></i>
+        <span>Lokaliti</span>
+    </a>
+</li>
 
       @role('admin')
       <!-- Apps Section -->

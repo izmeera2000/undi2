@@ -55,16 +55,26 @@ class DmController extends Controller
     // Store new DM
     public function store(Request $request)
     {
+        // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required',
-            'namadm' => 'required',
-            'kod_dun' => 'required|exists:dun,kod_dun', // ensure selected DUN exists
-            'effective_from' => 'nullable|date', // Add validation for effective_from
-            'effective_to' => 'nullable|date', // Ensure effective_to is after effective_from
+            'kod_dun' => 'required|exists:dun,kod_dun',   // selected DUN must exist
+            'koddm' => 'required|digits:2',               // user enters 3-digit DM code
+            'namadm' => 'required|string|max:255',
+            'effective_from' => 'nullable|date',
+            'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // Create DM record
-        Dm::create($request->all());
+        // 2️⃣ Generate full koddm (DUN code + DM code)
+        $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
+
+        // 3️⃣ Create DM record
+        Dm::create([
+            'koddm' => $fullKoddm,
+            'namadm' => $request->namadm,
+            'kod_dun' => $request->kod_dun,
+            'effective_from' => $request->effective_from,
+            'effective_to' => $request->effective_to,
+        ]);
 
         return redirect()->route('dm.index')->with('success', 'DM added successfully.');
     }
@@ -79,16 +89,26 @@ class DmController extends Controller
     // Update an existing DM
     public function update(Request $request, Dm $dm)
     {
+        // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required|unique:dm,koddm,' . $dm->id, // ignore current DM
-            'namadm' => 'required',
-            'dun_id' => 'required|exists:dun,id', // ensure selected DUN exists
-            'effective_from' => 'nullable|date', // Add validation for effective_from
-            'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
+            'kod_dun' => 'required|exists:dun,kod_dun',   // ensure selected DUN exists
+            'koddm' => 'required|digits:2|unique:dm,koddm,' . $dm->id, // ignore current DM
+            'namadm' => 'required|string|max:255',
+            'effective_from' => 'nullable|date',
+            'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // Update DM record
-        $dm->update($request->only('koddm', 'namadm', 'dun_id', 'effective_from', 'effective_to'));
+        // 2️⃣ Generate full koddm (DUN code + 3-digit DM code)
+        $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
+
+        // 3️⃣ Update DM record
+        $dm->update([
+            'koddm' => $fullKoddm,
+            'namadm' => $request->namadm,
+            'kod_dun' => $request->kod_dun,
+            'effective_from' => $request->effective_from,
+            'effective_to' => $request->effective_to,
+        ]);
 
         return redirect()->route('dm.index')->with('success', 'DM updated successfully.');
     }
@@ -138,4 +158,25 @@ class DmController extends Controller
             ->rawColumns(['namadm', 'actions']) // namadm has HTML link, actions have buttons
             ->make(true);
     }
+
+
+
+
+    public function bulkStore(Request $request)
+{
+    $rows = $request->data;
+
+    foreach ($rows as $row) {
+
+        DM::create([
+            'kod_dun' => $row[0],
+            'koddm' => $row[1],
+            'namadm' => $row[2],
+            'effective_from' => $row[3] ?? null,
+            'effective_to' => $row[4] ?? null,
+        ]);
+    }
+
+    return response()->json(['success' => true]);
+}
 }

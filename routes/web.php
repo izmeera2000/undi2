@@ -212,8 +212,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHierarchyByPru'])
-    ->name('ajax.pru.hierarchy');
+        Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHierarchyByPru'])
+            ->name('ajax.pru.hierarchy');
 
 
 
@@ -316,6 +316,9 @@ Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHiera
         Route::get('/', [DmController::class, 'index'])->name('index');   // list page
         Route::post('/', [DmController::class, 'store'])->name('store');
 
+        Route::post('/bulk-store', [DMController::class, 'bulkStore'])
+            ->name('bulkStore');
+
         Route::get('/{dm}/edit', [DmController::class, 'edit'])->name('edit');
         Route::put('/{dm}', [DmController::class, 'update'])->name('update');
         Route::delete('/{dm}', [DmController::class, 'destroy'])->name('destroy');
@@ -331,6 +334,8 @@ Route::get('/ajax/pru-hierarchy', [PengundiAnalyticsController::class, 'getHiera
     Route::prefix('lokaliti')->name('lokaliti.')->group(function () {
         Route::get('/', [LokalitiController::class, 'index'])->name('index');   // list page
         Route::post('/', [LokalitiController::class, 'store'])->name('store');
+        Route::post('/bulk-store', [LokalitiController::class, 'bulkStore'])
+    ->name('bulkStore');
 
         Route::get('/{lokaliti}/edit', [LokalitiController::class, 'edit'])->name('edit');
         Route::put('/{lokaliti}', [LokalitiController::class, 'update'])->name('update');

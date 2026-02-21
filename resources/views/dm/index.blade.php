@@ -13,6 +13,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css')}}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.css">
 @endpush
 
 @section('content')
@@ -31,9 +32,14 @@
                     </div>
                     <div class="col-md-8 col-12">
                         <div class="d-flex flex-wrap justify-content-md-end gap-2">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkDMModal">
+                                <i class="bi bi-table me-1"></i> Bulk Add (Excel Style)
+                            </button>
+
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDMModal">
                                 <i class="bi bi-plus-lg me-1"></i> Add DM
                             </button>
+
                         </div>
                     </div>
                 </div>
@@ -70,30 +76,42 @@
                     </div>
 
                     <div class="modal-body">
+
+                        {{-- 3️⃣ DUN Selection --}}
                         <div class="mb-3">
-                            <label class="form-label">Kod DM</label>
-                            <input type="text" name="koddm" class="form-control" required>
+                            <label class="form-label">DUN</label>
+                            <select name="kod_dun" class="form-select" required>
+                                @foreach($duns as $dun)
+                                    <option value="{{ $dun->kod_dun }}">
+                                        {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
+                        {{-- 1️⃣ Kod DM --}}
+                        <div class="mb-3">
+                            <label class="form-label">Kod DM (2 digits)</label>
+                            <input type="text" name="koddm" id="koddm" class="form-control" maxlength="2" pattern="\d{2}"
+                                required>
+                            <small class="text-muted">Enter 2 digits. Full DM code will be generated automatically.</small>
+                        </div>
+
+                        {{-- 2️⃣ Nama DM --}}
                         <div class="mb-3">
                             <label class="form-label">Nama DM</label>
                             <input type="text" name="namadm" class="form-control" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">DUN</label>
-                            <select name="kod_dun" class="form-select" required>
-                                @foreach($duns as $dun)
-                                    <option value="{{ $dun->kod_dun }}">{{ $dun->namadun }}</option>
-                                @endforeach
-                            </select>
-                        </div>
 
+
+                        {{-- 4️⃣ Effective From --}}
                         <div class="mb-3">
                             <label class="form-label">Effective From</label>
                             <input type="date" name="effective_from" class="form-control">
                         </div>
 
+                        {{-- 5️⃣ Effective To --}}
                         <div class="mb-3">
                             <label class="form-label">Effective To</label>
                             <input type="date" name="effective_to" class="form-control">
@@ -109,18 +127,118 @@
         </div>
     </div>
 
+    {{-- Bulk DM Modal --}}
+    <div class="modal fade" id="bulkDMModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Add DM (Excel Style)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <div id="dmHotTable" class="w-100" style="height:60vh;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button id="saveBulkDM" class="btn btn-success">Save All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
+
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+
+
+
+            let hot;
+
+            $('#bulkDMModal').on('shown.bs.modal', function () {
+
+                const container = document.getElementById('dmHotTable');
+
+                if (!hot) {
+                    hot = new Handsontable(container, {
+                        data: [],
+                        colWidths: [120, 120, 200, 150, 150],
+                        rowHeaders: true,
+                        contextMenu: true,
+                        colHeaders: [
+                            'kod_dun',
+                            'koddm',
+                            'namadm',
+                            'effective_from',
+                            'effective_to'
+                        ],
+                        columns: [
+                            { type: 'text' },
+                            { type: 'text' },
+                            { type: 'text' },
+                            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+                            { type: 'date', dateFormat: 'YYYY-MM-DD' }
+                        ],
+                        minSpareRows: 1,
+                        stretchH: 'none',
+                         licenseKey: 'non-commercial-and-evaluation'
+                    });
+                }
+
+                // ✅ Always refresh after modal fully visible
+                hot.render();
+                hot.refreshDimensions();
+            });
+            $('#saveBulkDM').click(function () {
+
+                let data = hot.getData();
+
+                // Remove empty rows
+                let filtered = data.filter(row =>
+                    row[0] && row[1] && row[2]
+                );
+
+                $.ajax({
+                    url: "{{ route('dm.bulkStore') }}",
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    data: {
+                        data: filtered
+                    },
+                    success: function () {
+                        $('#bulkDMModal').modal('hide');
+                        table.ajax.reload();
+                        alert("Bulk DM saved successfully!");
+                    },
+                    error: function (xhr) {
+                        alert("Error saving bulk DM!");
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            /////////////
+
 
             const table = $('#dmTable').DataTable({
                 processing: true,
                 serverSide: true,
+                stateSave: true,
+
                 ajax: {
                     url: "{{ route('dm.data') }}",
                     type: "POST",
@@ -167,7 +285,7 @@
                     success: function () {
                         $('#addDMModal').modal('hide');
                         table.ajax.reload();
-                        $('#addDMForm')[0].reset();
+                        // $('#addDMForm')[0].reset();
                     },
                     error: function (xhr, status, error) {
                         alert('Error saving DM!');

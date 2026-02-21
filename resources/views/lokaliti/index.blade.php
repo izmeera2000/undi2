@@ -13,6 +13,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css')}}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.css">
 @endpush
 
 @section('content')
@@ -31,6 +32,9 @@
                     </div>
                     <div class="col-md-8 col-12">
                         <div class="d-flex flex-wrap justify-content-md-end gap-2">
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#bulkLokalitiModal">
+                                <i class="bi bi-table me-1"></i> Bulk Add (Excel Style)
+                            </button>
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLokalitiModal">
                                 <i class="bi bi-plus-lg me-1"></i> Add Lokaliti
                             </button>
@@ -70,26 +74,38 @@
                     </div>
 
                     <div class="modal-body">
+
+                        {{-- 1️⃣ DM Selection at Top --}}
                         <div class="mb-3">
-                            <label class="form-label">Kod Lokaliti</label>
-                            <input type="text" name="kod_lokaliti" class="form-control" required>
+                            <label class="form-label">DM</label>
+                            <select name="koddm" id="koddm" class="form-select" required>
+                                @foreach($dms->unique('koddm') as $dm)
+                                    <option value="{{ $dm->koddm }}">
+                                        {{ $dm->koddm }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
 
+                        {{-- 2️⃣ Kod Lokaliti (3 digits only) --}}
+                        <div class="mb-3">
+                            <label class="form-label">Kod Lokaliti (3 digits)</label>
+                            <input type="text" name="kod_lokaliti" id="kod_lokaliti" class="form-control" maxlength="3"
+                                pattern="\d{3}" required>
+                            <small class="text-muted">Enter 3 digits only. Full code will be generated
+                                automatically.</small>
+                        </div>
+
+                        {{-- 3️⃣ Full Kod Lokaliti (readonly, auto-generated) --}}
+
+
+                        {{-- 4️⃣ Nama Lokaliti --}}
                         <div class="mb-3">
                             <label class="form-label">Nama Lokaliti</label>
                             <input type="text" name="nama_lokaliti" class="form-control" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">DM</label>
-                            <select name="koddm" class="form-select"  required>
-                                @foreach($dms->unique('koddm') as $dm)
-                                    <option value="{{ $dm->koddm }}">{{ $dm->koddm }}</option>
-                                @endforeach
-
-                            </select>
-                        </div>
-
+                        {{-- 5️⃣ Effective Dates --}}
                         <div class="mb-3">
                             <label class="form-label">Effective From</label>
                             <input type="date" name="effective_from" class="form-control">
@@ -109,20 +125,125 @@
             </div>
         </div>
     </div>
+    {{-- Bulk Lokaliti Modal --}}
+    <div class="modal fade" id="bulkLokalitiModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+            <div class="modal-content">
 
+                <div class="modal-header">
+                    <h5 class="modal-title">Bulk Add Lokaliti</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="lokalitiHotTable" style="height:65vh;"></div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button id="saveBulkLokaliti" class="btn btn-success">Save All</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
 @endsection
 
 @push('scripts')
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@13.0.0/dist/handsontable.full.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+
+
+
+
+
+
+            let lokalitiHot;
+
+            $('#bulkLokalitiModal').on('shown.bs.modal', function () {
+
+                const container = document.getElementById('lokalitiHotTable');
+
+                if (!lokalitiHot) {
+
+                    lokalitiHot = new Handsontable(container, {
+                        data: [],
+                        rowHeaders: true,
+                        contextMenu: true,
+                        stretchH: 'none',
+                        minSpareRows: 1,
+                        colWidths: [120, 200, 150, 150, 150],
+
+                        colHeaders: [
+                            'koddm',
+                            'kod_lokaliti (3 digits)',
+                            'nama_lokaliti',
+                            'effective_from',
+                            'effective_to'
+                        ],
+
+                        columns: [
+                            {
+                                type: 'dropdown',
+                                source: @json($dms->unique('koddm')->pluck('koddm')->values())
+                            },
+                            { type: 'text' },
+                            { type: 'text' },
+                            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+                            { type: 'date', dateFormat: 'YYYY-MM-DD' }
+                        ],
+
+                        licenseKey: 'non-commercial-and-evaluation'
+                    });
+                }
+
+                lokalitiHot.render();
+                lokalitiHot.refreshDimensions();
+            });
+
+
+            $('#saveBulkLokaliti').click(function () {
+
+    let data = lokalitiHot.getData();
+
+    let filtered = data.filter(row =>
+        row[0] && row[1] && row[2]
+    );
+
+    $.ajax({
+        url: "{{ route('lokaliti.bulkStore') }}",
+        method: "POST",
+        headers: {
+            'X-CSRF-TOKEN': csrfToken
+        },
+        data: {
+            data: filtered
+        },
+        success: function () {
+            $('#bulkLokalitiModal').modal('hide');
+            table.ajax.reload();
+            alert('Bulk Lokaliti saved successfully!');
+        },
+        error: function (xhr) {
+            alert('Error saving bulk Lokaliti!');
+            console.error(xhr.responseText);
+        }
+    });
+});
+
+
+
 
             const table = $('#lokalitiTable').DataTable({
                 processing: true,
                 serverSide: true,
+                stateSave: true,
                 ajax: {
                     url: "{{ route('lokaliti.data') }}",
                     type: "POST",
@@ -167,7 +288,7 @@
                     success: function () {
                         $('#addLokalitiModal').modal('hide');
                         table.ajax.reload();
-                        $('#addLokalitiForm')[0].reset();
+                        // $('#addLokalitiForm')[0].reset();
                     },
                     error: function () {
                         alert('Error saving Lokaliti!');

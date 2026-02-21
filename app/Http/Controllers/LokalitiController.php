@@ -27,17 +27,33 @@ class LokalitiController extends Controller
     // Store new Lokaliti
     public function store(Request $request)
     {
-        // Updated validation for koddm instead of dm_id
+        // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required|exists:dm,koddm', 
-            'kod_lokaliti' => 'required',
+            'koddm' => 'required|exists:dm,koddm',
+            'kod_lokaliti' => 'required|digits:3',  // ensure exactly 3 digits
             'nama_lokaliti' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // Store the new Lokaliti using koddm instead of dm_id
-        Lokaliti::create($request->only('koddm', 'kod_lokaliti', 'nama_lokaliti', 'effective_from', 'effective_to'));
+        // 2️⃣ Generate full kod_lokaliti
+        $dm = $request->koddm;          // e.g., 0221101
+        $lokalitiCode = $request->kod_lokaliti; // e.g., 001
+
+        // Optional: Ensure 3 digits (pad if user enters less)
+        $lokalitiCode = str_pad($lokalitiCode, 3, '0', STR_PAD_LEFT);
+
+        // Combine DM + 3-digit lokaliti + '001' suffix (or any logic you need)
+        $fullKodLokaliti = $dm . $lokalitiCode;
+
+        // 3️⃣ Store in database
+        Lokaliti::create([
+            'koddm' => $dm,
+            'kod_lokaliti' => $fullKodLokaliti,
+            'nama_lokaliti' => $request->nama_lokaliti,
+            'effective_from' => $request->effective_from,
+            'effective_to' => $request->effective_to,
+        ]);
 
         return redirect()->route('lokaliti.index')->with('success', 'Lokaliti added successfully.');
     }
@@ -45,24 +61,36 @@ class LokalitiController extends Controller
     // Show edit form
     public function edit(Lokaliti $lokaliti)
     {
-        $dms = Dm::all();
+        $dms = Dm::select('koddm', 'namadm', 'effective_from', 'effective_to')
+            ->distinct()
+            ->orderBy('effective_from', 'desc')
+            ->get();
         return view('lokaliti.edit', compact('lokaliti', 'dms'));
     }
 
     // Update Lokaliti
     public function update(Request $request, Lokaliti $lokaliti)
     {
-        // Updated validation for koddm instead of dm_id
+        // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required|exists:dm,koddm', // Changed dm_id to koddm
-            'kod_lokaliti' => 'required',
+            'koddm' => 'required|exists:dm,koddm',       // Ensure selected DM exists
+            'kod_lokaliti' => 'required|digits:3',       // User enters only 3-digit code
             'nama_lokaliti' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // Update the Lokaliti using koddm instead of dm_id
-        $lokaliti->update($request->only('koddm', 'kod_lokaliti', 'nama_lokaliti', 'effective_from', 'effective_to'));
+        // 2️⃣ Generate full kod_lokaliti (DM code + 3-digit Lokaliti code)
+        $fullKodLokaliti = $request->koddm . str_pad($request->kod_lokaliti, 3, '0', STR_PAD_LEFT);
+
+        // 3️⃣ Update the Lokaliti record
+        $lokaliti->update([
+            'koddm' => $request->koddm,
+            'kod_lokaliti' => $fullKodLokaliti,
+            'nama_lokaliti' => $request->nama_lokaliti,
+            'effective_from' => $request->effective_from,
+            'effective_to' => $request->effective_to,
+        ]);
 
         return redirect()->route('lokaliti.index')->with('success', 'Lokaliti updated successfully.');
     }
@@ -96,5 +124,21 @@ class LokalitiController extends Controller
             })
             ->rawColumns(['nama_lokaliti', 'actions'])
             ->make(true);
+    }
+
+    public function bulkStore(Request $request)
+    {
+        foreach ($request->data as $row) {
+
+            Lokaliti::create([
+                'koddm' => $row[0],
+                'kod_lokaliti' => $row[1],
+                'nama_lokaliti' => $row[2],
+                'effective_from' => $row[3] ?? null,
+                'effective_to' => $row[4] ?? null,
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }
