@@ -46,27 +46,27 @@
         document.addEventListener('DOMContentLoaded', function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-           $('#editParlimenForm').submit(function (e) {
-    e.preventDefault();
-    const formData = $(this).serialize(); // includes _method=PUT
+            $('#editParlimenForm').submit(function (e) {
+                e.preventDefault();
+                const formData = $(this).serialize(); // includes _method=PUT
 
-    $.ajax({
-        url: "{{ route('parlimen.update', $parlimen->id) }}",
-        method: 'POST',  // <- POST instead of PUT
-        headers: {
-            'X-CSRF-TOKEN': csrfToken
-        },
-        data: formData,  // serialized form includes _method=PUT
-        success: function () {
-            alert('Parlimen updated successfully!');
-            window.location.href = "{{ route('parlimen.index') }}";
-        },
-        error: function (xhr) {
-            alert('Error updating parlimen!');
-            console.error(xhr.responseText);
-        }
-    });
-});
+                $.ajax({
+                    url: "{{ route('parlimen.update', $parlimen->id) }}",
+                    method: 'POST',  // <- POST instead of PUT
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    data: formData,  // serialized form includes _method=PUT
+                    success: function () {
+                        toastr.sucess('Parlimen updated successfully!');
+                        window.location.href = "{{ route('parlimen.index') }}";
+                    },
+                    error: function (xhr) {
+                        toastr.error('Error updating parlimen!');
+                        // console.error(xhr.responseText);
+                    }
+                });
+            });
 
 
         });

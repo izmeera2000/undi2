@@ -141,18 +141,48 @@
                 }
             });
 
-            let table;
-
             const parSelect = document.getElementById('parlimenSelect');
             const dunSelect = document.getElementById('dunSelect');
             const dmSelect = document.getElementById('dmSelect');
             const typeSelect = document.getElementById('pilihanRayaType');
             const seriesSelect = document.getElementById('pilihanRayaSeries');
 
-            // ==============================
+            let table;
+            let pruHierarchy = {};
+
+            // =====================================================
+            // HELPER: CHECK ALL FILTERS SELECTED
+            // =====================================================
+            function allFiltersSelected() {
+                return (
+                    typeSelect.value &&
+                    seriesSelect.value &&
+                    parSelect.value &&
+                    dunSelect.value &&
+                    dmSelect.value
+                );
+            }
+
+            // =====================================================
+            // RESET DROPDOWNS
+            // =====================================================
+            function resetDropdowns() {
+                parSelect.innerHTML = '<option value="">-- Pilih Parlimen --</option>';
+                dunSelect.innerHTML = '<option value="">-- Pilih DUN --</option>';
+                dmSelect.innerHTML = '<option value="">-- Pilih DM --</option>';
+
+                parSelect.disabled = true;
+                dunSelect.disabled = true;
+                dmSelect.disabled = true;
+            }
+
+            // =====================================================
             // LOAD HIERARCHY
-            // ==============================
+            // =====================================================
             async function loadHierarchy() {
+
+                resetDropdowns();
+                pruHierarchy = {};
 
                 if (!typeSelect.value || !seriesSelect.value) return;
 
@@ -161,53 +191,53 @@
                 );
 
                 const data = await res.json();
-
-                const hierarchy = {};
+                if (!data.length) return;
 
                 data.forEach(row => {
 
-                    if (!hierarchy[row.parlimen_id])
-                        hierarchy[row.parlimen_id] = { namapar: row.namapar, duns: {} };
+                    if (!pruHierarchy[row.parlimen_id])
+                        pruHierarchy[row.parlimen_id] = { namapar: row.namapar, duns: {} };
 
-                    if (!hierarchy[row.parlimen_id].duns[row.kod_dun])
-                        hierarchy[row.parlimen_id].duns[row.kod_dun] = { namadun: row.namadun, dms: {} };
+                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun])
+                        pruHierarchy[row.parlimen_id].duns[row.kod_dun] = { namadun: row.namadun, dms: {} };
 
-                    if (!hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm])
-                        hierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm] = { namadm: row.namadm };
+                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm])
+                        pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm] = { namadm: row.namadm };
 
                 });
-
-                window.pruHierarchy = hierarchy;
 
                 buildParlimen();
             }
 
             function buildParlimen() {
-                parSelect.innerHTML = '<option value="">-- Pilih Parlimen --</option>';
-                for (const id in window.pruHierarchy) {
-                    parSelect.innerHTML += `<option value="${id}">${window.pruHierarchy[id].namapar}</option>`;
-                }
                 parSelect.disabled = false;
+                for (const id in pruHierarchy) {
+                    parSelect.innerHTML += `<option value="${id}">${pruHierarchy[id].namapar}</option>`;
+                }
             }
 
             function buildDun(parId) {
                 dunSelect.innerHTML = '<option value="">-- Pilih DUN --</option>';
-                if (!parId) return;
+                dmSelect.innerHTML = '<option value="">-- Pilih DM --</option>';
 
-                const duns = window.pruHierarchy[parId].duns;
+                if (!parId || !pruHierarchy[parId]) return;
+
+                const duns = pruHierarchy[parId].duns;
 
                 for (const kod in duns) {
                     dunSelect.innerHTML += `<option value="${kod}">${duns[kod].namadun}</option>`;
                 }
 
                 dunSelect.disabled = false;
+                dmSelect.disabled = true;
             }
 
             function buildDm(parId, dunId) {
                 dmSelect.innerHTML = '<option value="">-- Pilih DM --</option>';
-                if (!dunId) return;
 
-                const dms = window.pruHierarchy[parId].duns[dunId].dms;
+                if (!dunId || !pruHierarchy[parId]?.duns[dunId]) return;
+
+                const dms = pruHierarchy[parId].duns[dunId].dms;
 
                 for (const kod in dms) {
                     dmSelect.innerHTML += `<option value="${kod}">${dms[kod].namadm}</option>`;
@@ -216,114 +246,151 @@
                 dmSelect.disabled = false;
             }
 
-            // ==============================
-            // DATATABLE
-            // ==============================
-            table = $('#pengundiTable').DataTable({
+            function renderSaluranLink(data, type, row, meta) {
 
-                processing: true,
-                serverSide: false,
-                stateSave: true,
-                searching: true,
-                paging: true,
-                fixedHeader: true,
-                orderCellsTop: true,
+                if (!data || data == 0) return 0;
 
-                columns: [
-                    { data: 'kod_lokaliti', visible: false },
-                    { data: 'nama_lokaliti' },
-                    { data: 'saluran_1', render: renderSaluranLink },
-                    { data: 'saluran_2', render: renderSaluranLink },
-                    { data: 'saluran_3', render: renderSaluranLink },
-                    { data: 'saluran_4', render: renderSaluranLink },
-                    { data: 'saluran_5', render: renderSaluranLink },
-                    { data: 'saluran_6', render: renderSaluranLink },
-                    { data: 'saluran_7', render: renderSaluranLink },
-                    { data: 'total' }
-                ],
+                const columnName = meta.settings.aoColumns[meta.col].data;
 
-                ajax: {
-                    url: "{{ route('pengundi.list_data') }}",
-                    type: "POST",
-                    data: function (d) {
-                        d.parlimen = parSelect.value;
-                        d.dun = dunSelect.value;
-                        d.dm = dmSelect.value;
-                        d.type = typeSelect.value;
-                        d.series = seriesSelect.value;
-                    },
-                    dataSrc: json => json.data
-                },
-
-                // 🔥 SAVE FILTERS INSIDE DATATABLE STATE
-                stateSaveParams: function (settings, data) {
-                    data.filters = {
-                        type: typeSelect.value,
-                        series: seriesSelect.value,
-                        par: parSelect.value,
-                        dun: dunSelect.value,
-                        dm: dmSelect.value
-                    };
-                },
-
-                // 🔥 RESTORE FILTERS CLEANLY
-                stateLoadParams: async function (settings, data) {
-
-                    if (!data.filters) return;
-
-                    typeSelect.value = data.filters.type;
-                    seriesSelect.value = data.filters.series;
-
-                    await loadHierarchy();
-
-                    parSelect.value = data.filters.par;
-                    buildDun(parSelect.value);
-
-                    dunSelect.value = data.filters.dun;
-                    buildDm(parSelect.value, dunSelect.value);
-
-                    dmSelect.value = data.filters.dm;
-                },
-
-                language: {
-                    emptyTable: "Sila pilih filter untuk lihat data"
+                if (row['link_' + columnName]) {
+                    return `<a href="${row['link_' + columnName]}">${data}</a>`;
                 }
-            });
 
-            // ==============================
+                return data;
+            }
+
+            // =====================================================
+            // INIT DATATABLE
+            // =====================================================
+            function initDataTable() {
+
+                table = $('#pengundiTable').DataTable({
+
+                    processing: true,
+                    serverSide: false,
+                    stateSave: true,
+                    deferLoading: 0,
+                    searching: true,
+                    paging: true,
+                    fixedHeader: true,
+                    orderCellsTop: true,
+
+                    columns: [
+                        { data: 'kod_lokaliti', visible: false, defaultContent: '' },
+                        { data: 'nama_lokaliti', defaultContent: '' },
+                        { data: 'saluran_1', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_2', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_3', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_4', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_5', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_6', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'saluran_7', defaultContent: 0, render: renderSaluranLink },
+                        { data: 'total', defaultContent: 0 }
+                    ],
+
+                    ajax: {
+                        url: "{{ route('pengundi.list_data') }}",
+                        type: "POST",
+                        data: function (d) {
+                            if (!allFiltersSelected()) {
+                                return {}; // send empty object, backend can safely handle
+                            }
+
+                            d.parlimen = parSelect.value;
+                            d.dun = dunSelect.value;
+                            d.dm = dmSelect.value;
+                            d.type = typeSelect.value;
+                            d.series = seriesSelect.value;
+                        },
+                        dataSrc: json => json.data ?? []
+                    },
+
+                    stateSaveParams: function (settings, data) {
+                        data.filters = {
+                            type: typeSelect.value,
+                            series: seriesSelect.value,
+                            par: parSelect.value,
+                            dun: dunSelect.value,
+                            dm: dmSelect.value
+                        };
+                    },
+
+                    language: {
+                        emptyTable: "Sila pilih semua filter untuk lihat data"
+                    }
+                });
+            }
+
+            // =====================================================
+            // FULL RESTORE FLOW
+            // =====================================================
+            (async function () {
+
+                resetDropdowns();
+
+                let savedState = JSON.parse(
+                    localStorage.getItem('DataTables_pengundiTable_' + window.location.pathname)
+                );
+
+                if (savedState?.filters) {
+
+                    typeSelect.value = savedState.filters.type || "";
+                    seriesSelect.value = savedState.filters.series || "";
+
+                    if (typeSelect.value && seriesSelect.value) {
+
+                        await loadHierarchy();
+
+                        if (savedState.filters.par) {
+                            parSelect.value = savedState.filters.par;
+                            buildDun(parSelect.value);
+                        }
+
+                        if (savedState.filters.dun) {
+                            dunSelect.value = savedState.filters.dun;
+                            buildDm(parSelect.value, dunSelect.value);
+                        }
+
+                        if (savedState.filters.dm) {
+                            dmSelect.value = savedState.filters.dm;
+                        }
+                    }
+                }
+
+                initDataTable();
+
+                if (allFiltersSelected()) {
+                    table.ajax.reload();
+                }
+
+            })();
+
+            // =====================================================
             // EVENTS
-            // ==============================
+            // =====================================================
             typeSelect.addEventListener('change', async function () {
                 await loadHierarchy();
-                table.ajax.reload();
+                if (allFiltersSelected()) table.ajax.reload();
             });
 
             seriesSelect.addEventListener('change', async function () {
                 await loadHierarchy();
-                table.ajax.reload();
+                if (allFiltersSelected()) table.ajax.reload();
             });
 
             parSelect.addEventListener('change', function () {
                 buildDun(this.value);
-                table.ajax.reload();
+                if (allFiltersSelected()) table.ajax.reload();
             });
 
             dunSelect.addEventListener('change', function () {
                 buildDm(parSelect.value, this.value);
-                table.ajax.reload();
+                if (allFiltersSelected()) table.ajax.reload();
             });
 
             dmSelect.addEventListener('change', function () {
-                table.ajax.reload();
+                if (allFiltersSelected()) table.ajax.reload();
             });
-
-            function renderSaluranLink(data, type, row, meta) {
-                if (data > 0) {
-                    const columnName = meta.settings.aoColumns[meta.col].data;
-                    return `<a href="${row['link_' + columnName]}">${data}</a>`;
-                }
-                return data;
-            }
 
         });
     </script>

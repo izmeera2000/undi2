@@ -93,12 +93,12 @@
                     },
                     data: formData,
                     success: function () {
-                        alert('Lokaliti updated successfully!');
+                         toastr.success('Lokaliti updated successfully!');
                         window.location.href = "{{ route('lokaliti.index') }}";
                     },
                     error: function (xhr) {
-                        alert('Error updating Lokaliti!');
-                        console.error(xhr.responseText);
+                         toastr.error('Error updating Lokaliti!');
+                        // console.error(xhr.responseText);
                     }
                 });
             });

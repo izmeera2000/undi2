@@ -222,11 +222,11 @@
                     success: function () {
                         $('#bulkDMModal').modal('hide');
                         table.ajax.reload();
-                        alert("Bulk DM saved successfully!");
+                         toastr.success("Bulk DM saved successfully!");
                     },
                     error: function (xhr) {
-                        alert("Error saving bulk DM!");
-                        console.error(xhr.responseText);
+                         toastr.error("Error saving bulk DM!");
+                        // console.error(xhr.responseText);
                     }
                 });
             });
@@ -286,11 +286,12 @@
                         $('#addDMModal').modal('hide');
                         table.ajax.reload();
                         // $('#addDMForm')[0].reset();
+                        toastr.success('DM saved successfully!');
                     },
                     error: function (xhr, status, error) {
-                        alert('Error saving DM!');
-                        console.error('Error:', error);
-                        console.error('Response:', xhr.responseText);
+                         toastr.error('Error saving DM!');
+                        // console.error('Error:', error);
+                        // console.error('Response:', xhr.responseText);
                     }
                 });
 
@@ -319,11 +320,11 @@
                         },
                         success: function () {
                             table.ajax.reload();
-                            alert('DM deleted successfully.');
+                               toastr.success('DM deleted successfully.');
                         },
                         error: function (xhr) {
-                            alert('Error deleting DM!');
-                            console.error(xhr.responseText);
+                               toastr.error('Error deleting DM!');
+                            // console.error(xhr.responseText);
                         }
                     });
                 }

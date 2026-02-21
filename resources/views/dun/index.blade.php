@@ -162,9 +162,11 @@
                     success: function () {
                         $('#addDUNModal').modal('hide');
                         table.ajax.reload();
+                        toastr.success('DUN saved successfully!');
+
                     },
                     error: function (err) {
-                        alert('Error saving DUN!');
+                        toastr.error('Error saving DUN!');
                     }
                 });
             });
@@ -191,11 +193,11 @@
                         },
                         success: function () {
                             table.ajax.reload();
-                            alert('DUN deleted successfully.');
+                            toastr.sucess('DUN deleted successfully.');
                         },
                         error: function (xhr) {
-                            alert('Error deleting DUN!');
-                            console.error(xhr.responseText);
+                               toastr.error('Error deleting DUN!');
+                            // console.error(xhr.responseText);
                         }
                     });
                 }

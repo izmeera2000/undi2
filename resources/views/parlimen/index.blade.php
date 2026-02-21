@@ -155,9 +155,11 @@
                     success: function () {
                         $('#addParlimenModal').modal('hide');
                         table.ajax.reload();
+                        toastr.success('Parlimen saved successfully!');
+
                     },
                     error: function (err) {
-                        alert('Error saving parlimen!');
+                        toastr.error('Error saving parlimen!');
                     }
                 });
             });

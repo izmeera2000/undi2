@@ -95,11 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             data: formData,
             success: function () {
-                alert('Dun updated successfully!');
+                toastr.sucess('Dun updated successfully!');
                 window.location.href = "{{ route('dun.index') }}";
             },
             error: function (xhr) {
-                alert('Error updating dun!');
+                toastr.error('Error updating dun!');
                 console.error(xhr.responseText);
             }
         });

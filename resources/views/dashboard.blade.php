@@ -21,7 +21,7 @@
   <div class="row g-4">
 
     <div class=" col col-md-6">
-      <div class="widget-banner-promo light h-100">
+      <div class="widget-banner-promo light h-100 shadow-sm">
         <div class="widget-banner-content">
           <p class="widget-banner-text">Good Day,</p>
 
@@ -62,7 +62,7 @@
 
     <div class="col-md-4">
       <!-- Upcoming Events -->
-      <div class="card mb-3 h-100">
+      <div class="card mb-3 ">
         <div class="card-header">Upcoming Events</div>
         <div class="card-body p-2" id="upcomingEventsA">
           <!-- JS will populate this -->
@@ -73,7 +73,7 @@
 
 
     <div class="col-lg-8">
-      <div class="card h-100">
+      <div class="card ">
         <div class="card-header">
           <h5 class="card-title">Tasks</h5>
           <div class="card-actions">

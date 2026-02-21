@@ -14,156 +14,80 @@
   <nav class="sidebar-nav">
     <ul class="nav-menu">
       <!-- Main Section -->
-      <li class="nav-item">
-        <a class="nav-link active" href="{{ route('dashboard') }}" data-sidebar-tooltip="Dashboard">
-          <i class="ph-light ph-squares-four"></i>
-          <span>Dashboard</span>
-        </a>
-      </li>
+      <x-sidebar.nav-item route="dashboard" icon="ph-light ph-squares-four" label="Dashboard" />
 
-      <!-- Dashboards Submenu -->
-      <li class="nav-item has-submenu ">
-        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Dashboards">
-          <i class="ph-light ph-gauge"></i>
-          <span>Pengundi</span>
-          <i class="ph-light ph-caret-down nav-arrow"></i>
-        </a>
-        <ul class="nav-submenu ">
-          <li><a class="nav-link " href="{{ route('pengundi.list') }}">List</a></li>
+      @can('pengundi.view')
+        <x-sidebar.nav-group pattern="pengundi.*" icon="ph-light ph-gauge" label="Pengundi">
 
-          <li><a class="nav-link " href="{{ route('pengundi.analytics') }}">Analytics</a></li>
+          <x-sidebar.nav-item route="pengundi.list" label="List" />
+
+          <x-sidebar.nav-item route="pengundi.analytics" label="Analytics" />
 
           @can('pengundi.add')
+            <x-sidebar.nav-item route="pengundi.bulkimport" label="Bulk Import" />
 
-            <li><a class="nav-link " href="{{ route('pengundi.bulkimport') }}">Bulk Import</a></li>
-            <li><a class="nav-link " href="{{ route('pengundi.bulkimport2') }}">Bulk Import 2</a></li>
-
-          
+            <x-sidebar.nav-item route="pengundi.bulkimport2" label="Bulk Import 2" />
           @endcan
-        </ul>
-      </li>
 
-      <!-- Users -->
-      <li class="nav-item has-submenu ">
-        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
-          <i class="ph-light ph-users"></i>
-          <span>Staff</span>
-          <i class="ph-light ph-caret-down nav-arrow"></i>
-        </a>
-        <ul class="nav-submenu ">
-          <li><a class="nav-link " href="{{ route('staff.list') }}">List</a></li>
+        </x-sidebar.nav-group>
+      @endcan
 
 
-        </ul>
-      </li>
+      <x-sidebar.nav-group pattern="staff.*" icon="ph-light ph-users" label="Staff">
+
+        <x-sidebar.nav-item route="staff.list" label="List" />
+
+      </x-sidebar.nav-group>
 
 
-      <li class="nav-item has-submenu ">
-        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
+      <x-sidebar.nav-group pattern="members.*" label="Members">
+
+        <x-slot name="iconSlot">
           <i class="umno-logo">
             @include('layouts.logo')
-
           </i>
+        </x-slot>
 
-          <span>Members</span>
-          <i class="ph-light ph-caret-down nav-arrow"></i>
-        </a>
-        <ul class="nav-submenu ">
-          <li><a class="nav-link " href="{{ route('members.list') }}">List</a></li>
+        <x-sidebar.nav-item route="members.list" label="List" />
 
+        <x-sidebar.nav-item route="members.list" label="Groups" />
 
-          <li><a class="nav-link " href="{{ route('members.list') }}">Groups</a></li>
-        </ul>
-      </li>
+      </x-sidebar.nav-group>
 
+      {{-- Events --}}
+      <x-sidebar.nav-item route="event" label="Events" icon="ph-light ph-calendar-blank" />
 
+      <x-sidebar.nav-item route="task.index" label="Task" icon="ph-light ph-check-square" />
 
-      <li class="nav-item">
-        <a class="nav-link " href="{{ route('event') }}" data-sidebar-tooltip="Event">
-          <i class="ph-light ph-calendar-blank"></i>
-          <span>Events</span>
-        </a>
-      </li>
+      {{-- Settings Heading --}}
+      <x-sidebar.nav-heading label="Settings" icon="ph-light ph-gear" />
 
-      <li class="nav-item">
-        <a class="nav-link " href="{{ route('task.index') }}" data-sidebar-tooltip="Event">
-          <i class="ph-light ph-check-square"></i>
-          <span>Task</span>
-        </a>
-      </li>
+      <x-sidebar.nav-item route="parlimen.index" label="Parlimen" icon="ph-light ph-buildings" />
 
-<li class="nav-heading">
-    <span>
-        <i class="ph-light ph-gear me-2"></i> Settings
-    </span>
-</li>
+      <x-sidebar.nav-item route="dun.index" label="Dun" icon="ph-light ph-map-trifold" />
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('parlimen.index') }}" data-sidebar-tooltip="Parlimen">
-        <i class="ph-light ph-buildings"></i>
-        <span>Parlimen</span>
-    </a>
-</li>
+      <x-sidebar.nav-item route="dm.index" label="DM" icon="ph-light ph-map-pin" />
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('dun.index') }}" data-sidebar-tooltip="Dun">
-        <i class="ph-light ph-map-trifold"></i>
-        <span>Dun</span>
-    </a>
-</li>
+      <x-sidebar.nav-item route="lokaliti.index" label="Lokaliti" icon="ph-light ph-house-line" />
 
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('dm.index') }}" data-sidebar-tooltip="DM">
-        <i class="ph-light ph-map-pin"></i>
-        <span>DM</span>
-    </a>
-</li>
-
-<li class="nav-item">
-    <a class="nav-link" href="{{ route('lokaliti.index') }}" data-sidebar-tooltip="Lokaliti">
-        <i class="ph-light ph-house-line"></i>
-        <span>Lokaliti</span>
-    </a>
-</li>
-
+      {{-- Admin-only section --}}
       @role('admin')
-      <!-- Apps Section -->
-      <li class="nav-heading"><span>Test</span></li>
+      {{-- Apps Heading --}}
+      <x-sidebar.nav-heading label="Test" />
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('testimport') }}" data-sidebar-tooltip="Test">
-          <i class="ph-light ph-file"></i>
-          <span>Test</span>
-        </a>
-      </li>
+      <x-sidebar.nav-item route="testimport" label="Test" icon="ph-light ph-file" />
 
-      <li class="nav-item">
-        <a class="nav-link" href="{{ route('clear-all') }}" data-sidebar-tooltip="Test">
-          <i class="ph-light ph-file"></i>
-          <span>Clear All</span>
-        </a>
-      </li>
+      <x-sidebar.nav-item route="clear-all" label="Clear All" icon="ph-light ph-file" />
 
-      <li class="nav-item has-submenu ">
-        <a class="nav-link" href="#" aria-expanded="false" data-sidebar-tooltip="Users">
-          <i class="umno-logo">
-            @include('layouts.logo')
+      {{-- Maps Submenu with Custom Icon Slot --}}
+      <x-sidebar.nav-group pattern="map.*" label="Maps">
+        <x-slot name="iconSlot">
+          <i class="umno-logo">@include('layouts.logo')</i>
+        </x-slot>
 
-          </i>
-
-          <span>Maps</span>
-          <i class="ph-light ph-caret-down nav-arrow"></i>
-        </a>
-        <ul class="nav-submenu ">
-
-
-          <li><a class="nav-link " href="{{ route('map.page2') }}">Fetch</a></li>
-
-          <li><a class="nav-link " href="{{ route('map.page') }}">Map</a></li>
-
-        </ul>
-      </li>
-
+        <x-sidebar.nav-item route="map.page2" label="Fetch" />
+        <x-sidebar.nav-item route="map.page" label="Map" />
+      </x-sidebar.nav-group>
       @endrole
 
 

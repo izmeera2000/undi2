@@ -210,32 +210,33 @@
 
             $('#saveBulkLokaliti').click(function () {
 
-    let data = lokalitiHot.getData();
+                let data = lokalitiHot.getData();
 
-    let filtered = data.filter(row =>
-        row[0] && row[1] && row[2]
-    );
+                let filtered = data.filter(row =>
+                    row[0] && row[1] && row[2]
+                );
 
-    $.ajax({
-        url: "{{ route('lokaliti.bulkStore') }}",
-        method: "POST",
-        headers: {
-            'X-CSRF-TOKEN': csrfToken
-        },
-        data: {
-            data: filtered
-        },
-        success: function () {
-            $('#bulkLokalitiModal').modal('hide');
-            table.ajax.reload();
-            alert('Bulk Lokaliti saved successfully!');
-        },
-        error: function (xhr) {
-            alert('Error saving bulk Lokaliti!');
-            console.error(xhr.responseText);
-        }
-    });
-});
+                $.ajax({
+                    url: "{{ route('lokaliti.bulkStore') }}",
+                    method: "POST",
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    data: {
+                        data: filtered
+                    },
+                    success: function () {
+                        $('#bulkLokalitiModal').modal('hide');
+                        table.ajax.reload();
+                        toastr.success('Bulk Lokaliti saved successfully!');
+
+                    },
+                    error: function (xhr) {
+                        toastr.error('Error saving bulk Lokaliti!');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
 
 
 
@@ -288,10 +289,12 @@
                     success: function () {
                         $('#addLokalitiModal').modal('hide');
                         table.ajax.reload();
+                        toastr.success('Lokaliti saved successfully!');
+
                         // $('#addLokalitiForm')[0].reset();
                     },
                     error: function () {
-                        alert('Error saving Lokaliti!');
+                        toastr.error('Error saving Lokaliti!');
                     }
                 });
             });
@@ -319,11 +322,11 @@
                         },
                         success: function () {
                             table.ajax.reload();
-                            alert('Lokaliti deleted successfully.');
+                            toastr.success('Lokaliti deleted successfully.');
                         },
                         error: function (xhr) {
-                            alert('Error deleting Lokaliti!');
-                            console.error(xhr.responseText);
+                            toastr.error('Error deleting Lokaliti!');
+                            // console.error(xhr.responseText);
                         }
                     });
                 }

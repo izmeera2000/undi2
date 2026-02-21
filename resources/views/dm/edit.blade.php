@@ -92,12 +92,12 @@
                     },
                     data: formData,
                     success: function () {
-                        alert('DM updated successfully!');
+                        toastr.success('DM updated successfully!');
                         window.location.href = "{{ route('dm.index') }}";
                     },
                     error: function (xhr) {
-                        alert('Error updating DM!');
-                        console.error(xhr.responseText);
+                        toastr.error('Error updating DM!');
+                        // console.error(xhr.responseText);
                     }
                 });
             });

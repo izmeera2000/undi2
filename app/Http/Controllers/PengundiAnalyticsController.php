@@ -13,6 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Yajra\DataTables\Facades\DataTables;
 
+use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
 
@@ -735,8 +736,8 @@ class PengundiAnalyticsController extends Controller
     public function getHierarchyByPru(Request $request)
     {
         $request->validate([
-            'type' => 'required',
-            'series' => 'required',
+            'type' => 'required|string',
+            'series' => 'required|string',
         ]);
 
         $selectedPRUYear = $this->PRMAP[$request->type][$request->series] ?? 2022;
@@ -788,18 +789,49 @@ class PengundiAnalyticsController extends Controller
         return response()->json($data);
     }
 
+
+
     public function list_data(Request $request)
     {
-        // $request->validate([
-        //     'type' => 'required',
-        //     'series' => 'required',
-        // ]);
+        // -------------------------------
+        // Step 0: Validate required filters
+        // -------------------------------
+        $validator = Validator::make($request->all(), [
+            'type' => 'required',
+            'series' => 'required',
+        ]);
 
-        $selectedPRUYear = $this->PRMAP[$request->type][$request->series] ?? 2022;
+        if ($validator->fails()) {
+            // Return empty data safely for DataTables
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        $type = $request->type;
+        $series = $request->series;
+
+        // -------------------------------
+        // Step 1: Resolve PRU year safely
+        // -------------------------------
+        if (!isset($this->PRMAP[$type][$series])) {
+            // invalid combination, return empty
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        $selectedPRUYear = $this->PRMAP[$type][$series];
         $selectedPRUDate = $selectedPRUYear . '-12-31';
 
         // -------------------------------
-        // Step 1: Join pengundi → lokaliti → dm → dun → parlimen (effective dates)
+        // Step 2: Build query
         // -------------------------------
         $pengundi = DB::table('pengundi')
             ->join('lokaliti', function ($join) use ($selectedPRUDate) {
@@ -829,75 +861,86 @@ class PengundiAnalyticsController extends Controller
             ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id');
 
         // -------------------------------
-        // Step 2: Apply filters from request
+        // Step 3: Apply optional filters safely
         // -------------------------------
-        if ($request->parlimen) {
+        if ($request->parlimen)
             $pengundi->where('dun.parlimen_id', $request->parlimen);
-        }
-        if ($request->dun) {
+        if ($request->dun)
             $pengundi->where('dm.kod_dun', $request->dun);
-        }
-        if ($request->dm) {
+        if ($request->dm)
             $pengundi->where('lokaliti.koddm', $request->dm);
-        }
-        if ($request->pilihan_raya_type) {
+        if ($request->pilihan_raya_type)
             $pengundi->where('pengundi.pilihan_raya_type', $request->pilihan_raya_type);
-        }
-        if ($request->pilihan_raya_series) {
+        if ($request->pilihan_raya_series)
             $pengundi->where('pengundi.pilihan_raya_series', $request->pilihan_raya_series);
-        }
 
-        $pengundi = $pengundi
-            ->select(
-                'pengundi.id',
-                'pengundi.nama',
-                'pengundi.kod_lokaliti',
-                'pengundi.saluran',
-                'lokaliti.koddm',
-                'lokaliti.nama_lokaliti',
-                'dm.kod_dun',
-                'dm.namadm',
-                'dun.parlimen_id',
-                'dun.namadun',
-                'parlimen.namapar'
-            )
-            ->get();
+        $pengundi = $pengundi->select(
+            'pengundi.id',
+            'pengundi.nama',
+            'pengundi.kod_lokaliti',
+            'pengundi.saluran',
+            'lokaliti.koddm',
+            'lokaliti.nama_lokaliti',
+            'dm.kod_dun',
+            'dm.namadm',
+            'dun.parlimen_id',
+            'dun.namadun',
+            'parlimen.namapar'
+        )->get();
 
         // -------------------------------
-        // Step 3: Aggregate totals per lokaliti & saluran
+        // Step 4: Return empty if no data
+        // -------------------------------
+        if ($pengundi->isEmpty()) {
+            return response()->json([
+                'draw' => intval($request->draw ?? 1),
+                'recordsTotal' => 0,
+                'recordsFiltered' => 0,
+                'data' => []
+            ]);
+        }
+
+        // -------------------------------
+        // Step 5: Aggregate per lokaliti & saluran
         // -------------------------------
         $dataByLokaliti = $pengundi
             ->groupBy('kod_lokaliti')
-            ->map(function ($group, $kod_lokaliti) use ($request) {
-
+            ->map(function ($group, $kod_lokaliti) use ($request, $type, $series) {
                 $row = [
-                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id,
-                    'dun' => $request->dun ?? $group[0]->kod_dun,
-                    'dm' => $request->dm ?? $group[0]->koddm,
+                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id ?? null,
+                    'dun' => $request->dun ?? $group[0]->kod_dun ?? null,
+                    'dm' => $request->dm ?? $group[0]->koddm ?? null,
                     'kod_lokaliti' => $kod_lokaliti,
-                    'nama_lokaliti' => $group[0]->nama_lokaliti,
-                    'pilihan_raya_type' => $request->type ?? null,
-                    'pilihan_raya_series' => $request->series ?? null,
-                    'total' => count($group),
+                    'nama_lokaliti' => $group[0]->nama_lokaliti ?? null,
+                    'pilihan_raya_type' => $type,
+                    'pilihan_raya_series' => $series,
                 ];
 
-                // Saluran counts
-                $saluranCounts = $group->groupBy('saluran')->map(fn($g) => count($g))->toArray();
-                foreach ($saluranCounts as $s => $count) {
-                    $row["saluran_$s"] = $count;
-                    $row["link_saluran_$s"] = "/pengundi/list/"
-                        . ($row['parlimen_id'] ?? '0') . "/"
-                        . ($row['dun'] ?? '0') . "/"
-                        . ($row['dm'] ?? '0') . "/"
-                        . ($row['kod_lokaliti'] ?? '0') . "/"
-                        . $s . "/"
-                        . ($row['pilihan_raya_type'] ?? '0') . "/"
-                        . ($row['pilihan_raya_series'] ?? '0');
+                // Initialize saluran 1-7
+                for ($i = 1; $i <= 7; $i++) {
+                    $row["saluran_$i"] = 0;
+                    $row["link_saluran_$i"] = null;
                 }
 
+                $saluranCounts = $group->groupBy('saluran')->map(fn($g) => count($g))->toArray();
+                foreach ($saluranCounts as $s => $count) {
+                    if (is_numeric($s) && $s >= 1 && $s <= 7) {
+                        $row["saluran_$s"] = $count;
+                        $row["link_saluran_$s"] = "/pengundi/list/"
+                            . ($row['parlimen_id'] ?? '0') . "/"
+                            . ($row['dun'] ?? '0') . "/"
+                            . ($row['dm'] ?? '0') . "/"
+                            . ($row['kod_lokaliti'] ?? '0') . "/"
+                            . $s . "/"
+                            . ($row['pilihan_raya_type'] ?? '0') . "/"
+                            . ($row['pilihan_raya_series'] ?? '0');
+                    }
+                }
+
+                $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
+
                 return $row;
-            })
-            ->values();
+            })->values();
 
         $grandTotal = $pengundi->count();
 
@@ -908,8 +951,6 @@ class PengundiAnalyticsController extends Controller
             'data' => $dataByLokaliti
         ]);
     }
-
-
 
     public function list_details(
         $parlimen = null,
