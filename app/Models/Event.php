@@ -24,8 +24,8 @@ class Event extends Model
 
     protected $casts = [
         'start_date' => 'datetime',
-        'end_date'   => 'datetime',
-        'all_day'    => 'boolean',
+        'end_date' => 'datetime',
+        'all_day' => 'boolean',
     ];
 
     // Creator
@@ -34,10 +34,17 @@ class Event extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    
+
     // Participants
     public function participants()
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(
+            User::class,
+            'event_user',   // pivot table
+            'event_id',     // foreign key on pivot
+            'user_id'       // related key on pivot
+        )->withTimestamps();
     }
 
     /**
@@ -58,18 +65,5 @@ class Event extends Model
     /**
      * Boot method to automatically log Event actions
      */
-    protected static function booted()
-    {
-        static::created(function ($event) {
-            activity()->performedOn($event)->log("Event with ID {$event->id} created.");
-        });
-
-        static::updated(function ($event) {
-            activity()->performedOn($event)->log("Event with ID {$event->id} updated.");
-        });
-
-        static::deleted(function ($event) {
-            activity()->performedOn($event)->log("Event with ID {$event->id} deleted.");
-        });
-    }
+  
 }

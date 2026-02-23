@@ -257,44 +257,49 @@
           <div class="card-body">
 
 
-            <div class="activity-timeline">
+<div class="activity-timeline">
 
-              @foreach($member->pengundiGroupedByTarikh() as $tarikh => $pengundiCollection)
-                @forelse($pengundiCollection as $pengundi)
-                  <div class="activity-timeline-item">
-                    <div class="activity-timeline-marker success"></div>
-                    <div class="activity-timeline-content">
-                      <div class="activity-timeline-header">
-                        <span class="activity-timeline-title">Registered Voter</span>
-                        <span class="activity-timeline-time">{{ $tarikh }}</span>
-                      </div>
-                      <p class="activity-timeline-desc">
-                        {{ $tarikh - $member->tahun_lahir }}
-                        <br>
-                        @if($pengundi->status_umno)
-                          Undi UMNO
-                        @else
-                          Undi Lain
-                        @endif
-                        <br>
-                        {{ $pengundi->dm->namadm }}
-                      </p>
-                    </div>
-                  </div>
-                @empty
-                  <div class="activity-timeline-item">
-                    <div class="activity-timeline-marker secondary"></div>
-                    <div class="activity-timeline-content">
-                      <div class="activity-timeline-header">
-                        <span class="activity-timeline-title">Not Registered</span>
-                        <span class="activity-timeline-time">{{ $tarikh }}</span>
-                      </div>
-                    </div>
-                  </div>
-                @endforelse
-              @endforeach
+  @foreach($member->pengundiGroupedByElection() as $electionKey => $pengundiCollection)
+    @php
+        // Split the key into type and series for display
+        [$type, $series] = explode('_', $electionKey);
+    @endphp
 
-            </div>
+    @forelse($pengundiCollection as $pengundi)
+      <div class="activity-timeline-item">
+        <div class="activity-timeline-marker success"></div>
+        <div class="activity-timeline-content">
+          <div class="activity-timeline-header">
+            <span class="activity-timeline-title">Registered Voter </span>
+            <span class="activity-timeline-time">({{ $type }} #{{ $series }})</span>
+          </div>
+          <p class="activity-timeline-desc">
+            Age at election: {{ ($pengundi->tarikh_undian ?? now()->year) - $member->tahun_lahir }}
+            <br>
+            @if($pengundi->status_umno)
+              Undi UMNO
+            @else
+              Undi Lain
+            @endif
+            <br>
+            {{ optional($pengundi->lokaliti)->nama_lokaliti ?? 'Unknown Lokaliti' }}
+          </p>
+        </div>
+      </div>
+    @empty
+      <div class="activity-timeline-item">
+        <div class="activity-timeline-marker secondary"></div>
+        <div class="activity-timeline-content">
+          <div class="activity-timeline-header">
+            <span class="activity-timeline-title">Not Registered</span>
+            <span class="activity-timeline-time">{{ $type }} #{{ $series }}</span>
+          </div>
+        </div>
+      </div>
+    @endforelse
+  @endforeach
+
+</div>
 
 
           </div>

@@ -20,7 +20,7 @@ class TaskController extends Controller
     public function index()
     {
         $tasks = Task::with(['creator', 'assignee', 'category'])->latest()->get();
-        $users = User::all(); // all users
+        $users = User::where('id', '!=', auth()->id())->get();
         $categories = TaskCategory::all(); // all task categories
 
         return view('task.index', compact('tasks', 'users', 'categories'));
@@ -36,6 +36,8 @@ class TaskController extends Controller
 
     public function data()
     {
+        $userId = auth()->id();
+
         $tasks = Task::with([
             'creator',
             'assignee',
@@ -43,6 +45,10 @@ class TaskController extends Controller
             'subtasks',
             'activities.causer.profile',
         ])
+            ->where(function ($query) use ($userId) {
+                $query->where('created_by', $userId)
+                    ->orWhere('assigned_to', $userId);
+            })
             ->latest()
             ->get();
 
@@ -101,7 +107,7 @@ class TaskController extends Controller
             'category_id' => 'nullable|exists:tasks_category,id',
             'tags' => 'nullable|array',
             'subtasks' => 'nullable|array',
-            'subtasks.*.title' => 'required|string|max:255',  
+            'subtasks.*.title' => 'required|string|max:255',
             'subtasks.*.is_completed' => 'nullable|boolean',
         ]);
 

@@ -32,14 +32,17 @@
                                     <i class="bi bi-person-circle"></i>
                                     <span>Avatar &amp; Status</span>
                                 </a>
-          
+                         <a href="#section-personal" class="edit-nav-item">
+                                    <i class="bi bi-person"></i>
+                                    <span>Personal Info</span>
+                                </a>
                                 <a href="#section-contact" class="edit-nav-item">
                                     <i class="bi bi-envelope"></i>
                                     <span>Contact Details</span>
                                 </a>
 
                                 </a>
-                                @if (auth()->user()->isAdmin() && auth()->id() !== $member->id)
+                                @if (auth()->user()->isAdmin() )
                                     <a href="#section-danger" class="edit-nav-item text-danger">
                                         <i class="bi bi-exclamation-triangle"></i>
                                         <span>Danger Zone</span>
@@ -88,6 +91,23 @@
 
                             </div>
 
+                        </div>
+                    </div>
+
+                                        <!-- Personal Information Section -->
+                    <div class="card" id="section-personal">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0"><i class="bi bi-person me-2"></i>Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" value="{{ $member->nama }}" required>
+                                </div>
+
+                         
+                            </div>
                         </div>
                     </div>
 
@@ -169,7 +189,7 @@
 
        
 
-                    @if (auth()->user()->isAdmin() && auth()->id() !== $member->id)
+                    @if (auth()->user()->isAdmin() )
                         <!-- Danger Zone Section -->
                         <div class="card border-danger" id="dangerZone" data-user-id="{{ $member->id }}">
                             <div class="card-header bg-danger-light">
@@ -211,13 +231,7 @@
 @push('scripts')
 
 
-   
-    {{--
-    @include('member.partials.edit.changerole')
-    @include('member.partials.edit.revoke')
-    @include('member.partials.edit.savepassword')
-    @include('member.partials.edit.status')
-    --}}
+    
 
     @include('members.partials.edit.deleteuser')
 
@@ -259,7 +273,7 @@
             formData.append('_token', '{{ csrf_token() }}');
 
             $.ajax({
-                url: '/members/{{ $member->id ?? auth()->id() }}/avatar',
+                url: '/members/{{ $member->id }}/avatar',
                 type: 'POST',
                 data: formData,
                 processData: false,

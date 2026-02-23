@@ -1,10 +1,12 @@
 <?php
 
 use App\Http\Controllers\MembersController;
+use App\Http\Controllers\MembersImportController;
 use App\Http\Controllers\ProfileController;
+
+use App\Http\Controllers\PermissionController;
+
 use App\Http\Controllers\PengundiImportController;
-use App\Http\Controllers\MembersTransferController;
-use App\Http\Controllers\MembersUploadController;
 use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EventController;
@@ -236,45 +238,43 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
     });
-
-    // Members
+    // Members Routes
     Route::prefix('members')->name('members.')->group(function () {
 
-
+        // ---------------------------
+        // STATIC / FIXED ROUTES FIRST
+        // ---------------------------
         Route::get('list', [MembersController::class, 'list'])->name('list');
-
-        Route::get('{member}/edit', [MembersController::class, 'edit'])->name('edit');
         Route::post('data', [MembersController::class, 'getList'])->name('data');
-        // Route::resource('/', StaffController::class)->except(['index']);
-        Route::get('{member}', [MembersController::class, 'show'])->name('show');
-        // Route::post('{user}/suspend', [StaffController::class, 'suspend'])->name('suspend');
-        // Route::post('{user}/activate', [StaffController::class, 'activate'])->name('activate');
-        // Route::post('{user}/role', [StaffController::class, 'changeRole'])->name('changeRole');
-        Route::post('{user}/profile', [StaffController::class, 'updateProfile'])->name('profile.update');
-        // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
-        Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
-        Route::delete('{member}', [MembersController::class, 'destroy'])->name('destroy');
-
         Route::post('store', [MembersController::class, 'store'])->name('store');
 
-
-
-        Route::get('/duns/{dunId}', [MembersController::class, 'getDmsByDun'])->name('duns');
-
-
+        Route::get('bulkimport', [MembersController::class, 'bulkimport'])->name('bulkimport');
+        Route::post('import', [MembersImportController::class, 'import'])->name('import');
 
 
 
-        Route::post('upload', [MembersUploadController::class, 'upload'])->name('upload');
-        Route::get('transfer', [MembersTransferController::class, 'transfer']);
+        Route::get('importProgress', [MembersImportController::class, 'importProgress'])
+            ->name('importProgress');
 
 
+        Route::get('transferProgress', [MembersImportController::class, 'transferProgress'])
+            ->name('transferProgress');
 
 
+        Route::get('duns/{kod_dun}', [MembersController::class, 'getDmsByDun'])->name('duns');
 
+        // ---------------------------
+        // DYNAMIC ROUTES / PARAMETERIZED
+        // ---------------------------
+        Route::get('{member}', [MembersController::class, 'show'])->name('show');
+        Route::get('{member}/edit', [MembersController::class, 'edit'])->name('edit');
+        Route::delete('{member}', [MembersController::class, 'destroy'])->name('destroy');
+
+        Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
+        Route::post('{member}/profile', [MembersController::class, 'updateProfile'])->name('profile.update');
+        // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
 
     });
-
 
 
     Route::prefix('parlimen')->name('parlimen.')->group(function () {
@@ -335,7 +335,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/', [LokalitiController::class, 'index'])->name('index');   // list page
         Route::post('/', [LokalitiController::class, 'store'])->name('store');
         Route::post('/bulk-store', [LokalitiController::class, 'bulkStore'])
-    ->name('bulkStore');
+            ->name('bulkStore');
 
         Route::get('/{lokaliti}/edit', [LokalitiController::class, 'edit'])->name('edit');
         Route::put('/{lokaliti}', [LokalitiController::class, 'update'])->name('update');
@@ -401,6 +401,19 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/clear/all', [ActivityLogController::class, 'clear'])->name('clear');
     });
 
+
+
+    // Route::prefix('permissions')->name('permissions.')->group(function () {
+    //     Route::get('/', [PermissionController::class, 'index'])->name('index');
+    //     Route::post('/store', [PermissionController::class, 'store'])->name('store');
+    //     Route::post('/update/{permission}', [PermissionController::class, 'update'])->name('update');
+    //     Route::delete('/delete/{permission}', [PermissionController::class, 'destroy'])->name('delete');
+    //     Route::get('/{role?}', [PermissionController::class, 'index'])
+    //         ->name('permissions.index');
+
+    //     Route::post('/{role}/sync', [PermissionController::class, 'sync'])
+    //         ->name('permissions.sync');
+    // });
 
 
 

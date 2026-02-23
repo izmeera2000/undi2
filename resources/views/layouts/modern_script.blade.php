@@ -32,6 +32,7 @@
 <script>
 
     const toast = new ToastMagic();
+    const toastr = new ToastMagic();
 
     document.addEventListener('DOMContentLoaded', function () {
 

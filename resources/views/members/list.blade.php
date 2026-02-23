@@ -212,37 +212,35 @@
 
 
 
-        $('#dun_id').on('change', function () {
-          // Get the selected DUN id
-          var dunId = $(this).val();
+$('#dun_id').on('change', function () {
+    var dunKod = $(this).val(); // this is now kod_dun
+    var csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-          // Clear the DM dropdown (set default option)
-          $('#kod_dm').html('<option value="">-- Select DM --</option>');
+    // Reset DM dropdown
+    $('#kod_dm').html('<option value="">-- Select DM --</option>');
 
-          // If a DUN is selected
-          if (dunId) {
-            $.ajax({
-              url: "{{ route('members.duns', ':dunId') }}".replace(':dunId', dunId),
-              method: 'GET',
-              headers: {
-                'X-CSRF-TOKEN': csrfToken
-              },
-              success: function (response) {
-                // Populate the DM dropdown with the new options
+    if (dunKod) {
+        $.ajax({
+            url: "{{ route('members.duns', ':dunKod') }}".replace(':dunKod', dunKod),
+            method: 'GET',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            success: function(response) {
                 if (response.dms.length > 0) {
-                  response.dms.forEach(function (dm) {
-                    $('#kod_dm').append('<option value="' + dm.koddm + '">' + dm.namadm + ' (' + dm.koddm + ')</option>');
-                  });
+                    response.dms.forEach(function(dm) {
+                        $('#kod_dm').append(
+                            '<option value="' + dm.koddm + '">' + dm.namadm + ' (' + dm.koddm + ')</option>'
+                        );
+                    });
                 } else {
-                  $('#kod_dm').append('<option value="">No DM found for this DUN</option>');
+                    $('#kod_dm').append('<option value="">No DM found for this DUN</option>');
                 }
-              },
-              error: function () {
+            },
+            error: function() {
                 alert('Error fetching DM data.');
-              }
-            });
-          }
+            }
         });
+    }
+});
 
 
 

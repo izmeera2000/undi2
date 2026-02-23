@@ -21,7 +21,7 @@ class EventController extends Controller
         $this->middleware('permission:event.view')->only(['index', 'show', 'upcoming', 'list']);
         $this->middleware('permission:event.add')->only(['store']);
         $this->middleware('permission:event.edit')->only(['update']);
-        $this->middleware('permission:event.delete')->only(['authorizeDelete','destroy']);
+        $this->middleware('permission:event.delete')->only(['authorizeDelete', 'destroy']);
     }
 
 
@@ -32,7 +32,7 @@ class EventController extends Controller
         $start = Carbon::parse($request->query('start'));
         $end = Carbon::parse($request->query('end'));
 
-        $events = Event::with('participants')
+        $events = Event::with('creator', 'participants')
             ->where(function ($query) {
                 $query->where('created_by', Auth::id())
                     ->orWhereHas('participants', function ($q) {
@@ -48,18 +48,27 @@ class EventController extends Controller
                     'title' => $event->title,
                     'start' => $event->start_date?->toIso8601String(),
                     'end' => $event->end_date
-                        ? $event->end_date->toIso8601String()
+                        ? ($event->all_day
+                            ? $event->end_date->copy()->addDay()->toDateString()
+                            : $event->end_date->toIso8601String())
                         : null,
                     'allDay' => (bool) $event->all_day,
                     'backgroundColor' => $event->color ?? '#0d6efd',
 
                     'extendedProps' => [
                         'description' => $event->description,
+
                         'participants' => $event->participants->map(fn($u) => [
                             'id' => $u->id,
                             'name' => $u->name,
                         ]),
+
                         'created_by' => $event->created_by,
+
+                        'creator' => [
+                            'id' => $event->creator?->id,
+                            'name' => $event->creator?->name,
+                        ],
                     ],
                 ];
             });
@@ -222,7 +231,11 @@ class EventController extends Controller
                     'id' => $event->id,
                     'title' => $event->title,
                     'start' => $event->start_date->toIso8601String(),
-                    'end' => $event->end_date ? $event->end_date->toIso8601String() : null,
+                    'end' => $event->end_date
+                        ? ($event->all_day
+                            ? $event->end_date->copy()->addDay()->toDateString()
+                            : $event->end_date->toIso8601String())
+                        : null,
                     'allDay' => (bool) $event->all_day,
                     'backgroundColor' => $event->color ?? '#0d6efd',
                     'extendedProps' => [

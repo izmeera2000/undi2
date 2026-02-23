@@ -161,6 +161,7 @@
       $.post('{{ route("task.data") }}')
         .done(function (data) {
           tasks = data;
+          console.log(tasks);
           renderTasks(tasks);
         })
         .fail(function (xhr) {
@@ -442,8 +443,7 @@
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (newTask) {
-          tasks.push(newTask); // add to global tasks array
-          renderTasks(tasks); // rerender
+      getTasks();
           $('#addTaskModal').modal('hide');
           $('#addTaskForm')[0].reset();
           $('#addTaskSubtasks').empty();

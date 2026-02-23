@@ -2,82 +2,87 @@
 
 namespace App\Jobs;
 
-use App\Models\MembersRaw;
-use App\Models\Parlimen;
-use App\Models\Dun;
 use App\Models\Member;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class TransferMembersJob implements ShouldQueue
 {
-    use Dispatchable, Queueable, InteractsWithQueue, SerializesModels;
+    use Dispatchable, InteractsWithQueue;
 
-    public $timeout = 0; // no timeout
-    public $tries = 3;
+    protected string $tempTable = 'members_raw';
+    protected int $batchSize = 300;
+    protected string $cacheKey;
+
+    // Only transfer these columns to members table
+    protected array $allowedColumns = [
+        'kod_dun',
+        'kod_cwgn',
+        'nama_cwgn',
+        'no_ahli',
+        'nokp_baru',
+        'nokp_lama',
+        'nama',
+        'tahun_lahir',
+        'umur',
+        'jantina',
+        'alamat_1',
+        'alamat_2',
+        'alamat_3',
+        'bangsa',
+        'kod_dm',
+        'alamat_jpn_1',
+        'alamat_jpn_2',
+        'alamat_jpn_3',
+        'poskod',
+        'bandar',
+        'negeri',
+    ];
+
+    public function __construct(string $cacheKey)
+    {
+        $this->cacheKey = $cacheKey;
+    }
 
     public function handle()
     {
-        MembersRaw::orderBy('id')
-            ->chunk(1000, function ($rows) {
+        $total = DB::table($this->tempTable)->count();
+        $count = 0;
+
+        DB::table($this->tempTable)
+            ->orderBy('id')
+            ->chunk($this->batchSize, function ($rows) use (&$count, $total) {
+                $insertData = [];
 
                 foreach ($rows as $row) {
+                    $rowArray = (array) $row;
 
-                    DB::transaction(function () use ($row) {
+                    // Filter only allowed columns
+                    $filtered = array_intersect_key($rowArray, array_flip($this->allowedColumns));
 
-                        // 1️⃣ Parlimen
-                        $parlimen = Parlimen::firstOrCreate(
-                            ['kod_par' => $row->kod_bhgn],
-                            ['namapar' => $row->nama_bhgn]
-                        );
+                    // Add timestamps (assuming you want the current timestamp for both created_at and updated_at)
+                    $filtered['created_at'] = now();
+                    $filtered['updated_at'] = now();
 
-                        // 2️⃣ DUN
-                        $dun = Dun::firstOrCreate(
-                            [
-                                'parlimen_id' => $parlimen->id,
-                                'kod_dun' => $row->kod_dun
-                            ],
-                            [
-                                'nama_dun' => $row->nama_dun
-                            ]
-                        );
-
-                        // 3️⃣ Member (SIMPAN dun_id)
-                        Member::updateOrCreate(
-                            [
-                                'nokp_baru' => $row->nokp_baru
-                            ],
-                            [
-                                'dun_id' => $dun->id,   // ✅ INI JAWAPAN UTAMA ANDA
-    
-                                'kod_cwgn' => $row->kod_cwgn,
-                                'nama_cwgn' => $row->nama_cwgn,
-                                'no_ahli' => $row->no_ahli,
-                                'nokp_lama' => $row->nokp_lama,
-                                'nama' => $row->nama,
-                                'tahun_lahir' => $row->tahun_lahir,
-                                'umur' => $row->umur,
-                                'jantina' => $row->jantina,
-                                'alamat_1' => $row->alamat_1,
-                                'alamat_2' => $row->alamat_2,
-                                'alamat_3' => $row->alamat_3,
-                                'bangsa' => $row->bangsa,
-                                'kod_dm' => $row->kod_dm,
-                                'alamat_jpn_1' => $row->alamat_jpn_1,
-                                'alamat_jpn_2' => $row->alamat_jpn_2,
-                                'alamat_jpn_3' => $row->alamat_jpn_3,
-                                'poskod' => $row->poskod,
-                                'bandar' => $row->bandar,
-                                'negeri' => $row->negeri,
-                            ]
-                        );
-
-                    });
+                    $insertData[] = $filtered;
                 }
+                if ($insertData) {
+                    Member::insert($insertData);
+                }
+
+                $count += count($rows);
+
+                // Update progress cache
+                Cache::put($this->cacheKey, ['count' => $count, 'total' => $total]);
             });
+
+        // Clear temp table after transfer
+        DB::table($this->tempTable)->truncate();
+
+        Cache::put($this->cacheKey, ['count' => $total, 'total' => $total]);
     }
 }

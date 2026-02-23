@@ -122,12 +122,12 @@
         .then(data => {
           if (!data.success) {
             info.revert(); // revert if failed
-            alert('Update failed');
+            toastr.error('Update failed');
           }
         })
         .catch(() => {
           info.revert();
-          alert('Update error');
+          toastr.error('Update error');
         });
     }
 
@@ -136,12 +136,22 @@
       const currentUserId = {{ auth()->id() }};
       const deleteBtn = document.getElementById('deleteEventBtn');
       const tz = 'Asia/Kuala_Lumpur';
-
+      const canDeleteOwn = {{ auth()->user()->can('event.delete') ? 'true' : 'false' }};
+      const canDeleteOthers = {{ auth()->user()->can('event.delete.others') ? 'true' : 'false' }};
+      if ((canDeleteOwn && event.extendedProps.created_by === currentUserId) || canDeleteOthers) {
+        deleteBtn.classList.remove('d-none'); // show
+      } else {
+        deleteBtn.classList.add('d-none');    // hide
+      }
       // =========================
       // TITLE
       // =========================
       document.getElementById('eventDetailsTitle').textContent = event.title;
-
+      const creatorEl = document.getElementById('eventDetailsCreatedBy');
+      creatorEl.textContent = event.extendedProps.creator?.name ?? 'Unknown';
+      if (event.extendedProps.created_by === currentUserId) {
+        creatorEl.textContent += ' (You)';
+      }
       const start = event.start;
       const end = event.end;
 
@@ -259,7 +269,7 @@
     let allEventsMap = new Map(); // key = event.id
     let selectedEventId = null;
 
-    document.addEventListener('DOMContentLoaded', function () {
+    $(document).ready(function () {
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
       const calendarEl = document.getElementById('calendar');
@@ -372,17 +382,18 @@
         const endTime = document.getElementById('eventEndTime').value;
         const description = document.getElementById('eventDescription').value.trim();
         const color = document.getElementById('eventColor')?.value || '#3788d8'; // default color
+
         const participants = Array.from(
           document.querySelectorAll('.participant-checkbox:checked')
         ).map(cb => cb.value);
 
         // Validate required fields
         if (!title) {
-          alert('Event title is required!');
+          toastr.error('Event title is required!');
           return;
         }
         if (!date) {
-          alert('Start date is required!');
+          toastr.error('Start date is required!');
           return;
         }
 
@@ -454,13 +465,15 @@
               ).hide();
               calendar.refetchEvents();
               form.reset();
+              toastr.success('Event created successfully!');
+
             } else {
-              alert('Failed to create event. Please try again.');
+              toastr.error('Failed to create event. Please try again.');
             }
           })
           .catch(err => {
             console.error(err);
-            alert('Error creating event. Check console for details.');
+            toastr.error('Error creating event. Check console for details.');
           });
       });
 
@@ -487,7 +500,7 @@
           })
           .catch(err => {
             console.error(err);
-            alert('Failed to delete event');
+            toastr.error('Failed to delete event');
           });
       });
 
@@ -523,7 +536,7 @@
 
         futureEvents.forEach(event => {
 
-          console.log(futureEvents);
+          // console.log(futureEvents);
           const startDate = new Date(event.start);
 
 
@@ -557,19 +570,19 @@
           upcomingEl.insertAdjacentHTML(
             'beforeend',
             `
-                                              <div class="upcoming-event-item">
-                                                <div class="upcoming-event-color"
-                                                      style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
-                                                <div class="upcoming-event-date text-center me-2">
-                                                  <div class="fw-bold">${day}</div>
-                                                  <div>${month}</div>
-                                                </div>
-                                                <div>
-                                                  <div class="fw-semibold">${title}</div>
-                                                  <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
-                                                  </div>
-                                              </div>
-                                            `
+                                                                        <div class="upcoming-event-item">
+                                                                          <div class="upcoming-event-color"
+                                                                                style="background:${event.backgroundColor || '#0d6efd'}; width: 8px;"></div>
+                                                                          <div class="upcoming-event-date text-center me-2">
+                                                                            <div class="fw-bold">${day}</div>
+                                                                            <div>${month}</div>
+                                                                          </div>
+                                                                          <div>
+                                                                            <div class="fw-semibold">${title}</div>
+                                                                            <div class="upcoming-event-time"><i class="bi bi-clock me-1"></i>${timeText}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                      `
           );
         });
 

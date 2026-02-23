@@ -5,7 +5,7 @@
       <div class="modal-header border-0 pb-0">
         <div>
           <h5 class="modal-title">Add New Member</h5>
-          <p class="text-muted small mb-0">Member will set their password on first login</p>
+          {{-- <p class="text-muted small mb-0">Member will set their password on first login</p> --}}
         </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
@@ -98,11 +98,11 @@
 
             <div class="col-md-6">
               <label class="form-label">DUN</label>
-              <select name="dun_id" id="dun_id" class="form-select">
+              <select name="kod_dun" id="dun_id" class="form-select">
                 <option value="">-- Select DUN --</option>
                 @foreach($duns as $dun)
-                  <option value="{{ $dun->id }}" {{ old('dun_id', $member->dun_id ?? '') == $dun->id ? 'selected' : '' }}>
-                    {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                  <option value="{{ $dun->kod_dun }}" {{ old('kod_dun', $member->kod_dun ?? '') == $dun->kod_dun ? 'selected' : '' }}>
+                    {{ $dun->kod_dun }}
                   </option>
                 @endforeach
               </select>
@@ -114,12 +114,11 @@
                 <option value="">-- Select DM --</option>
                 @foreach($dms as $dm)
                   <option value="{{ $dm->koddm }}" {{ old('kod_dm', $member->kod_dm ?? '') == $dm->koddm ? 'selected' : '' }}>
-                    {{ $dm->namadm }} ({{ $dm->koddm }})
+                    {{ $dm->koddm }}
                   </option>
                 @endforeach
               </select>
             </div>
-
 
             <div class="col-md-6">
               <label class="form-label">Kod CWGN</label>

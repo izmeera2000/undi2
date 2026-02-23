@@ -50,21 +50,23 @@ class Pengundi extends Model
     // Pengundi belongs to Lokaliti
     public function lokaliti()
     {
-        return $this->belongsTo(Lokaliti::class);
+        return $this->belongsTo(Lokaliti::class, 'kod_lokaliti', 'kod_lokaliti');
     }
 
     // Access DM through Lokaliti
+    // Access DM through Lokaliti (lokaliti.koddm → dm.koddm)
     public function dm()
     {
         return $this->hasOneThrough(
-            Dm::class,
-            Lokaliti::class,
-            'id',       // FK on lokaliti table
-            'id',       // FK on dm table
-            'lokaliti_id',
-            'dm_id'
+            Dm::class,          // final model
+            Lokaliti::class,    // intermediate model
+            'koddm',            // FK on Dm? No, intermediate FK is lokaliti.koddm
+            'koddm',            // PK on Dm = koddm
+            'kod_lokaliti',     // Local key on Pengundi
+            'koddm'             // Local key on Lokaliti
         );
     }
+
 
     // Access DUN through DM
     public function dun()
@@ -72,10 +74,10 @@ class Pengundi extends Model
         return $this->hasOneThrough(
             Dun::class,
             Dm::class,
-            'id',
-            'id',
-            'lokaliti_id',
-            'dun_id'
+            'kod_dun',     // FK on Dm = kod_dun
+            'kod_dun',     // PK on Dun = kod_dun
+            'koddm',       // Local key on Pengundi? Actually via dm
+            'kod_dun'      // Local key on DM
         );
     }
 

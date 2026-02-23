@@ -24,7 +24,7 @@ class MembersController extends Controller
 {
     //
 
-        public function __construct()
+    public function __construct()
     {
         // View permission
         $this->middleware('permission:members.view')->only([
@@ -55,9 +55,17 @@ class MembersController extends Controller
 
     public function list()
     {
-        $duns = Dun::orderBy('namadun')->get();
-        $dms = Dm::orderBy('namadm')->get();
+        // Get distinct DUNs, ordered by kod_dun
+        $duns = Dun::select('kod_dun', 'namadun')
+            ->groupBy('kod_dun', 'namadun') // group by ensures distinct combination
+            ->orderBy('kod_dun')
+            ->get();
 
+        // Get distinct DMs, ordered by koddm
+        $dms = Dm::select('koddm', 'namadm')
+            ->groupBy('koddm', 'namadm')
+            ->orderBy('koddm')
+            ->get();
         return view('members.list', compact('duns', 'dms'));
     }
 
@@ -201,6 +209,44 @@ class MembersController extends Controller
         ]);
     }
 
+public function updateProfile(Request $request, Member $member)
+{
+    // Validate input
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'nullable|email|max:255',
+        'phone' => 'nullable|string|max:20',
+        'alamat_1' => 'nullable|string|max:255',
+        'alamat_2' => 'nullable|string|max:255',
+        'alamat_3' => 'nullable|string|max:255',
+        'poskod' => 'nullable|string|max:10',
+        'bandar' => 'nullable|string|max:100',
+        'negeri' => 'nullable|string|max:100',
+    ]);
+
+    // Only update fillable fields
+    $member->update($request->only([
+        'name',
+        'email',
+        'phone',
+        'alamat_1',
+        'alamat_2',
+        'alamat_3',
+        'poskod',
+        'bandar',
+        'negeri',
+    ]));
+
+    // Reload fresh values
+    $member->refresh();
+
+    // Return updated member
+    return response()->json([
+        'success' => true,
+        'member' => $member,
+    ]);
+}
+
 
 
     public function store(Request $request)
@@ -220,7 +266,7 @@ class MembersController extends Controller
             'phone' => 'nullable|string|max:15|regex:/^[0-9\-\(\)\+\s]*$/',
             'no_ahli' => 'nullable|string|max:20',
 
-            
+
         ]);
 
         if ($validator->fails()) {
@@ -235,12 +281,12 @@ class MembersController extends Controller
         // =========================
         $data = $request->only([
             'dun_id',
-            'nama',      
+            'nama',
             'nokp_baru',
             'nokp_lama',
             'jantina',
             'email',
-            'phone', 
+            'phone',
             'no_ahli',
         ]);
 
@@ -271,16 +317,23 @@ class MembersController extends Controller
 
 
 
-
-    public function getDmsByDun($dunId)
+    public function getDmsByDun($kod_dun)
     {
-        // Fetch DMs by the selected DUN
-        $dms = Dm::where('dun_id', $dunId)->get(['koddm', 'namadm']);
+        // Fetch DMs using kod_dun
+        $dms = Dm::where('kod_dun', $kod_dun)->get(['koddm', 'namadm']);
 
-        // Return the DMs in JSON format
+        // Return JSON
         return response()->json(['dms' => $dms]);
     }
 
 
+
+
+    public function bulkimport()
+    {
+
+
+        return view(view: 'members.bulkimport');
+    }
 
 }

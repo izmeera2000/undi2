@@ -7,12 +7,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Member extends Model
 {
-
     use SoftDeletes;
 
-
     protected $fillable = [
-        'dun_id',
+        'kod_dun',
         'kod_cwgn',
         'nama_cwgn',
         'no_ahli',
@@ -34,16 +32,23 @@ class Member extends Model
         'bandar',
         'negeri',
         'profile_picture',
-     ];
-
-
-
+    ];
 
     public function dun()
     {
-        return $this->belongsTo(Dun::class);
+        // Assuming you have a Dun model
+        return $this->belongsTo(Dun::class, 'kod_dun', 'kod_dun');
     }
 
+    public function groups()
+    {
+        return $this->belongsToMany(
+            Group::class,
+            'member_groups',
+            'member_id',
+            'group_id'
+        )->withTimestamps();
+    }
 
     public function getProfilePictureUrlAttribute()
     {
@@ -51,17 +56,6 @@ class Member extends Model
             ? asset('storage/' . $this->profile_picture)
             : asset('assets/img/avatars/avatar-placeholder.webp');
     }
-
-    public function groups()
-    {
-        return $this->belongsToMany(
-            Group::class,
-            'member_groups',   // pivot table
-            'member_id',       // foreign key on pivot
-            'group_id'         // related key on pivot
-        )->withTimestamps();
-    }
-
 
     public function pengundi()
     {
@@ -71,36 +65,33 @@ class Member extends Model
         })->first();
     }
 
-    public function pengundiGroupedByTarikh()
+    public function pengundiGroupedByElection()
     {
-        // Get all distinct tarikh_undian values in the table
-        $allDates = Pengundi::select('tarikh_undian')->distinct()->pluck('tarikh_undian');
+        // Get all distinct election type + series combinations (ordered)
+        $allElections = Pengundi::select('pilihan_raya_type', 'pilihan_raya_series')
+            ->distinct()
+            ->orderByDesc('pilihan_raya_series')
+            ->get();
 
         // Fetch all pengundi records for this member
         $pengundi = Pengundi::where(function ($q) {
             $q->where('nokp_baru', $this->nokp_baru)
                 ->orWhere('nokp_lama', $this->nokp_lama);
         })
-            ->with('dm')
+            ->with(['dm', 'lokaliti', 'dun', 'parlimen'])
             ->get()
-            ->groupBy('tarikh_undian');
+            ->groupBy(function ($item) {
+                return $item->pilihan_raya_type . '_' . $item->pilihan_raya_series;
+            });
 
-        // Prepare result including empty dates
+        // Prepare result including empty elections
         $result = [];
-        foreach ($allDates as $date) {
-            // Keep all columns for each record in this date
-            $result[$date] = $pengundi->get($date, collect()); // empty collection if no record
+        foreach ($allElections as $election) {
+            $key = $election->pilihan_raya_type . '_' . $election->pilihan_raya_series;
+            $result[$key] = $pengundi->get($key, collect());
         }
 
-        return $result; // each key is a date, value is a collection of full records
+        return $result;
     }
-
-
-
-    public function isPengundi(): bool
-    {
-        return $this->pengundi() !== null;
-    }
-
 
 }

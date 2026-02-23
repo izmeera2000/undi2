@@ -41,20 +41,22 @@
             <label class="form-check-label fw-semibold" for="eventAllDay">All day event</label>
           </div>
 
-          <!-- Participants -->
-          <div class="mb-3">
+          <div class="mb-3 {{ auth()->user()->can('event.add.others') ? '' : 'd-none' }}">
             <label class="form-label fw-semibold">Participants</label>
             <input type="text" id="participantSearch" class="form-control mb-2" placeholder="Search participants...">
             <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
-              @foreach($users as $user)
-                <div class="form-check">
-                  <input class="form-check-input participant-checkbox" type="checkbox" value="{{ $user->id }}"
-                    id="participant{{ $user->id }}">
-                  <label class="form-check-label" for="participant{{ $user->id }}">
-                    {{ $user->name }}
-                  </label>
-                </div>
-              @endforeach
+
+              @can('event.add.others')
+                @foreach($users as $user)
+                  <div class="form-check">
+                    <input class="form-check-input participant-checkbox" type="checkbox" value="{{ $user->id }}"
+                      id="participant{{ $user->id }}">
+                    <label class="form-check-label" for="participant{{ $user->id }}">
+                      {{ $user->name }}
+                    </label>
+                  </div>
+                @endforeach
+              @endcan
             </div>
           </div>
 
@@ -106,6 +108,17 @@
           </div>
         </div>
 
+        <!-- Created By -->
+        <div class="d-flex align-items-start gap-3 mb-3">
+          <div class="fs-4 text-info">
+            <i class="bi bi-person-circle"></i>
+          </div>
+          <div>
+            <div class="fw-semibold">Created By</div>
+            <div id="eventDetailsCreatedBy" class="text-muted small"></div>
+          </div>
+        </div>
+
         <!-- Participants -->
         <div class="mb-3">
           <div class="fw-semibold mb-2">
@@ -129,7 +142,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-danger" id="deleteEventBtn">
+        <button type="button" class="btn btn-outline-danger  " id="deleteEventBtn">
           Delete
         </button>
       </div>

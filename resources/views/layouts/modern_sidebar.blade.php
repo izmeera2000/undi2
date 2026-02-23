@@ -52,6 +52,10 @@
 
         <x-sidebar.nav-item route="members.list" label="Groups" />
 
+
+        <x-sidebar.nav-item route="members.bulkimport" label="Bulk Import" />
+
+
       </x-sidebar.nav-group>
 
       {{-- Events --}}
