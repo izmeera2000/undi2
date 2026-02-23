@@ -1,107 +1,80 @@
 <script>
-  async function renderBangsaChart() {
-    const mode = document.getElementById('modeSelect').value;
-    const year1 = document.getElementById('year1').value;
-    const year2 = document.getElementById('year2').value;
+  async function renderBangsaChart(payload) {
+    const mode = payload.mode;
+    const type1 = payload.type1;
+    const series1 = payload.series1;
+    const type2 = payload.type2;
+    const series2 = payload.series2;
 
-    const dataSource = DashboardState.bangsaChart || [];
+    const dataset1 = DashboardState.bangsaChart1 || [];
+    const dataset2 = DashboardState.bangsaChart2 || [];
 
-    console.log('Bangsa chart data:', dataSource);
+    // -----------------------------
+    // Categories (Umur groups)
+    // -----------------------------
+    const defaultUmurGroups = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];
+    const detectedUmurGroups = [...new Set([...dataset1, ...dataset2].map(x => x.umur_group))];
+    const categories = defaultUmurGroups.concat(detectedUmurGroups.filter(x => !defaultUmurGroups.includes(x)));
 
-    // -------------------------
-    // Dynamic Categories
-    // -------------------------
-
-    const defaultCategories = ['18-20', '21-29', '30-39', '40-49', '50-59', '60+'];
-    const hasUnknownUmur = dataSource.some(x => x.umur_group === 'UNKNOWN');
-
-    const categories = hasUnknownUmur
-      ? [...defaultCategories, 'UNKNOWN']
-      : defaultCategories;
-
-
-    const detectedStatuses = [
-      ...new Set(
-        dataSource.map(x =>
-          String(x.status_umno ?? 'UNKNOWN').toUpperCase()
-        )
-      )
-    ];
-
-
+    // -----------------------------
+    // Bangsa groups
+    // -----------------------------
     const defaultBangsaGroups = ['Melayu', 'Cina', 'India', 'Lain-lain'];
-    const hasUnknownBangsa = dataSource.some(x => x.bangsa_group === 'UNKNOWN');
+    const detectedBangsaGroups = [...new Set([...dataset1, ...dataset2].map(x => x.bangsa_group))];
+    const bangsaGroups = defaultBangsaGroups.concat(detectedBangsaGroups.filter(x => !defaultBangsaGroups.includes(x)));
 
-    const bangsaGroups = hasUnknownBangsa
-      ? [...defaultBangsaGroups, 'UNKNOWN']
-      : defaultBangsaGroups;
+    // -----------------------------
+    // UMNO status
+    // -----------------------------
+    const statuses = ['1', '0']; // 1 = UMNO, 0 = Bukan UMNO
 
-    // -------------------------
+    // -----------------------------
     // Colors
-    // -------------------------
+    // -----------------------------
     const baseColors = {
-      'UMNO - Melayu': '#991b1b',
-      'Bukan UMNO - Melayu': '#f87171',
-      'UMNO - Cina': '#1e3a8a',
-      'Bukan UMNO - Cina': '#60a5fa',
-      'UMNO - India': '#854d0e',
-      'Bukan UMNO - India': '#fbbf24',
-      'UMNO - Lain-lain': '#047857',
-      'Bukan UMNO - Lain-lain': '#6ee7b7',
-      'UMNO - UNKNOWN': '#6b7280',
-      'Bukan UMNO - UNKNOWN': '#9ca3af',
-      'UNKNOWN - Melayu': '#6b7280',
-      'UNKNOWN - Cina': '#6b7280',
-      'UNKNOWN - India': '#6b7280',
-      'UNKNOWN - Lain-lain': '#6b7280',
+      'UMNO - Melayu': '#991b1b', 'Bukan UMNO - Melayu': '#f87171',
+      'UMNO - Cina': '#1e3a8a', 'Bukan UMNO - Cina': '#60a5fa',
+      'UMNO - India': '#854d0e', 'Bukan UMNO - India': '#fbbf24',
+      'UMNO - Lain-lain': '#047857', 'Bukan UMNO - Lain-lain': '#6ee7b7',
       'UNKNOWN - UNKNOWN': '#374151'
     };
-
 
     DashboardState.charts.bangsa = ensureChartRef(DashboardState.charts.bangsa);
     destroyChart(DashboardState.charts.bangsa);
 
-    const buildSeries = (dataset, yearLabel = null, lighten = false) => {
+    // -----------------------------
+    // Build series for chart
+    // -----------------------------
+    const buildSeries = (dataset, typeLabel = null, seriesLabel = null, lighten = false) => {
+      const prefix = '';
       return bangsaGroups.flatMap(bangsa =>
-        detectedStatuses.map(status => {
-
-          let labelStatus;
-          if (status === '1') labelStatus = 'UMNO';
-          else if (status === '0') labelStatus = 'Bukan UMNO';
-          else labelStatus = 'UNKNOWN';
-
-          const name = `${yearLabel ? yearLabel + ' - ' : ''}${labelStatus} - ${bangsa}`;
+        statuses.map(status => {
+          const labelStatus = status === '1' ? 'UMNO' : 'Bukan UMNO';
+          const name = `${prefix}${labelStatus} - ${bangsa}`;
 
           const data = categories.map(umur =>
             dataset
-              .filter(x => {
-                const umurGroup = (x.umur_group || 'UNKNOWN').toUpperCase();
-                const bangsaGroup = (x.bangsa_group || 'UNKNOWN').toUpperCase();
-                const statusUmno = String(x.status_umno ?? 'UNKNOWN');
-
-                return (
-                  umurGroup === umur.toUpperCase() &&
-                  bangsaGroup === bangsa.toUpperCase() &&
-                  statusUmno === status
-                );
-              })
-              .reduce((sum, x) => sum + (Number(x.total) || 0), 0)
+              .filter(x =>
+                (x.umur_group || '').trim() === umur &&
+                (x.bangsa_group || '').trim() === bangsa &&
+                String(x.status_umno) === status
+              )
+              .reduce((sum, x) => sum + Number(x.total || 0), 0)
           );
 
-
           const colorKey = `${labelStatus} - ${bangsa}`;
-          const baseColor = baseColors[colorKey] || '#9ca3af';
-          const color = lighten ? lightenColor(baseColor, 0.5) : baseColor;
-
+          const color = lighten ? lightenColor(baseColors[colorKey] || '#9ca3af', 0.5) : baseColors[colorKey] || '#9ca3af';
           return { name, data, color };
         })
       );
     };
 
+    // -----------------------------
+    // Render chart
+    // -----------------------------
+    let series;
     if (mode === 'single') {
-      const filtered = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
-      const series = buildSeries(filtered);
-
+      series = buildSeries(dataset1, type1, series1);
       await renderStackedBar(
         document.querySelector('#bangsaChart'),
         DashboardState.charts.bangsa,
@@ -110,32 +83,25 @@
         'Jumlah Pengundi',
         'Umur',
         undefined,
-        `Umur × Bangsa × Status UMNO`
+        'Umur × Bangsa × Status UMNO'
       );
-      return;
+    } else {
+      series = [
+        ...buildSeries(dataset1, type1, series1),
+        ...buildSeries(dataset2, type2, series2, true) // lighter colors for second dataset
+      ];
+      await renderStackedBar(
+        document.querySelector('#bangsaChart'),
+        DashboardState.charts.bangsa,
+        categories,
+        series,
+        'Jumlah Pengundi',
+        'Umur',
+        undefined,
+        `Perbandingan ${type1}${series1} vs ${type2}${series2} — Umur × Bangsa × Status UMNO`,
+        false,
+        true
+      );
     }
-
-    // Compare mode
-    const filtered1 = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
-    const filtered2 = dataSource.filter(x => String(x.tarikh_undian) === String(year2));
-
-    const series = [
-      ...buildSeries(filtered1, year1),
-      ...buildSeries(filtered2, year2, true)
-    ];
-
-    await renderStackedBar(
-      document.querySelector('#bangsaChart'),
-      DashboardState.charts.bangsa,
-      categories,
-      series,
-      'Jumlah Pengundi',
-      'Umur',
-      undefined,
-      `Perbandingan ${year1} vs ${year2} — Umur × Bangsa × Status UMNO`,
-      false,
-      true
-    );
   }
-
 </script>

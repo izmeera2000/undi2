@@ -576,11 +576,14 @@ async function renderStackedBar(
     title = "",
     isHorizontal = false,
     isAnimated = true,
+    isPercent = false,
 ) {
     const options = {
         chart: {
             type: "bar",
             stacked: true,
+      stackType: isPercent ? '100%' : 'normal',
+
             height: isHorizontal ? 800 : 600,
             animations: {
                 enabled: isAnimated,
@@ -728,18 +731,18 @@ async function renderStackedBar(
     };
 
   try {
-    console.log('Chart element:', el);
+    // console.log('Chart element:', el);
     console.log('Chart options:', options);
     console.log('Existing chart instance:', chartRef.chart);
 
     if (chartRef.chart) {
-        console.log('Updating existing chart...');
+        // console.log('Updating existing chart...');
         chartRef.chart.updateOptions(options);
         console.log('Options updated, rendering chart...');
         chartRef.chart.render();
-        console.log('Chart render completed.');
+        // console.log('Chart render completed.');
     } else {
-        console.log('Creating new chart...');
+        // console.log('Creating new chart...');
         chartRef.chart = new ApexCharts(el, options);
         await chartRef.chart.render();
         console.log('New chart rendered.');

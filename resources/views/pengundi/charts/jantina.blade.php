@@ -1,83 +1,94 @@
 <script>
-function renderJantinaChart() {
-  console.log('--- renderJantinaChart START ---');
+async function renderJantinaChart(payload) {
+    // console.log('--- renderJantinaChart START ---');
 
-  const mode  = document.getElementById('modeSelect').value;
-  const year1 = document.getElementById('year1').value;
-  const year2 = document.getElementById('year2').value;
+    const { mode, type1, series1, type2, series2 } = payload;
+    const categories = ['Lelaki', 'Perempuan'];
 
-  const categories = ['Lelaki', 'Perempuan'];
+    const statusMap = { '1': 'UMNO', '0': 'Bukan UMNO' };
+    const colors = {
+        'UMNO-Lelaki': '#9f1239',         
+        'UMNO-Perempuan': '#fb7185',      
+        'Bukan UMNO-Lelaki': '#1e40af',   
+        'Bukan UMNO-Perempuan': '#93c5fd' 
+    };
 
-  const baseColors = {
-    'UMNO': '#991b1b',
-    'Bukan UMNO': '#f87171'
-  };
+    const lightenColor = (hex, factor = 0.5) => {
+        const r = parseInt(hex.substr(1, 2), 16);
+        const g = parseInt(hex.substr(3, 2), 16);
+        const b = parseInt(hex.substr(5, 2), 16);
+        return `rgb(${Math.round(r + (255 - r) * factor)}, ${Math.round(g + (255 - g) * factor)}, ${Math.round(b + (255 - b) * factor)})`;
+    };
 
-  const lightenColor = (hex, factor = 0.5) => {
-    const r = parseInt(hex.substr(1, 2), 16);
-    const g = parseInt(hex.substr(3, 2), 16);
-    const b = parseInt(hex.substr(5, 2), 16);
-    return `rgb(${Math.round(r + (255 - r) * factor)}, 
-                ${Math.round(g + (255 - g) * factor)}, 
-                ${Math.round(b + (255 - b) * factor)})`;
-  };
+    const dataset1 = DashboardState.jantinaChart1 || [];
+    const dataset2 = DashboardState.jantinaChart2 || [];
 
-  const dataSource = DashboardState.jantinaChart || [];
+    DashboardState.charts.jantina = DashboardState.charts.jantina || { chart: null };
+    if (DashboardState.charts.jantina.chart) {
+        DashboardState.charts.jantina.chart.destroy();
+        DashboardState.charts.jantina.chart = null;
+    }
 
-  const buildSeries = (dataset, yearLabel = null, lighten = false) => {
-    const statuses = ['UMNO', 'Bukan UMNO'];
+    const buildSeries = (dataset, labelPrefix = null, lighten = false) => {
+        const combinations = [
+            { status: 'UMNO', gender: 'Lelaki' },
+            { status: 'UMNO', gender: 'Perempuan' },
+            { status: 'Bukan UMNO', gender: 'Lelaki' },
+            { status: 'Bukan UMNO', gender: 'Perempuan' }
+        ];
 
-    return statuses.map(status => {
+        return combinations.map(combo => {
+            const value = dataset
+                .filter(x => x.jantina === combo.gender && statusMap[String(x.status_umno)] === combo.status)
+                .reduce((acc, x) => acc + Number(x.total || 0), 0);
 
-      const data = categories.map(gender => {
-        return dataset
-          .filter(x => x.jantina === gender && x.status_umno === status)
-          .reduce((sum, x) => sum + Number(x.total || 0), 0);
-      });
+            // Only put value in correct category index, others are null
+            const data = categories.map(cat => cat === combo.gender ? value : null);
 
-      const color = lighten 
-        ? lightenColor(baseColors[status]) 
-        : baseColors[status];
+            return {
+                name: labelPrefix ? `${labelPrefix} - ${combo.status} - ${combo.gender}` : `${combo.status} - ${combo.gender}`,
+                data,
+                color: lighten ? lightenColor(colors[`${combo.status}-${combo.gender}`]) : colors[`${combo.status}-${combo.gender}`],
+                stack: labelPrefix || 'single'
+            };
+        });
+    };
 
-      return {
-        name: yearLabel ? `${yearLabel} - ${status}` : status,
-        data,
-        color,
-        stack: yearLabel || 'single'
-      };
-    });
-  };
+    let series = [];
 
-  let series = [];
+    if (mode === 'single' || !dataset2.length) {
+        series = buildSeries(dataset1, ``, false);
+        await renderStackedBar(
+            document.querySelector('#jantinaChart'),
+            DashboardState.charts.jantina,
+            categories,
+            series,
+            'Jumlah Pengundi',
+            'Jantina',
+            [],
+            `Jantina × Status UMNO (${type1} ${series1})`,
+            false,
+            true
+        );
+    } else if (mode === 'compare') {
+        series = [
+            ...buildSeries(dataset1, `${type1} ${series1}`, false),
+            ...buildSeries(dataset2, `${type2} ${series2}`, true)
+        ];
+        await renderStackedBar(
+            document.querySelector('#jantinaChart'),
+            DashboardState.charts.jantina,
+            categories,
+            series,
+            'Jumlah Pengundi',
+            'Jantina',
+            [],
+            `Perbandingan ${type1} ${series1} vs ${type2} ${series2} — Jantina × Status UMNO`,
+            false,
+            true
+        );
+    }
 
-  if (mode === 'single') {
-    const filtered = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
-    series = buildSeries(filtered);
-  } else {
-    const filtered1 = dataSource.filter(x => String(x.tarikh_undian) === String(year1));
-    const filtered2 = dataSource.filter(x => String(x.tarikh_undian) === String(year2));
-
-    series = [
-      ...buildSeries(filtered1, year1, false),
-      ...buildSeries(filtered2, year2, true)
-    ];
-  }
-
-  renderStackedBar(
-    document.querySelector('#jantinaChart'),
-    DashboardState.charts.jantina,
-    categories,
-    series,
-    'Jumlah Pengundi',
-    'Jantina',
-    [],
-    mode === 'single'
-      ? `Jantina × Status UMNO (${year1})`
-      : `Perbandingan ${year1} vs ${year2} — Jantina × Status UMNO`,
-    false,
-    true
-  );
-
-  console.log('--- renderJantinaChart END ---');
+    // console.log('--- renderJantinaChart END ---');
 }
 </script>
