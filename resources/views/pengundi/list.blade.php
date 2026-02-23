@@ -96,6 +96,11 @@
                         @endforeach
                     </select>
                 </div> --}}
+                <div class="col-md-3">
+
+                    <button id="downloadPdfBtn" class="btn btn-primary" style="display:none;">Download PDF</button>
+                </div>
+
             </div>
 
 
@@ -263,9 +268,10 @@
             // INIT DATATABLE
             // =====================================================
             function initDataTable() {
+                const downloadBtn = document.getElementById('downloadPdfBtn');
+                if (downloadBtn) downloadBtn.style.display = 'none'; // hide initially
 
                 table = $('#pengundiTable').DataTable({
-
                     processing: true,
                     serverSide: false,
                     stateSave: true,
@@ -293,7 +299,7 @@
                         type: "POST",
                         data: function (d) {
                             if (!allFiltersSelected()) {
-                                return {}; // send empty object, backend can safely handle
+                                return {}; // send empty object, backend handles
                             }
 
                             d.parlimen = parSelect.value;
@@ -302,7 +308,19 @@
                             d.type = typeSelect.value;
                             d.series = seriesSelect.value;
                         },
-                        dataSrc: json => json.data ?? []
+                        dataSrc: function (json) {
+                            // Show or hide download button based on returned data
+
+                            console.log(json);
+                            if (downloadBtn) {
+                                if (json.data && json.data.length > 0) {
+                                    downloadBtn.style.display = 'inline-block'; // show button
+                                } else {
+                                    downloadBtn.style.display = 'none'; // hide button
+                                }
+                            }
+                            return json.data ?? [];
+                        }
                     },
 
                     stateSaveParams: function (settings, data) {
@@ -320,7 +338,6 @@
                     }
                 });
             }
-
             // =====================================================
             // FULL RESTORE FLOW
             // =====================================================
@@ -390,6 +407,45 @@
 
             dmSelect.addEventListener('change', function () {
                 if (allFiltersSelected()) table.ajax.reload();
+            });
+
+            document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+
+
+                const parSelect = document.getElementById('parlimenSelect');
+                const dunSelect = document.getElementById('dunSelect');
+                const dmSelect = document.getElementById('dmSelect');
+                const typeSelect = document.getElementById('pilihanRayaType');
+                const seriesSelect = document.getElementById('pilihanRayaSeries');
+
+                // Build form data object
+                const data = {
+                    parlimen: parSelect.value,
+                    dun: dunSelect.value,
+                    dm: dmSelect.value,
+                    type: typeSelect.value,
+                    series: seriesSelect.value,
+                    _token: '{{ csrf_token() }}'
+                };
+
+                // Create a form dynamically
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ route("pengundi.list_data_pdf") }}';
+
+                // Append each field to the form
+                for (const key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = key;
+                        input.value = data[key];
+                        form.appendChild(input);
+                    }
+                }
+
+                document.body.appendChild(form);
+                form.submit();
             });
 
         });

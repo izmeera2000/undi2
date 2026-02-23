@@ -293,23 +293,23 @@
 
 
     async function loadDashboard(payload) {
-      // const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
-      // const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+      const cacheKey = 'dashboard_' + btoa(JSON.stringify(payload));
+      const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
       console.log(payload);
 
 
-      // const cached = sessionStorage.getItem(cacheKey);
+      const cached = sessionStorage.getItem(cacheKey);
 
 
-      // if (cached) {
-      //   const { data, expires } = JSON.parse(cached);
-      //   if (Date.now() < expires) {
-      //     // console.log('using cache');
-      //     applyDashboardData(data);
-      //     return;
-      //   }
-      //   sessionStorage.removeItem(cacheKey);
-      // }
+      if (cached) {
+        const { data, expires } = JSON.parse(cached);
+        if (Date.now() < expires) {
+          console.log('using cache');
+          applyDashboardData(data);
+          return;
+        }
+        sessionStorage.removeItem(cacheKey);
+      }
 
 
       const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
@@ -344,10 +344,10 @@
 
 
 
-        // sessionStorage.setItem(cacheKey, JSON.stringify({
-        //   data,
-        //   expires: Date.now() + CACHE_TTL
-        // }));
+        sessionStorage.setItem(cacheKey, JSON.stringify({
+          data,
+          expires: Date.now() + CACHE_TTL
+        }));
 
       } catch (error) {
         console.error('Fetch Error:', error);

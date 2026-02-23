@@ -157,6 +157,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
+        Route::post('list/data/pdf', [PengundiAnalyticsController::class, 'list_data_pdf'])->name('list_data_pdf');
+
+
 
         ////lsit details saluran page
 
@@ -164,6 +167,8 @@ Route::middleware(['auth', 'active'])->group(function () {
             'list/{parlimen}/{dun}/{dm}/{lokaliti}/{saluran}/{pr_type}/{pr_series}',
             [PengundiAnalyticsController::class, 'list_details']
         )->name('list_details');
+
+        
         ///ajax before
         Route::post('list/details/data', [PengundiAnalyticsController::class, 'list_details_data'])
             ->name('list_details_data');
