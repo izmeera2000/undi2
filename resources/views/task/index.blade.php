@@ -161,7 +161,7 @@
       $.post('{{ route("task.data") }}')
         .done(function (data) {
           tasks = data;
-          console.log(tasks);
+          // console.log(tasks);
           renderTasks(tasks);
         })
         .fail(function (xhr) {
