@@ -1405,8 +1405,8 @@ class PengundiAnalyticsController extends Controller
 
         foreach ($dataByLokaliti as $lokalitiData) {
             // Limit details to 300 rows if needed
- // Limit details to 300 rows per PDF
-$lokalitiData['details'] = array_slice($lokalitiData['details'], 0, 200);
+            // Limit details to 300 rows per PDF
+            $lokalitiData['details'] = array_slice($lokalitiData['details'], 0, 1000);
             $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_single', [
                 'data' => [$lokalitiData],
                 'filters' => [
