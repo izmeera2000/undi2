@@ -1425,8 +1425,7 @@ class PengundiAnalyticsController extends Controller
             $pdfPaths[] = storage_path("app/{$filePath}");
         }
 
-            return response()->file($pdfPaths[0]);
-
+return Storage::download("public/pdfs/{$fileName}");
         // -------------------------------
 // Step 4: Zip all PDFs
 // -------------------------------
