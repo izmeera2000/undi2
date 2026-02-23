@@ -107,7 +107,7 @@
 
     {{-- ===================== SCRIPT ===================== --}}
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function() {
 
             // ==========================================================
             // CLEAN CASCADE FUNCTION

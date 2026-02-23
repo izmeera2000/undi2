@@ -153,7 +153,7 @@
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+      $(document).ready(function() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
  
         const table = $('#staffTable').DataTable({

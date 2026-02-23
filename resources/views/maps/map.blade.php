@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function() {
             // Initialize the map centered on a default location (Kelantan)
             var map = L.map('map').setView([6.14882, 102.1187], 10); // Adjusted zoom level for Kelantan
 

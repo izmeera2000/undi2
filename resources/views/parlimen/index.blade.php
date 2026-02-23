@@ -109,7 +109,7 @@
     <script>
 
 
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function() {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const table = $('#parlimenTable').DataTable({
