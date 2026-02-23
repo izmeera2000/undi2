@@ -74,9 +74,11 @@
 
       <!-- Modal Footer -->
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline-danger me-auto" id="viewTaskDelete">
-          <i class="bi bi-trash me-1"></i>Delete
-        </button>
+<button type="button"
+        class="btn btn-outline-danger me-auto d-none"
+        id="viewTaskDelete">
+  <i class="bi bi-trash me-1"></i> Delete
+</button>
         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="viewTaskEdit">
           <i class="bi bi-pencil me-1"></i>Edit

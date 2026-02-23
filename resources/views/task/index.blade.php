@@ -134,6 +134,10 @@
 
       // Initial load
       getTasks();
+
+
+
+
     });
 
 
@@ -202,12 +206,12 @@
         if (!sectionTasks.length) return;
 
         html += `<div class="todo-section">
-                                                            <div class="todo-section-header">
-                                                              <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
-                                                              <h6>${sectionName}</h6>
-                                                              <span class="todo-section-count">${sectionTasks.length}</span>
-                                                            </div>
-                                                            <div class="todo-section-content">`;
+                                                              <div class="todo-section-header">
+                                                                <button class="todo-section-toggle"><i class="bi bi-chevron-down"></i></button>
+                                                                <h6>${sectionName}</h6>
+                                                                <span class="todo-section-count">${sectionTasks.length}</span>
+                                                              </div>
+                                                              <div class="todo-section-content">`;
 
         sectionTasks.forEach(task => {
           html += renderTaskItem(task);
@@ -228,33 +232,33 @@
       const relativeTime = task.due_at ? getRelativeTime(new Date(task.due_at)) : '';
 
       return `<div class="todo-item" data-id="${task.id}">
-                                                            <div class="todo-item-check">
-                                                              <input type="checkbox" class="todo-checkbox" id="task${task.id}"  data-id="${task.id}" ${checked}>
-                                                              <label for="task${task.id}"></label>
-                                                            </div>
-
-                                                            <div class="todo-item-content">
-                                                              <div class="todo-item-title">${task.title}</div>
-                                                              <div class="todo-item-meta">
-                                                                ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
-                                                                ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
-                                                                ${tagsHtml}
-                                                                ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                              <div class="todo-item-check">
+                                                                <input type="checkbox" class="todo-checkbox" id="task${task.id}"  data-id="${task.id}" ${checked}>
+                                                                <label for="task${task.id}"></label>
                                                               </div>
-                                                            </div>
 
-                                                            <div class="todo-item-actions">
-                                                              <span class="todo-item-priority ${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
-                                                              <div class="dropdown">
-                                                                <button class="todo-item-more" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
-                                                                <ul class="dropdown-menu dropdown-menu-end">
-                                                                  <li><a class="dropdown-item todo-view-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-eye me-2"></i>View Details</a></li>
-                                                                  <li><a class="dropdown-item todo-edit-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
-                                                                  <li><a class="dropdown-item todo-delete-btn-trigger text-danger" href="#" data-id="${task.id}"><i class="bi bi-trash me-2"></i>Delete</a></li>
-                                                                </ul>
+                                                              <div class="todo-item-content">
+                                                                <div class="todo-item-title">${task.title}</div>
+                                                                <div class="todo-item-meta">
+                                                                  ${task.category ? `<span class="todo-item-project">${task.category.name}</span>` : ''}
+                                                                  ${relativeTime ? `<span class="todo-item-due"><i class="bi bi-calendar"></i> ${relativeTime}</span>` : ''}
+                                                                  ${tagsHtml}
+                                                                  ${task.assignee ? `<span class="todo-item-assignee">Assigned to: ${task.assignee.name}</span>` : ''}
+                                                                </div>
                                                               </div>
-                                                            </div>
-                                                          </div>`;
+
+                                                              <div class="todo-item-actions">
+                                                                <span class="todo-item-priority ${task.priority}">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
+                                                                <div class="dropdown">
+                                                                  <button class="todo-item-more" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                                                  <ul class="dropdown-menu dropdown-menu-end">
+                                                                    <li><a class="dropdown-item todo-view-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-eye me-2"></i>View Details</a></li>
+                                                                    <li><a class="dropdown-item todo-edit-btn-trigger" href="#" data-id="${task.id}"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                                    <li><a class="dropdown-item todo-delete-btn-trigger text-danger" href="#" data-id="${task.id}"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                                                                  </ul>
+                                                                </div>
+                                                              </div>
+                                                            </div>`;
     }
 
 
@@ -265,6 +269,12 @@
       const task = tasks.find(t => t.id == taskId);
       if (!task) return;
 
+      // JS
+
+
+      const currentUserId = {{ auth()->id() }};
+      const canDeleteOwn = {{ auth()->user()->can('task.delete') ? 'true' : 'false' }};
+      const canDeleteOthers = {{ auth()->user()->can('task.delete.others') ? 'true' : 'false' }};
       const checked = task.status === 'done' ? 'checked' : '';
 
       $('#viewTaskDelete').attr('data-id', task.id);
@@ -292,26 +302,37 @@
 
       $('#viewTaskSubtasks').html(Array.isArray(task.subtasks) && task.subtasks.length
         ? task.subtasks.map((st, i) => `<div class="todo-subtask">
-                                                              <input type="checkbox" class="todo-subtask-check" id="subtask${st.id}"  data-id="${st.id}" ${st.is_completed ? 'checked' : ''}>
-                                                              <label for="subtask${st.id}">${st.title}</label>
-                                                            </div>`).join('')
+                                                                <input type="checkbox" class="todo-subtask-check" id="subtask${st.id}"  data-id="${st.id}" ${st.is_completed ? 'checked' : ''}>
+                                                                <label for="subtask${st.id}">${st.title}</label>
+                                                              </div>`).join('')
         : '<p>No Subtasks</p>');
 
       $('#viewTaskActivity').html(Array.isArray(task.activities) && task.activities.length
         ? task.activities.map(act => {
           const profileUrl = act.causer?.profile?.profile_picture || 'assets/img/avatars/avatar-placeholder.webp';
           return `<div class="todo-activity-item">
-                                                                        <img src="${profileUrl}" alt="${act.causer?.name || 'User'}">
-                                                                        <div class="todo-activity-content">
-                                                                          <span class="todo-activity-text"><strong>${act.causer?.name || 'Unknown'}</strong> ${act.description}</span>
-                                                                          <span class="todo-activity-time">${new Date(act.created_at).toLocaleString()}</span>
-                                                                        </div>
-                                                                      </div>`;
+                                                                          <img src="${profileUrl}" alt="${act.causer?.name || 'User'}">
+                                                                          <div class="todo-activity-content">
+                                                                            <span class="todo-activity-text"><strong>${act.causer?.name || 'Unknown'}</strong> ${act.description}</span>
+                                                                            <span class="todo-activity-time">${new Date(act.created_at).toLocaleString()}</span>
+                                                                          </div>
+                                                                        </div>`;
         }).join('')
         : '<p>No Activity</p>');
 
+      const deleteBtn = $('#viewTaskDelete');
+
+      if ((canDeleteOwn && task.creator?.id === currentUserId) || canDeleteOthers) {
+        deleteBtn.removeClass('d-none');
+      } else {
+        deleteBtn.addClass('d-none');
+      }
+
       $('#viewTaskModal').modal('show');
     }
+
+
+
 
     // Edit task
     function editTask(taskId) {
@@ -334,11 +355,11 @@
       const $subtasks = $('#editTaskSubtasks').empty();
       task.subtasks?.forEach(st => {
         $subtasks.append(`<div class="todo-edit-subtask">
-                                                            <input type="text" class="form-control" value="${st.title}">
-                                                            <button type="button" class="todo-edit-subtask-remove">
-                                                              <i class="bi bi-x-lg"></i>
-                                                            </button>
-                                                          </div>`);
+                                                              <input type="text" class="form-control" value="${st.title}">
+                                                              <button type="button" class="todo-edit-subtask-remove">
+                                                                <i class="bi bi-x-lg"></i>
+                                                              </button>
+                                                            </div>`);
       });
 
       $('#editTaskModal').modal('show');
@@ -353,6 +374,8 @@
         type: 'DELETE',
         success: function () {
           getTasks();
+          toastr.success('Task deleted successfully!');
+
         }
       });
     }
@@ -407,7 +430,7 @@
         },
         error: function (xhr) {
           console.error('Failed to save task:', xhr.responseText);
-          alert('Error saving task. Check console for details.');
+          toastr.error('Error saving task. Check console for details.');
         }
       });
     }
@@ -443,14 +466,16 @@
         contentType: 'application/json',
         data: JSON.stringify(data),
         success: function (newTask) {
-      getTasks();
+          getTasks();
           $('#addTaskModal').modal('hide');
           $('#addTaskForm')[0].reset();
           $('#addTaskSubtasks').empty();
+                    toastr.success('Task added successfully!');
+
         },
         error: function (xhr) {
           console.error('Failed to create task:', xhr.responseText);
-          alert('Error creating task. Check console for details.');
+          toastr.error('Error creating task. Check console for details.');
         }
       });
     }
@@ -481,9 +506,9 @@
 
     $('#addSubtaskBtn').click(() => {
       $('#editTaskSubtasks').append(`<div class="todo-edit-subtask">
-                                                            <input type="text" class="form-control" placeholder="New subtask">
-                                                            <button type="button" class="todo-edit-subtask-remove"><i class="bi bi-x-lg"></i></button>
-                                                          </div>`);
+                                                              <input type="text" class="form-control" placeholder="New subtask">
+                                                              <button type="button" class="todo-edit-subtask-remove"><i class="bi bi-x-lg"></i></button>
+                                                            </div>`);
     });
 
 
@@ -506,7 +531,7 @@
         },
         error: function (xhr) {
           console.error('Failed to update task status:', xhr.responseText);
-          alert('Failed to update task status');
+          toastr.error('Failed to update task status');
         }
       });
     });
@@ -531,7 +556,7 @@
         },
         error: function (xhr) {
           console.error('Failed to update task status:', xhr.responseText);
-          alert('Failed to update task status');
+          toastr.error('Failed to update task status');
         }
       });
     });
@@ -561,7 +586,7 @@
         },
         error: function (xhr) {
           console.error('Failed to toggle subtask:', xhr.responseText);
-          alert('Failed to update subtask');
+          toastr.error('Failed to update subtask');
         }
       });
     });
@@ -599,7 +624,7 @@
         },
         error: function (xhr) {
           console.error('Failed to delete task:', xhr.responseText);
-          alert('Failed to delete task');
+          toastr.error('Failed to delete task');
         }
       });
     });
@@ -629,7 +654,7 @@
         },
         error: function (xhr) {
           console.error('Failed to delete task:', xhr.responseText);
-          alert('Failed to delete task');
+          toastr.error('Failed to delete task');
         }
       });
     });

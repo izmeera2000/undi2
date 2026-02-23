@@ -35,17 +35,13 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-6 {{ auth()->user()->can('task.assign.others') ? 'd-none' : '' }}">
+                        <div class="col-6 @cannot('task.assign.others') d-none @endcannot">
                             <label class="form-label">Assigned To</label>
                             <select name="assigned_to" id="addTaskAssignee" class="form-select">
                                 <option value="">Select user</option>
-                                @can('task.add.others')
-
-                                    @foreach($users as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                    @endforeach
-                                @endcan
-
+                                @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                @endforeach
                             </select>
                         </div>
                         <div class="col-6">

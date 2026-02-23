@@ -19,7 +19,7 @@
         <i class="bi bi-arrow-up"></i>
     </a>
 
-    @include('layouts.modern_script')
+    @include('layouts.modern_script_guest')
 
 
     @stack('scripts')

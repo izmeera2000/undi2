@@ -36,6 +36,7 @@
 
 $(document).ready(function() {
 
+
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
@@ -44,67 +45,8 @@ $(document).ready(function() {
     });
 
 
-$(document).ready(function() {
 
-        const notificationList = document.getElementById('notification-list');
 
-        notificationList.addEventListener('click', function (e) {
-
-            const item = e.target.closest('.notification-item');
-            if (!item) return;
-
-            e.preventDefault(); // stop navigation first
-
-            const id = item.dataset.id;
-            const url = item.getAttribute('href');
-
-            fetch(`/notifications/${id}/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-
-                        // Remove unread style
-                        item.classList.remove('bg-light', 'unread');
-
-                        // Update badge
-                        const badge = document.getElementById('notification-badge');
-                        const countSpan = document.getElementById('notification-count');
-
-                        if (badge) {
-                            let count = parseInt(badge.innerText) || 0;
-                            count--;
-
-                            if (count <= 0) {
-                                badge.style.display = 'none';
-                                countSpan.innerText = '0 new';
-                            } else {
-                                badge.innerText = count;
-                                countSpan.innerText = count + ' new';
-                            }
-                        }
-
-                        // Navigate after marking as read
-                        if (url && url !== '#') {
-                            window.location.href = url;
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Notification error:', error);
-                    if (url && url !== '#') {
-                        window.location.href = url;
-                    }
-                });
-
-        });
-
-    });
 </script>
 
 
