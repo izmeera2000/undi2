@@ -1367,75 +1367,84 @@ class PengundiAnalyticsController extends Controller
         // -------------------------------
         // Step 3: Aggregate per lokaliti & saluran
         // -------------------------------
-$dataByLokaliti = $pengundi
-    ->groupBy('kod_lokaliti')
-    ->map(function ($group, $kod_lokaliti) use ($request, $type, $series) {
-        $row = [
-            'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id ?? null,
-            'dun' => $request->dun ?? $group[0]->kod_dun ?? null,
-            'dm' => $request->dm ?? $group[0]->koddm ?? null,
-            'kod_lokaliti' => $kod_lokaliti,
-            'nama_lokaliti' => $group[0]->nama_lokaliti ?? null,
-            'pilihan_raya_type' => $type,
-            'pilihan_raya_series' => $series,
-        ];
+        $dataByLokaliti = $pengundi
+            ->groupBy('kod_lokaliti')
+            ->map(function ($group, $kod_lokaliti) use ($request, $type, $series) {
+                $row = [
+                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id ?? null,
+                    'dun' => $request->dun ?? $group[0]->kod_dun ?? null,
+                    'dm' => $request->dm ?? $group[0]->koddm ?? null,
+                    'kod_lokaliti' => $kod_lokaliti,
+                    'nama_lokaliti' => $group[0]->nama_lokaliti ?? null,
+                    'pilihan_raya_type' => $type,
+                    'pilihan_raya_series' => $series,
+                ];
 
-        for ($i = 1; $i <= 7; $i++) {
-            $row["saluran_$i"] = $group->where('saluran', $i)->count();
-        }
+                for ($i = 1; $i <= 7; $i++) {
+                    $row["saluran_$i"] = $group->where('saluran', $i)->count();
+                }
 
-        $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
+                $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
 
-        $row['details'] = $group->map(fn($p) => [
-            'nama' => $p->nama,
-            'saluran' => $p->saluran,
-            'nokp_baru' => $p->nokp_baru,
-            'bangsa' => $p->bangsa,
-            'jantina' => $p->jantina,
-            'alamat_spr' => $p->alamat_spr,
-        ])->values()->toArray(); // convert Collection to array
+                $row['details'] = $group->map(fn($p) => [
+                    'nama' => $p->nama,
+                    'saluran' => $p->saluran,
+                    'nokp_baru' => $p->nokp_baru,
+                    'bangsa' => $p->bangsa,
+                    'jantina' => $p->jantina,
+                    'alamat_spr' => $p->alamat_spr,
+                ])->values()->toArray(); // convert Collection to array
+    
+                return $row;
+            })->values()->toArray();
 
-        return $row;
-    })->values()->toArray();
-
-// -------------------------------
+        // -------------------------------
 // Step 3: Generate one PDF per lokaliti
 // -------------------------------
-$pdfPaths = [];
+        $pdfPaths = [];
 
-foreach ($dataByLokaliti as $lokalitiData) {
-    // Limit details to 300 rows for performance
+        foreach ($dataByLokaliti as $lokalitiData) {
+            // Limit details to 300 rows if needed
+ 
+            $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_single', [
+                'data' => [$lokalitiData],
+                'filters' => [
+                    'type' => $type,
+                    'series' => $series,
+                    'parlimen' => $request->parlimen,
+                    'dun' => $request->dun,
+                    'dm' => $request->dm,
+                ]
+            ])->setPaper('a4', 'portrait');
 
-    $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_single', [
-        'data' => [$lokalitiData],
-        'filters' => [
-            'type' => $type,
-            'series' => $series,
-            'parlimen' => $request->parlimen,
-            'dun' => $request->dun,
-            'dm' => $request->dm,
-        ]
-    ])->setPaper('a4', 'portrait');
+            $fileName = "{$lokalitiData['kod_lokaliti']}.pdf";
+            $filePath = "public/pdfs/{$fileName}";
+            Storage::put($filePath, $pdf->output());
 
-    $filePath = "public/pdfs/{$lokalitiData['kod_lokaliti']}.pdf"; 
-    Storage::put($filePath, $pdf->output());
-    $pdfPaths[] = storage_path("app/{$filePath}");
-}
+            $pdfPaths[] = storage_path("app/{$filePath}");
+        }
 
         // -------------------------------
-        // Step 4: Zip all PDFs
-        // -------------------------------
+// Step 4: Zip all PDFs
+// -------------------------------
         $zipFileName = storage_path('app/public/pdfs/pengundi_pdfs.zip');
         $zip = new ZipArchive();
+
         if ($zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
             foreach ($pdfPaths as $file) {
-                $zip->addFile($file, basename($file));
+                // Use realpath to make sure the file exists
+                if (file_exists($file)) {
+                    $zip->addFile($file, basename($file));
+                }
             }
             $zip->close();
         }
 
-        return response()->download($zipFileName);
+        return response()->download($zipFileName)->deleteFileAfterSend(true);
     }
+
+
+
 
 
 
