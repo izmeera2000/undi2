@@ -1266,10 +1266,7 @@ class PengundiAnalyticsController extends Controller
             })
             ->make(true);
     }
-
-use Illuminate\Support\Facades\Storage;
-use Barryvdh\DomPDF\Facade\Pdf;
-
+ 
 public function list_data_pdf(Request $request)
 {
     // -------------------------------
