@@ -5,6 +5,7 @@ use App\Http\Controllers\MembersImportController;
 use App\Http\Controllers\ProfileController;
 
 use App\Http\Controllers\PermissionController;
+use App\Jobs\TestQueueJob;
 
 use App\Http\Controllers\PengundiImportController;
 use App\Http\Controllers\PengundiAnalyticsController;
@@ -420,6 +421,11 @@ Route::middleware(['auth', 'active'])->group(function () {
     //         ->name('permissions.sync');
     // });
 
+
+    Route::get('/test-queue', function () {
+    TestQueueJob::dispatch();
+    return "Job dispatched!";
+});
 
 
 
