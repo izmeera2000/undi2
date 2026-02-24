@@ -409,44 +409,40 @@
                 if (allFiltersSelected()) table.ajax.reload();
             });
 
-            document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+document.getElementById('downloadPdfBtn').addEventListener('click', function () {
 
+    const data = {
+        parlimen: document.getElementById('parlimenSelect').value,
+        dun: document.getElementById('dunSelect').value,
+        dm: document.getElementById('dmSelect').value,
+        type: document.getElementById('pilihanRayaType').value,
+        series: document.getElementById('pilihanRayaSeries').value,
+    };
 
-                const parSelect = document.getElementById('parlimenSelect');
-                const dunSelect = document.getElementById('dunSelect');
-                const dmSelect = document.getElementById('dmSelect');
-                const typeSelect = document.getElementById('pilihanRayaType');
-                const seriesSelect = document.getElementById('pilihanRayaSeries');
+    fetch('{{ route("pengundi.list_data_pdf") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(response => {
 
-                // Build form data object
-                const data = {
-                    parlimen: parSelect.value,
-                    dun: dunSelect.value,
-                    dm: dmSelect.value,
-                    type: typeSelect.value,
-                    series: seriesSelect.value,
-                    _token: '{{ csrf_token() }}'
-                };
+        if (response.success) {
+            toastr.success(response.message);
+        } else {
+            toastr.error(response.message);
+        }
 
-                // Create a form dynamically
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route("pengundi.list_data_pdf") }}';
+    })
+    .catch(error => {
+        toastr.error('Something went wrong.');
+    });
 
-                // Append each field to the form
-                for (const key in data) {
-                    if (data.hasOwnProperty(key)) {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = data[key];
-                        form.appendChild(input);
-                    }
-                }
-
-                document.body.appendChild(form);
-                form.submit();
-            });
+});
 
         });
     </script>

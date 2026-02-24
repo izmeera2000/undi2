@@ -1,4 +1,5 @@
 <h3>{{ $data[0]['nama_lokaliti'] }}</h3>
+
 <table border="1" cellpadding="4" cellspacing="0">
     <thead>
         <tr>
@@ -14,13 +15,13 @@
     <tbody>
         @foreach ($data[0]['details'] as $i => $p)
         <tr>
-            <td>{{ $i + 1 }}</td> <!-- row number -->
-            <td>{{ $p['nama'] }}</td>
-            <td>{{ $p['saluran'] }}</td>
-            <td>{{ $p['nokp_baru'] }}</td>
-            <td>{{ $p['bangsa'] }}</td>
-            <td>{{ $p['jantina'] }}</td>
-            <td>{{ $p['alamat_spr'] }}</td>
+            <td>{{ $i + 1 }}</td>
+            <td>{{ $p->nama }}</td>
+            <td>{{ $p->saluran }}</td>
+            <td>{{ $p->nokp_baru }}</td>
+            <td>{{ $p->bangsa }}</td>
+            <td>{{ $p->jantina }}</td>
+            <td>{{ $p->alamat_spr }}</td>
         </tr>
         @endforeach
     </tbody>

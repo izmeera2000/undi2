@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
 use Illuminate\Support\Facades\Storage;
+use App\Jobs\GeneratePengundiPdfJob;
+use App\Jobs\GenerateSingleLokalitiPdfJob;
 
 use Illuminate\Routing\Controller;
 
@@ -1267,11 +1269,10 @@ class PengundiAnalyticsController extends Controller
             ->make(true);
     }
 
+
+
     public function list_data_pdf(Request $request)
     {
-        // -------------------------------
-        // Step 0: Validate required filters
-        // -------------------------------
         $validator = Validator::make($request->all(), [
             'type' => 'required',
             'series' => 'required',
@@ -1290,9 +1291,6 @@ class PengundiAnalyticsController extends Controller
         $type = $request->type;
         $series = $request->series;
 
-        // -------------------------------
-        // Step 1: Resolve PRU year
-        // -------------------------------
         if (!isset($this->PRMAP[$type][$series])) {
             return response()->json([
                 'success' => false,
@@ -1300,15 +1298,11 @@ class PengundiAnalyticsController extends Controller
             ], 400);
         }
 
-
-
         $selectedPRUYear = $this->PRMAP[$type][$series];
         $selectedPRUDate = $selectedPRUYear . '-12-31';
 
-        // -------------------------------
-        // Step 2: Build query
-        // -------------------------------
-        $pengundi = DB::table('pengundi')
+        // Get all distinct lokaliti first
+        $lokalitiList = DB::table('pengundi')
             ->join('lokaliti', function ($join) use ($selectedPRUDate) {
                 $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
                     ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
@@ -1317,135 +1311,29 @@ class PengundiAnalyticsController extends Controller
                             ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
                     });
             })
-            ->join('dm', function ($join) use ($selectedPRUDate) {
-                $join->on('lokaliti.koddm', '=', 'dm.koddm')
-                    ->where('dm.effective_from', '<=', $selectedPRUDate)
-                    ->where(function ($q) use ($selectedPRUDate) {
-                        $q->whereNull('dm.effective_to')
-                            ->orWhere('dm.effective_to', '>=', $selectedPRUDate);
-                    })
-                    ->whereRaw('dm.effective_from = (
-            SELECT MAX(effective_from) 
-            FROM dm AS sub 
-            WHERE sub.koddm = dm.koddm 
-              AND sub.effective_from <= ?
-              AND (sub.effective_to IS NULL OR sub.effective_to >= ?)
-        )', [$selectedPRUDate, $selectedPRUDate]);
-            })->join('dun', 'dm.kod_dun', '=', 'dun.kod_dun')
-            ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
+            ->join('dm', 'lokaliti.koddm', '=', 'dm.koddm')
+            ->join('dun', 'dm.kod_dun', '=', 'dun.kod_dun')
             ->where('pengundi.pilihan_raya_type', $type)
             ->where('pengundi.pilihan_raya_series', $series)
             ->where('dun.parlimen_id', $request->parlimen)
             ->where('dm.kod_dun', $request->dun)
             ->where('lokaliti.koddm', $request->dm)
-            ->select(
-                'pengundi.id',
-                'pengundi.nama',
-                'pengundi.nokp_baru',
-                'pengundi.jantina',
-                'pengundi.bangsa',
-                'pengundi.alamat_spr',
-                'pengundi.kod_lokaliti',
-                'pengundi.saluran',
-                'lokaliti.koddm',
-                'lokaliti.nama_lokaliti',
-                'dm.kod_dun',
-                'dm.namadm',
-                'dun.parlimen_id',
-                'dun.namadun',
-                'parlimen.namapar'
-            )
-            ->distinct()->get(); // <-- Ensure duplicates are removed
+            ->distinct()
+            ->pluck('pengundi.kod_lokaliti');
 
-        if ($pengundi->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pengundi found'
-            ], 404);
+        foreach ($lokalitiList as $kod_lokaliti) {
+            GenerateSingleLokalitiPdfJob::dispatch(
+                $request->only(['type', 'series', 'parlimen', 'dun', 'dm']),
+                $this->PRMAP,
+                $kod_lokaliti
+            );
         }
 
-        // -------------------------------
-        // Step 3: Aggregate per lokaliti & saluran
-        // -------------------------------
-        $dataByLokaliti = $pengundi
-            ->groupBy('kod_lokaliti')
-            ->map(function ($group, $kod_lokaliti) use ($request, $type, $series) {
-                $row = [
-                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id ?? null,
-                    'dun' => $request->dun ?? $group[0]->kod_dun ?? null,
-                    'dm' => $request->dm ?? $group[0]->koddm ?? null,
-                    'kod_lokaliti' => $kod_lokaliti,
-                    'nama_lokaliti' => $group[0]->nama_lokaliti ?? null,
-                    'pilihan_raya_type' => $type,
-                    'pilihan_raya_series' => $series,
-                ];
-
-                for ($i = 1; $i <= 7; $i++) {
-                    $row["saluran_$i"] = $group->where('saluran', $i)->count();
-                }
-
-                $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
-
-                $row['details'] = $group->map(fn($p) => [
-                    'nama' => $p->nama,
-                    'saluran' => $p->saluran,
-                    'nokp_baru' => $p->nokp_baru,
-                    'bangsa' => $p->bangsa,
-                    'jantina' => $p->jantina,
-                    'alamat_spr' => $p->alamat_spr,
-                ])->values()->toArray(); // convert Collection to array
-    
-                return $row;
-            })->values()->toArray();
-
-        // -------------------------------
-// Step 3: Generate one PDF per lokaliti
-// -------------------------------
-        $pdfPaths = [];
-
-        foreach ($dataByLokaliti as $lokalitiData) {
-            // Limit details to 300 rows if needed
-            // Limit details to 300 rows per PDF
-            $lokalitiData['details'] = array_slice($lokalitiData['details'], 0, 200);
-            $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_single', [
-                'data' => [$lokalitiData],
-                'filters' => [
-                    'type' => $type,
-                    'series' => $series,
-                    'parlimen' => $request->parlimen,
-                    'dun' => $request->dun,
-                    'dm' => $request->dm,
-                ]
-            ])->setPaper('a4', 'portrait');
-
-            $fileName = "{$lokalitiData['kod_lokaliti']}.pdf";
-            $filePath = "public/pdfs/{$fileName}";
-            Storage::put($filePath, $pdf->output());
-
-            $pdfPaths[] = storage_path("app/{$filePath}");
-        }
-
-return Storage::download("public/pdfs/{$fileName}");
-        // -------------------------------
-// Step 4: Zip all PDFs
-// -------------------------------
-        // $zipFileName = storage_path('app/public/pdfs/pengundi_pdfs.zip');
-        // $zip = new ZipArchive();
-
-        // if ($zip->open($zipFileName, ZipArchive::CREATE | ZipArchive::OVERWRITE) === TRUE) {
-        //     foreach ($pdfPaths as $file) {
-        //         // Use realpath to make sure the file exists
-        //         if (file_exists($file)) {
-        //             $zip->addFile($file, basename($file));
-        //         }
-        //     }
-        //     $zip->close();
-        // }
-
-        // return response()->download($zipFileName)->deleteFileAfterSend(true);
+        return response()->json([
+            'success' => true,
+            'message' => 'PDF generation started for ' . count($lokalitiList) . ' lokaliti.'
+        ]);
     }
-
-
 
 
 
