@@ -14,15 +14,16 @@
     </thead>
     <tbody>
         @foreach ($data[0]['details'] as $i => $p)
-        <tr>
-            <td>{{ $i + 1 }}</td>
-            <td>{{ $p->nama }}</td>
-            <td>{{ $p->saluran }}</td>
-            <td>{{ $p->nokp_baru }}</td>
-            <td>{{ $p->bangsa }}</td>
-            <td>{{ $p->jantina }}</td>
-            <td>{{ $p->alamat_spr }}</td>
-        </tr>
+            <tr>
+                {{-- Use the global number --}}
+                <td>{{ $startNumber + $i }}</td>
+                <td>{{ $p->nama }}</td>
+                <td>{{ $p->saluran }}</td>
+                <td>{{ $p->nokp_baru }}</td>
+                <td>{{ $p->bangsa }}</td>
+                <td>{{ $p->jantina }}</td>
+                <td>{{ $p->alamat_spr }}</td>
+            </tr>
         @endforeach
     </tbody>
 </table>

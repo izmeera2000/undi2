@@ -2,78 +2,111 @@
 <html>
 
 <head>
-    <title>Senarai Pengundi</title>
+    <meta charset="utf-8">
+    <title>Senarai Pengundi Mengikut Lokaliti</title>
+
     <style>
         body {
-            font-family: sans-serif;
-            font-size: 12px;
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10px;
         }
 
-        table {
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .info-table {
             width: 100%;
-            border-collapse: collapse;
             margin-bottom: 10px;
         }
 
-        th,
-        td {
+        .info-table td {
+            padding: 2px 4px;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.data-table th,
+        table.data-table td {
             border: 1px solid #000;
             padding: 4px;
             text-align: center;
         }
 
-        th {
-            background: #eee;
+        table.data-table th {
+            background: #f0f0f0;
         }
 
-        .filter {
-            font-size: 12px;
-            margin-bottom: 10px;
+        .text-left {
+            text-align: left;
         }
 
-        .page-break {
-            page-break-after: always;
+        .total-row {
+            font-weight: bold;
+            background: #f9f9f9;
         }
     </style>
 </head>
 
 <body>
-    <h3>Senarai Pengundi</h3>
-    <div class="filter">
-        PR Type: {{ $filters['type'] }}, Series: {{ $filters['series'] }}<br>
-        Parlimen: {{ $filters['parlimen'] }}, DUN: {{ $filters['dun'] }}, DM: {{ $filters['dm'] }}
-    </div>
 
-  @foreach ($data as $lokaliti)
-    <h3>{{ $lokaliti['nama_lokaliti'] }} ({{ count($lokaliti['details']) }} voters)</h3>
-    <table>
+    <h2>Senarai Pengundi Mengikut Lokaliti</h2>
+
+    <table class="info-table">
+        <tr>
+            <td><strong>Jenis PRU:</strong> {{ $type }}</td>
+            <td><strong>Series:</strong> {{ $series }}</td>
+        </tr>
+        <tr>
+            <td><strong>Parlimen:</strong> {{ $parlimenName ?? $parlimen }}</td>
+            <td><strong>DUN:</strong> {{ $dunName ?? $dun }}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>DM:</strong> {{ $dmName ?? $dm }}</td>
+        </tr>
+    </table>
+
+    <table class="data-table">
         <thead>
             <tr>
                 <th>No</th>
-                <th>Name</th>
-                <th>No KP</th>
-                <th>Saluran</th>
-                <th>Bangsa</th>
-                <th>Jantina</th>
-                <th>Alamat SPR</th>
+                <th>Kod Lokaliti</th>
+                <th class="text-left">Nama Lokaliti</th>
+                @for ($i = 1; $i <= 7; $i++)
+                    <th>S{{ $i }}</th>
+                @endfor
+                <th>Total</th>
             </tr>
         </thead>
         <tbody>
-@foreach ($lokaliti['details']->take(50) as $i => $pengundi)
-    <tr>
-        <td>{{ $i + 1 }}</td>
-        <td>{{ $pengundi['nama'] ?? '' }}</td>
-        <td>{{ $pengundi['nokp_baru'] ?? '' }}</td>
-        <td>{{ $pengundi['saluran'] ?? '' }}</td>
-        <td>{{ $pengundi['bangsa'] ?? '' }}</td>
-        <td>{{ $pengundi['jantina'] ?? '' }}</td>
-        <td>{{ $pengundi['alamat_spr'] ?? '' }}</td>
-    </tr>
-@endforeach
+            @php $grandTotal = 0; @endphp
+
+            @foreach ($data as $index => $row)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $row->kod_lokaliti }}</td>
+                    <td>{{ $row->nama_lokaliti }}</td>
+                    <td>{{ $row->saluran_1 }}</td>
+                    <td>{{ $row->saluran_2 }}</td>
+                    <td>{{ $row->saluran_3 }}</td>
+                    <td>{{ $row->saluran_4 }}</td>
+                    <td>{{ $row->saluran_5 }}</td>
+                    <td>{{ $row->saluran_6 }}</td>
+                    <td>{{ $row->saluran_7 }}</td>
+                    <td>{{ $row->total }}</td>
+                </tr>
+            @endforeach
+            <tr class="total-row">
+                <td colspan="10">GRAND TOTAL</td>
+                <td>{{ $grandTotal }}</td>
+            </tr>
         </tbody>
     </table>
-    <div style="page-break-after: always;"></div>
-@endforeach
+
 </body>
 
 </html>

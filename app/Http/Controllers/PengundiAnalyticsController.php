@@ -18,10 +18,17 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Notifications\NewPengundiNotification;
 use Illuminate\Support\Facades\Storage;
-use App\Jobs\GeneratePengundiPdfJob;
+use App\Jobs\GenerateLokalitiSummaryPdfJob;
 use App\Jobs\GenerateSingleLokalitiPdfJob;
+use App\Jobs\MergeLokalitiPdfJob;
+use App\Jobs\GenerateLokalitiBatchJob;
 
 use Illuminate\Routing\Controller;
+use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Bus;
+
+use Throwable;
+
 
 class PengundiAnalyticsController extends Controller
 {
@@ -1064,6 +1071,9 @@ class PengundiAnalyticsController extends Controller
         ]);
     }
 
+
+
+
     public function list_details(
         $parlimen = null,
         $dun_kod = null,
@@ -1271,6 +1281,7 @@ class PengundiAnalyticsController extends Controller
 
 
 
+
     public function list_data_pdf(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -1281,6 +1292,9 @@ class PengundiAnalyticsController extends Controller
             'dm' => 'required',
         ]);
 
+
+        $filters = $request->only(['type', 'series', 'parlimen', 'dun', 'dm']);
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -1288,53 +1302,13 @@ class PengundiAnalyticsController extends Controller
             ], 400);
         }
 
-        $type = $request->type;
-        $series = $request->series;
-
-        if (!isset($this->PRMAP[$type][$series])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid type/series'
-            ], 400);
-        }
-
-        $selectedPRUYear = $this->PRMAP[$type][$series];
-        $selectedPRUDate = $selectedPRUYear . '-12-31';
-
-        // Get all distinct lokaliti first
-        $lokalitiList = DB::table('pengundi')
-            ->join('lokaliti', function ($join) use ($selectedPRUDate) {
-                $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
-                    ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
-                    ->where(function ($q) use ($selectedPRUDate) {
-                        $q->whereNull('lokaliti.effective_to')
-                            ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
-                    });
-            })
-            ->join('dm', 'lokaliti.koddm', '=', 'dm.koddm')
-            ->join('dun', 'dm.kod_dun', '=', 'dun.kod_dun')
-            ->where('pengundi.pilihan_raya_type', $type)
-            ->where('pengundi.pilihan_raya_series', $series)
-            ->where('dun.parlimen_id', $request->parlimen)
-            ->where('dm.kod_dun', $request->dun)
-            ->where('lokaliti.koddm', $request->dm)
-            ->distinct()
-            ->pluck('pengundi.kod_lokaliti');
-
-        foreach ($lokalitiList as $kod_lokaliti) {
-            GenerateSingleLokalitiPdfJob::dispatch(
-                $request->only(['type', 'series', 'parlimen', 'dun', 'dm']),
-                $this->PRMAP,
-                $kod_lokaliti
-            );
-        }
+        GenerateLokalitiBatchJob::dispatchSync($filters, $this->PRMAP);
 
         return response()->json([
             'success' => true,
-            'message' => 'PDF generation started for ' . count($lokalitiList) . ' lokaliti.'
+            'message' => 'PDF generation job dispatched successfully.'
         ]);
     }
-
 
 
 
