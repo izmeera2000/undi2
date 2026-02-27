@@ -1,3 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+    <meta charset="utf-8">
+    <title>Senarai Pengundi Mengikut Lokaliti</title>
+
+    <style>
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 10px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .info-table {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .info-table td {
+            padding: 2px 4px;
+        }
+
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.data-table th,
+        table.data-table td {
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+        }
+
+        table.data-table th {
+            background: #f0f0f0;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+
+<body>
+
 <h3>{{ $data[0]['nama_lokaliti'] }}</h3>
 
 <table border="1" cellpadding="4" cellspacing="0">
@@ -27,3 +84,8 @@
         @endforeach
     </tbody>
 </table>
+
+
+</body>
+
+</html>

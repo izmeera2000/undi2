@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Senarai Pengundi Mengikut Lokaliti</title>
+    <title>Senarai Pengundi Mengikut DM</title>
 
     <style>
         body {
