@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Bus\Batch;
+use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 class GenerateLokalitiBatchJob implements ShouldQueue
@@ -42,6 +43,16 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         if (!$type || !$series || !$parlimen || !$dun || !$dm) {
             Log::error('Missing required filters.', $this->filters);
             return;
+        }
+
+
+        $folderPath = "pdfs/{$type}/{$series}/{$dm}";
+        if (Storage::disk('public')->exists($folderPath)) {
+            $files = Storage::disk('public')->files($folderPath);
+            if (!empty($files)) {
+                Storage::disk('public')->delete($files);
+                Log::info("Deleted existing PDFs in folder.", ['folder' => $folderPath, 'deletedFiles' => $files]);
+            }
         }
 
         // -----------------------------
@@ -146,9 +157,10 @@ class GenerateLokalitiBatchJob implements ShouldQueue
             ->then(function (Batch $batch) use ($uniqueLokaliti, $type, $series, $dm) {
                 Log::info("Batch finished generating page PDFs.", ['batch_id' => $batch->id]);
 
+                // Prepare merge jobs for each lokaliti
+                $mergeJobs = [];
                 foreach ($uniqueLokaliti as $kodLokaliti) {
-                    Log::info("Dispatching MergeLokalitiPdfJob.", ['kodLokaliti' => $kodLokaliti]);
-                    MergeLokalitiPdfJob::dispatch(
+                    $mergeJobs[] = new MergeLokalitiPdfJob(
                         $kodLokaliti,
                         [
                             'type' => $type,
@@ -158,20 +170,34 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                     );
                 }
 
+                // Dispatch merges as another batch
+                Bus::batch($mergeJobs)
+                    ->then(function (Batch $mergeBatch) use ($type, $series, $dm) {
+                    Log::info("All merges completed.", ['batch_id' => $mergeBatch->id]);
+
+                    // Now dispatch summary job AFTER merges
+                    GenerateLokalitiSummaryPdfJob::dispatch([
+                        'type' => $type,
+                        'series' => $series,
+                        'dm' => $dm,
+                    ]);
+                })
+                    ->catch(function (Batch $mergeBatch, Throwable $e) {
+                    Log::error("Merge batch failed.", ['message' => $e->getMessage()]);
+                })
+                    ->finally(function (Batch $mergeBatch) {
+                    Log::info("Merge batch finally executed.", ['batch_id' => $mergeBatch->id]);
+                })
+                    ->dispatch();
 
             })
             ->catch(function (Batch $batch, Throwable $e) {
                 Log::error("Batch failed.", ['message' => $e->getMessage()]);
             })
             ->finally(function (Batch $batch) {
-                Log::info("Batch finally callback executed.", ['batch_id' => $batch->id]);
+                Log::info("Page PDF batch finally callback executed.", ['batch_id' => $batch->id]);
             })
             ->dispatch();
-
-        GenerateLokalitiSummaryPdfJob::dispatch(
-            $this->filters,
-            $this->PRMAP,
-        );
 
 
 

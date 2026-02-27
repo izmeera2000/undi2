@@ -57,7 +57,7 @@
                     <label class="form-label">Parlimen</label>
                     <select id="parlimenSelect" class="form-select">
                         <option value="">-- Pilih Parlimen --</option>
-                    
+
                     </select>
                 </div>
 
@@ -65,7 +65,7 @@
                     <label class="form-label">DUN</label>
                     <select id="dunSelect" class="form-select" disabled>
                         <option value="">-- Pilih DUN --</option>
-              
+
                     </select>
                 </div>
 
@@ -73,7 +73,7 @@
                     <label class="form-label">DM</label>
                     <select id="dmSelect" class="form-select" disabled>
                         <option value="">-- Pilih DM --</option>
-                  
+
                     </select>
                 </div>
 
@@ -99,7 +99,7 @@
                                     View
                                 </a>
                             </li>
-      
+
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
@@ -515,7 +515,7 @@
                                 openPdfModal();
                             });
 
-                   
+
                         } else {
 
                             document.getElementById('lastGeneratedInfo').innerHTML =
@@ -567,19 +567,21 @@
                         response.files.forEach(file => {
 
                             html += `
-                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${file.name}</strong><br>
-                                    <small class="text-muted">${file.last_modified}</small>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${file.name}</strong><br>
+                                        <small class="text-muted">${file.last_modified}</small>
+                                    </div>
+                                    <div>
+                                        <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                            View
+                                        </a>
+         <a href="${file.url}" download class="btn btn-sm btn-success">
+                                            Download
+                                        </a>
+                                    </div>
                                 </div>
-                                <div>
-                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
-                                        View
-                                    </a>
-
-                                </div>
-                            </div>
-                        `;
+                            `;
                         });
 
                         html += '</div>';
