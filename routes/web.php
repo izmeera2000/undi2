@@ -234,6 +234,27 @@ Route::middleware(['auth', 'active'])->group(function () {
     // All members routes
     Route::prefix('members')->name('members.')->group(function () {
 
+
+
+        // ---------------------------
+        // Members Groups Routes
+        // ---------------------------
+        Route::prefix('groups')->name('groups.')->group(function () {
+
+            // CRUD resource routes for groups
+            Route::get('/', [GroupController::class, 'index'])->name('index');
+            Route::get('/create', [GroupController::class, 'create'])->name('create');
+            Route::post('/', [GroupController::class, 'store'])->name('store');
+            Route::get('/{group}', [GroupController::class, 'show'])->name('show');
+            Route::get('/{group}/edit', [GroupController::class, 'edit'])->name('edit');
+            Route::put('/{group}', [GroupController::class, 'update'])->name('update');
+            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
+
+            // Member management
+            Route::post('{group}/invite', [GroupController::class, 'invite'])->name('invite');
+            Route::delete('{group}/members/{member}', [GroupController::class, 'removeMember'])->name('removeMember');
+        });
+
         // ---------------------------
         // Member CRUD + static routes
         // ---------------------------
@@ -257,24 +278,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
         Route::post('{member}/profile', [MembersController::class, 'updateProfile'])->name('profile.update');
 
-        // ---------------------------
-        // Members Groups Routes
-        // ---------------------------
-        Route::prefix('groups')->name('groups.')->group(function () {
 
-            // CRUD resource routes for groups
-            Route::get('/', [GroupController::class, 'index'])->name('index');
-            Route::get('/create', [GroupController::class, 'create'])->name('create');
-            Route::post('/', [GroupController::class, 'store'])->name('store');
-            Route::get('/{group}', [GroupController::class, 'show'])->name('show');
-            Route::get('/{group}/edit', [GroupController::class, 'edit'])->name('edit');
-            Route::put('/{group}', [GroupController::class, 'update'])->name('update');
-            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
 
-            // Member management
-            Route::post('{group}/invite', [GroupController::class, 'invite'])->name('invite');
-            Route::delete('{group}/members/{member}', [GroupController::class, 'removeMember'])->name('removeMember');
-        });
 
     });
 
