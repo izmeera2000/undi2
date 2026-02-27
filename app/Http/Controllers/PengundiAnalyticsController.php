@@ -1320,32 +1320,22 @@ class PengundiAnalyticsController extends Controller
         $folderPath = "pdfs/{$type}/{$series}/{$dm}";
 
         if (!Storage::disk('public')->exists($folderPath)) {
-            return response()->json([
-                'exists' => false
-            ]);
+            return response()->json(['exists' => false]);
         }
 
-        // Get all files inside folder
         $files = Storage::disk('public')->files($folderPath);
 
         // Filter only PDFs
-        $pdfFiles = array_filter($files, function ($file) {
-            return str_ends_with($file, '.pdf');
-        });
+        $pdfFiles = array_filter($files, fn($file) => str_ends_with($file, '.pdf'));
 
         if (empty($pdfFiles)) {
-            return response()->json([
-                'exists' => false
-            ]);
+            return response()->json(['exists' => false]);
         }
 
-        // Sort by last modified (latest first)
-        usort($pdfFiles, function ($a, $b) {
-            return Storage::disk('public')->lastModified($b)
-                <=> Storage::disk('public')->lastModified($a);
-        });
+        // Sort by file name ascending
+        sort($pdfFiles, SORT_NATURAL | SORT_FLAG_CASE);
 
-        $latestFile = $pdfFiles[0];
+        $latestFile = $pdfFiles[0]; // first file after sorting
 
         return response()->json([
             'exists' => true,
@@ -1354,7 +1344,6 @@ class PengundiAnalyticsController extends Controller
                 Storage::disk('public')->lastModified($latestFile)
             )->setTimezone('Asia/Kuala_Lumpur')
                 ->format('Y-m-d H:i:s'),
-
             'files' => array_map(function ($file) {
                 return [
                     'name' => basename($file),

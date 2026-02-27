@@ -89,7 +89,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
 
         $folderPath = "pdfs/{$type}/{$series}/{$this->filters['dm']}";
 
-        $fileName = "summary_{$type}_{$series}.pdf";
+        $fileName = "{$this->filters['dm']}_summary.pdf";
 
         Storage::disk('public')->put(
             "{$folderPath}/{$fileName}",

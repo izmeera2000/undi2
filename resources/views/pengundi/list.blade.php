@@ -567,21 +567,21 @@
                         response.files.forEach(file => {
 
                             html += `
-                                <div class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${file.name}</strong><br>
-                                        <small class="text-muted">${file.last_modified}</small>
-                                    </div>
-                                    <div>
-                                        <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
-                                            View
-                                        </a>
-         <a href="${file.url}" download class="btn btn-sm btn-success">
-                                            Download
-                                        </a>
-                                    </div>
-                                </div>
-                            `;
+                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>${file.name}</strong><br>
+                                                <small class="text-muted">${file.last_modified}</small>
+                                            </div>
+                                            <div>
+                                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                                    View
+                                                </a>
+                 <a href="${file.url}" download class="btn btn-sm btn-success">
+                                                    Download
+                                                </a>
+                                            </div>
+                                        </div>
+                                    `;
                         });
 
                         html += '</div>';
