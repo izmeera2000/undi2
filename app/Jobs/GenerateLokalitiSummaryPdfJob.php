@@ -39,20 +39,11 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
         ]);
 
         try {
-
             $type = $this->filters['type'] ?? null;
             $series = $this->filters['series'] ?? null;
 
-            if (!$type || !$series) {
-                Log::error('Summary Job missing type/series', $this->filters);
-                return;
-            }
-
-            if (!isset($this->PRMAP[$type][$series])) {
-                Log::error('PRMAP not found for type/series', [
-                    'type' => $type,
-                    'series' => $series
-                ]);
+            if (!$type || !$series || !isset($this->PRMAP[$type][$series])) {
+                Log::error('Missing type/series or PRMAP not found', $this->filters);
                 return;
             }
 
@@ -64,10 +55,10 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 'date' => $selectedPRUDate
             ]);
 
-            // ==============================
-            // QUERY
-            // ==============================
-            $rows = DB::table('pengundi')
+            // -------------------------------
+            // Fetch pengundi with latest effective DM
+            // -------------------------------
+            $pengundi = DB::table('pengundi')
                 ->join('lokaliti', function ($join) use ($selectedPRUDate) {
                     $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
                         ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
@@ -76,7 +67,21 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                                 ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
                         });
                 })
-                ->join('dm', 'lokaliti.koddm', '=', 'dm.koddm')
+                ->join('dm', function ($join) use ($selectedPRUDate) {
+                    $join->on('lokaliti.koddm', '=', 'dm.koddm')
+                        ->where('dm.effective_from', '<=', $selectedPRUDate)
+                        ->where(function ($q) use ($selectedPRUDate) {
+                            $q->whereNull('dm.effective_to')
+                                ->orWhere('dm.effective_to', '>=', $selectedPRUDate);
+                        })
+                        ->whereRaw('dm.effective_from = (
+                         SELECT MAX(effective_from)
+                         FROM dm AS sub
+                         WHERE sub.koddm = dm.koddm
+                           AND sub.effective_from <= ?
+                           AND (sub.effective_to IS NULL OR sub.effective_to >= ?)
+                     )', [$selectedPRUDate, $selectedPRUDate]);
+                })
                 ->join('dun', 'dm.kod_dun', '=', 'dun.kod_dun')
                 ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
                 ->where('pengundi.pilihan_raya_type', $type)
@@ -84,36 +89,45 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 ->where('dun.parlimen_id', $this->filters['parlimen'])
                 ->where('dm.kod_dun', $this->filters['dun'])
                 ->where('lokaliti.koddm', $this->filters['dm'])
-                ->selectRaw("
-                    pengundi.kod_lokaliti,
-                    lokaliti.nama_lokaliti,
-                    SUM(CASE WHEN pengundi.saluran = 1 THEN 1 ELSE 0 END) as saluran_1,
-                    SUM(CASE WHEN pengundi.saluran = 2 THEN 1 ELSE 0 END) as saluran_2,
-                    SUM(CASE WHEN pengundi.saluran = 3 THEN 1 ELSE 0 END) as saluran_3,
-                    SUM(CASE WHEN pengundi.saluran = 4 THEN 1 ELSE 0 END) as saluran_4,
-                    SUM(CASE WHEN pengundi.saluran = 5 THEN 1 ELSE 0 END) as saluran_5,
-                    SUM(CASE WHEN pengundi.saluran = 6 THEN 1 ELSE 0 END) as saluran_6,
-                    SUM(CASE WHEN pengundi.saluran = 7 THEN 1 ELSE 0 END) as saluran_7,
-                    COUNT(*) as total
-                ")
-                ->groupBy('pengundi.kod_lokaliti', 'lokaliti.nama_lokaliti')
-                ->orderBy('pengundi.kod_lokaliti')
+                ->select('pengundi.kod_lokaliti', 'lokaliti.nama_lokaliti', 'pengundi.saluran')
+                ->distinct()
                 ->get();
 
-            Log::info('Summary Query Completed', [
-                'row_count' => $rows->count()
-            ]);
-
-            if ($rows->isEmpty()) {
-                Log::warning('Summary Job returned empty result');
+            if ($pengundi->isEmpty()) {
+                Log::warning('No pengundi found');
                 return;
             }
 
-            // ==============================
-            // PDF GENERATION
-            // ==============================
-            Log::info('Generating Summary PDF...');
+            // -------------------------------
+            // Aggregate per lokaliti
+            // -------------------------------
+            $rows = $pengundi
+                ->groupBy('kod_lokaliti')
+                ->map(function ($group, $kod_lokaliti) use ($type, $series) {
+                    $row = [
+                        'kod_lokaliti' => $kod_lokaliti,
+                        'nama_lokaliti' => $group[0]->nama_lokaliti,
+                    ];
 
+                    // Initialize saluran counts
+                    for ($i = 1; $i <= 7; $i++) {
+                        $row["saluran_$i"] = 0;
+                    }
+
+                    foreach ($group as $p) {
+                        if ($p->saluran >= 1 && $p->saluran <= 7) {
+                            $row["saluran_{$p->saluran}"]++;
+                        }
+                    }
+
+                    $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
+
+                    return $row;
+                })->values();
+
+            // -------------------------------
+            // Generate PDF
+            // -------------------------------
             $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf', [
                 'data' => $rows,
                 'filters' => $this->filters
@@ -125,42 +139,26 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
 
             Storage::disk('public')->put($fullPath, $pdf->output());
 
-            Log::info('Summary PDF Saved', [
-                'path' => $fullPath
-            ]);
+            Log::info('Summary PDF saved', ['path' => $fullPath]);
 
-            // ==============================
-            // NOTIFICATION
-            // ==============================
+            // Notify user
             $user = User::find($this->userId);
-
-            if (!$user) {
-                Log::error('User not found for notification', [
-                    'userId' => $this->userId
-                ]);
-                return;
+            if ($user) {
+                $user->notify(new LokalitiPdfGenerated($fullPath));
             }
 
-            $user->notify(new LokalitiPdfGenerated($fullPath));
-
-            Log::info('Notification sent successfully', [
-                'userId' => $this->userId
-            ]);
-
-            unset($pdf);
-            unset($rows);
-            gc_collect_cycles();
-
             Log::info('Summary Job COMPLETED SUCCESSFULLY');
-        } catch (Throwable $e) {
 
+        } catch (Throwable $e) {
             Log::error('Summary Job FAILED', [
                 'message' => $e->getMessage(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile()
             ]);
 
-            throw $e; // important so batch knows it failed
+            throw $e;
         }
     }
+
+
 }
