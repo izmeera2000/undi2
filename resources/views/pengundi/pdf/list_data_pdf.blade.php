@@ -58,15 +58,15 @@
 
     <table class="info-table">
         <tr>
-            <td><strong>Jenis PRU:</strong> {{ $type }}</td>
-            <td><strong>Series:</strong> {{ $series }}</td>
+            <td><strong>Jenis PRU:</strong> {{ $filters['type'] ?? '-' }}</td>
+            <td><strong>Series:</strong> {{ $filters['series'] ?? '-' }}</td>
         </tr>
         <tr>
-            <td><strong>Parlimen:</strong> {{ $parlimenName ?? $parlimen }}</td>
-            <td><strong>DUN:</strong> {{ $dunName ?? $dun }}</td>
+            <td><strong>Parlimen:</strong> {{ $filters['parlimen'] ?? '-' }}</td>
+            <td><strong>DUN:</strong> {{ $filters['dun'] ?? '-' }}</td>
         </tr>
         <tr>
-            <td colspan="2"><strong>DM:</strong> {{ $dmName ?? $dm }}</td>
+            <td colspan="2"><strong>DM:</strong> {{ $filters['dm'] ?? '-' }}</td>
         </tr>
     </table>
 
@@ -83,13 +83,18 @@
             </tr>
         </thead>
         <tbody>
-            @php $grandTotal = 0; @endphp
+            @php 
+                $grandTotal = 0; 
+            @endphp
 
             @foreach ($data as $index => $row)
+                @php
+                    $grandTotal += $row->total;
+                @endphp
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $row->kod_lokaliti }}</td>
-                    <td>{{ $row->nama_lokaliti }}</td>
+                    <td class="text-left">{{ $row->nama_lokaliti }}</td>
                     <td>{{ $row->saluran_1 }}</td>
                     <td>{{ $row->saluran_2 }}</td>
                     <td>{{ $row->saluran_3 }}</td>
@@ -100,6 +105,7 @@
                     <td>{{ $row->total }}</td>
                 </tr>
             @endforeach
+
             <tr class="total-row">
                 <td colspan="10">GRAND TOTAL</td>
                 <td>{{ $grandTotal }}</td>

@@ -57,9 +57,7 @@
                     <label class="form-label">Parlimen</label>
                     <select id="parlimenSelect" class="form-select">
                         <option value="">-- Pilih Parlimen --</option>
-                        {{-- @foreach($parlimens as $par)
-                        <option value="{{ $par->id }}">{{ $par->namapar }}</option>
-                        @endforeach --}}
+                    
                     </select>
                 </div>
 
@@ -67,11 +65,7 @@
                     <label class="form-label">DUN</label>
                     <select id="dunSelect" class="form-select" disabled>
                         <option value="">-- Pilih DUN --</option>
-                        {{-- @foreach($duns as $dun)
-                        <option value="{{ $dun->kod_dun }}" data-parent="{{ $dun->parlimen_id }}">
-                            {{ $dun->namadun }} ({{ $dun->kod_dun }})
-                        </option>
-                        @endforeach --}}
+              
                     </select>
                 </div>
 
@@ -79,26 +73,44 @@
                     <label class="form-label">DM</label>
                     <select id="dmSelect" class="form-select" disabled>
                         <option value="">-- Pilih DM --</option>
-                        {{-- @foreach($dms as $dm)
-                        <option value="{{ $dm->koddm }}" data-parent="{{ $dm->kod_dun }}">{{ $dm->koddm }}</option>
-                        @endforeach --}}
+                  
                     </select>
                 </div>
 
-                {{-- <div class="col-md-3">
-                    <label class="form-label">Lokaliti</label>
-                    <select id="lokalitiSelect" class="form-select" disabled>
-                        <option value="">-- Pilih Lokaliti --</option>
-                        @foreach($lokalitis as $loc)
-                        <option value="{{ $loc->kod_lokaliti }}" data-parent="{{ $loc->dm->koddm }}">
-                            {{ $loc->kod_lokaliti }}
-                        </option>
-                        @endforeach
-                    </select>
-                </div> --}}
                 <div class="col-md-3">
 
-                    <button id="downloadPdfBtn" class="btn btn-primary" style="display:none;">Download PDF</button>
+                    <div class="btn-group" id="pdfButtonGroup" style="display:none;">
+
+                        <!-- Main Action -->
+                        <button id="generatePdfBtn" type="button" class="btn btn-primary">
+                            Generate PDF
+                        </button>
+
+                        <!-- Split Dropdown Toggle -->
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" id="viewPdfBtn">
+                                    View
+                                </a>
+                            </li>
+      
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <span class="dropdown-item-text text-muted small" id="lastGeneratedInfo">
+                                    No PDF generated yet
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
 
             </div>
@@ -129,7 +141,25 @@
         </div>
     </div>
 
+    <!-- View Files Modal -->
+    <div class="modal fade" id="pdfListModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
 
+                <div class="modal-header">
+                    <h5 class="modal-title">Available PDF Files</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="pdfFileList">
+                        <div class="text-muted">Loading...</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
 @endsection
 
@@ -268,8 +298,7 @@
             // INIT DATATABLE
             // =====================================================
             function initDataTable() {
-                const downloadBtn = document.getElementById('downloadPdfBtn');
-                if (downloadBtn) downloadBtn.style.display = 'none'; // hide initially
+
 
                 table = $('#pengundiTable').DataTable({
                     processing: true,
@@ -312,13 +341,14 @@
                             // Show or hide download button based on returned data
 
                             console.log(json);
-                            if (downloadBtn) {
-                                if (json.data && json.data.length > 0) {
-                                    downloadBtn.style.display = 'inline-block'; // show button
-                                } else {
-                                    downloadBtn.style.display = 'none'; // hide button
-                                }
-                            }
+                            checkPdfStatus();
+                            // if (downloadBtn) {
+                            //     if (json.data && json.data.length > 0) {
+                            //         downloadBtn.style.display = 'inline-block'; // show button
+                            //     } else {
+                            //         downloadBtn.style.display = 'none'; // hide button
+                            //     }
+                            // }
                             return json.data ?? [];
                         }
                     },
@@ -409,42 +439,158 @@
                 if (allFiltersSelected()) table.ajax.reload();
             });
 
-document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+            document.getElementById('generatePdfBtn').addEventListener('click', function () {
 
-    const data = {
-        parlimen: document.getElementById('parlimenSelect').value,
-        dun: document.getElementById('dunSelect').value,
-        dm: document.getElementById('dmSelect').value,
-        type: document.getElementById('pilihanRayaType').value,
-        series: document.getElementById('pilihanRayaSeries').value,
-    };
+                const data = {
+                    parlimen: document.getElementById('parlimenSelect').value,
+                    dun: document.getElementById('dunSelect').value,
+                    dm: document.getElementById('dmSelect').value,
+                    type: document.getElementById('pilihanRayaType').value,
+                    series: document.getElementById('pilihanRayaSeries').value,
+                };
 
-    fetch('{{ route("pengundi.list_data_pdf") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(response => {
+                fetch('{{ route("pengundi.list_data_pdf") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.json())
+                    .then(response => {
 
-        if (response.success) {
-            toastr.success(response.message);
-        } else {
-            toastr.error(response.message);
-        }
+                        if (response.success) {
+                            toastr.success(response.message);
 
-    })
-    .catch(error => {
-        toastr.error('Something went wrong.');
-    });
+                            // Re-check after generation
+                            setTimeout(() => {
+                                checkPdfStatus();
+                            }, 3000);
 
-});
+                        } else {
+                            toastr.error(response.message);
+                        }
+
+                    })
+                    .catch(() => {
+                        toastr.error('Something went wrong.');
+                    });
+
+            });
+
+            function checkPdfStatus() {
+
+                const data = {
+                    parlimen: document.getElementById('parlimenSelect').value,
+                    dun: document.getElementById('dunSelect').value,
+                    dm: document.getElementById('dmSelect').value,
+                    type: document.getElementById('pilihanRayaType').value,
+                    series: document.getElementById('pilihanRayaSeries').value,
+                };
+
+                fetch('{{ route("pengundi.list.check_pdf") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(res => res.json())
+                    .then(response => {
+
+                        document.getElementById('pdfButtonGroup').style.display = 'inline-flex';
+
+                        if (response.exists) {
+
+                            document.getElementById('lastGeneratedInfo').innerHTML =
+                                `Last Generated: ${response.last_modified}`;
+
+
+                            document.getElementById('viewPdfBtn').addEventListener('click', function (e) {
+                                e.preventDefault();
+                                openPdfModal();
+                            });
+
+                   
+                        } else {
+
+                            document.getElementById('lastGeneratedInfo').innerHTML =
+                                `No PDF generated yet`;
+
+                            document.getElementById('viewPdfBtn').onclick = function (e) {
+                                e.preventDefault();
+                                toastr.warning('No PDF available.');
+                            };
+
+                        }
+
+                    });
+            }
 
         });
+
+
+        function openPdfModal() {
+
+            const data = {
+                parlimen: document.getElementById('parlimenSelect').value,
+                dun: document.getElementById('dunSelect').value,
+                dm: document.getElementById('dmSelect').value,
+                type: document.getElementById('pilihanRayaType').value,
+                series: document.getElementById('pilihanRayaSeries').value,
+            };
+
+            fetch('{{ route("pengundi.list.check_pdf") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(res => res.json())
+                .then(response => {
+
+                    let html = '';
+
+                    if (!response.exists || !response.files.length) {
+                        html = '<div class="text-danger">No PDF files found.</div>';
+                    } else {
+
+                        html += '<div class="list-group">';
+
+                        response.files.forEach(file => {
+
+                            html += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${file.name}</strong><br>
+                                    <small class="text-muted">${file.last_modified}</small>
+                                </div>
+                                <div>
+                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                        View
+                                    </a>
+
+                                </div>
+                            </div>
+                        `;
+                        });
+
+                        html += '</div>';
+                    }
+
+                    document.getElementById('pdfFileList').innerHTML = html;
+
+                    const modal = new bootstrap.Modal(document.getElementById('pdfListModal'));
+                    modal.show();
+                });
+        }
     </script>
 
 @endpush

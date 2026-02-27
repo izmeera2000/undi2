@@ -154,9 +154,11 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                             'type' => $type,
                             'series' => $series,
                             'dm' => $dm,
-                         ]
+                        ]
                     );
                 }
+
+
             })
             ->catch(function (Batch $batch, Throwable $e) {
                 Log::error("Batch failed.", ['message' => $e->getMessage()]);
@@ -165,6 +167,14 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                 Log::info("Batch finally callback executed.", ['batch_id' => $batch->id]);
             })
             ->dispatch();
+
+        GenerateLokalitiSummaryPdfJob::dispatch(
+            $this->filters,
+            $this->PRMAP,
+        );
+
+
+
 
         Log::info("GenerateLokalitiBatchJob dispatch completed.");
     }

@@ -1302,7 +1302,7 @@ class PengundiAnalyticsController extends Controller
             ], 400);
         }
 
-        GenerateLokalitiBatchJob::dispatchSync($filters, $this->PRMAP);
+        GenerateLokalitiBatchJob::dispatch($filters, $this->PRMAP);
 
         return response()->json([
             'success' => true,
@@ -1310,6 +1310,63 @@ class PengundiAnalyticsController extends Controller
         ]);
     }
 
+
+    public function check_pdf(Request $request)
+    {
+        $type = $request->type;
+        $series = $request->series;
+        $dm = $request->dm;
+
+        $folderPath = "pdfs/{$type}/{$series}/{$dm}";
+
+        if (!Storage::disk('public')->exists($folderPath)) {
+            return response()->json([
+                'exists' => false
+            ]);
+        }
+
+        // Get all files inside folder
+        $files = Storage::disk('public')->files($folderPath);
+
+        // Filter only PDFs
+        $pdfFiles = array_filter($files, function ($file) {
+            return str_ends_with($file, '.pdf');
+        });
+
+        if (empty($pdfFiles)) {
+            return response()->json([
+                'exists' => false
+            ]);
+        }
+
+        // Sort by last modified (latest first)
+        usort($pdfFiles, function ($a, $b) {
+            return Storage::disk('public')->lastModified($b)
+                <=> Storage::disk('public')->lastModified($a);
+        });
+
+        $latestFile = $pdfFiles[0];
+
+        return response()->json([
+            'exists' => true,
+            'url' => Storage::url($latestFile),
+            'last_modified' => Carbon::createFromTimestamp(
+                Storage::disk('public')->lastModified($latestFile)
+            )->setTimezone('Asia/Kuala_Lumpur')
+                ->format('Y-m-d H:i:s'),
+
+            'files' => array_map(function ($file) {
+                return [
+                    'name' => basename($file),
+                    'url' => Storage::url($file),
+                    'last_modified' => Carbon::createFromTimestamp(
+                        Storage::disk('public')->lastModified($file)
+                    )->setTimezone('Asia/Kuala_Lumpur')
+                        ->format('Y-m-d H:i:s')
+                ];
+            }, $pdfFiles)
+        ]);
+    }
 
 
 }

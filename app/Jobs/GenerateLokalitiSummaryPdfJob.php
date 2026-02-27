@@ -26,8 +26,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
 
     public function handle()
     {
-        ini_set('memory_limit', '512M');
-        set_time_limit(0);
+ 
 
         $type = $this->filters['type'];
         $series = $this->filters['series'];
@@ -82,7 +81,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
         // ==========================================
         // STEP 2: Generate PDF
         // ==========================================
-        $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_summary', [
+        $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf', [
             'data' => $rows,
             'filters' => $this->filters
         ])->setPaper('a4', 'landscape');

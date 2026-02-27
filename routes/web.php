@@ -108,6 +108,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'active'])->group(function () {
 
 
+
+
+
     Route::get('/clear-all', function () {
         Artisan::call('optimize:clear');
         return 'Cleared';
@@ -169,7 +172,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             [PengundiAnalyticsController::class, 'list_details']
         )->name('list_details');
 
-        
+
         ///ajax before
         Route::post('list/details/data', [PengundiAnalyticsController::class, 'list_details_data'])
             ->name('list_details_data');
@@ -214,7 +217,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-
+        Route::post('list/check-pdf', [PengundiAnalyticsController::class, 'check_pdf'])
+            ->name('list.check_pdf');
 
 
 
@@ -423,9 +427,9 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
     Route::get('/test-queue', function () {
-    TestQueueJob::dispatch();
-    return "Job dispatched!";
-});
+        TestQueueJob::dispatch();
+        return "Job dispatched!";
+    });
 
 
 
