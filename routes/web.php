@@ -113,6 +113,10 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
+ Route::get('/storage-link', function () {
+    Artisan::call('storage:link');
+        return 'Linked';
+    })->name('clear-all');
 
 
 
