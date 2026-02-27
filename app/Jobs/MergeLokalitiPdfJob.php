@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Illuminate\Bus\Batchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -10,10 +11,11 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class MergeLokalitiPdfJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels,Batchable;
 
     protected $kodLokaliti;
     protected $filters; // type, series, dm
@@ -24,24 +26,26 @@ class MergeLokalitiPdfJob implements ShouldQueue
         $this->filters = $filters;
     }
 
-    public function handle()
-    {
-        // Build folder path based on structured hierarchy
+public function handle()
+{
+    Log::info("Merge job START", ['lokaliti' => $this->kodLokaliti]);
+
+    try {
         $baseFolder = "pdfs/{$this->filters['type']}/{$this->filters['series']}/{$this->filters['dm']}";
-        // Get all page PDFs in this lokaliti folder
-        Log::info("Merging PDFs in folder: $baseFolder");
 
         $lokalitiPages = collect(Storage::disk('public')->files($baseFolder))
             ->filter(fn($file) => str_contains($file, $this->kodLokaliti))
             ->sort();
 
-        Log::info("Files found for merge:", $lokalitiPages->toArray());
-        if ($lokalitiPages->isEmpty())
+        Log::info("Files found for merge", ['files' => $lokalitiPages->toArray()]);
+
+        if ($lokalitiPages->isEmpty()) {
+            Log::warning("No page PDFs found for lokaliti", ['lokaliti' => $this->kodLokaliti]);
             return;
+        }
 
         $pdf = new Fpdi();
 
-        // Merge each page PDF
         foreach ($lokalitiPages as $file) {
             $path = Storage::disk('public')->path($file);
             $pageCount = $pdf->setSourceFile($path);
@@ -55,16 +59,36 @@ class MergeLokalitiPdfJob implements ShouldQueue
             }
         }
 
-        // Save merged PDF in the same folder
         $mergedRelativePath = "{$baseFolder}/{$this->kodLokaliti}_merged.pdf";
         $mergedAbsolutePath = Storage::disk('public')->path($mergedRelativePath);
 
         $pdf->Output($mergedAbsolutePath, 'F');
 
-        // Delete page PDFs after merging
+        // Delete page PDFs after merge
         foreach ($lokalitiPages as $file) {
             Storage::disk('public')->delete($file);
         }
+
+        Log::info("Merge job SUCCESS", ['lokaliti' => $this->kodLokaliti]);
+
+    } catch (\Throwable $e) {
+        Log::error("Merge job FAILED", [
+            'lokaliti' => $this->kodLokaliti,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        throw $e; // VERY important to fail the job properly
     }
+}
+
+public function failed(Throwable $exception)
+{
+    Log::error('MergeLokalitiPdfJob failed callback', [
+        'lokaliti' => $this->kodLokaliti,
+        'error' => $exception->getMessage(),
+        'trace' => $exception->getTraceAsString(),
+    ]);
+}
  
 }

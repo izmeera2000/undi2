@@ -1302,8 +1302,11 @@ class PengundiAnalyticsController extends Controller
             ], 400);
         }
 
-        GenerateLokalitiBatchJob::dispatch($filters, $this->PRMAP);
-
+        GenerateLokalitiBatchJob::dispatch(
+            $filters,
+            $this->PRMAP,
+            auth()->id()   // ✅ pass user id
+        );
         return response()->json([
             'success' => true,
             'message' => 'PDF generation job dispatched successfully.'
@@ -1325,8 +1328,11 @@ class PengundiAnalyticsController extends Controller
 
         $files = Storage::disk('public')->files($folderPath);
 
-        // Filter only PDFs
-        $pdfFiles = array_filter($files, fn($file) => str_ends_with($file, '.pdf'));
+        // Filter only PDFs that contain _merged or _summary
+        $pdfFiles = array_filter($files, function ($file) {
+            return str_ends_with($file, '.pdf') &&
+                (str_contains($file, '_merged') || str_contains($file, '_summary'));
+        });
 
         if (empty($pdfFiles)) {
             return response()->json(['exists' => false]);
@@ -1335,7 +1341,7 @@ class PengundiAnalyticsController extends Controller
         // Sort by file name ascending
         sort($pdfFiles, SORT_NATURAL | SORT_FLAG_CASE);
 
-        $latestFile = $pdfFiles[0]; // first file after sorting
+        $latestFile = $pdfFiles[0];
 
         return response()->json([
             'exists' => true,

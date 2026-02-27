@@ -2,74 +2,82 @@
 
 @extends('layouts.app')
 
-@section('content')
-<div class="container">
-    <h1 class="mb-4">Groups</h1>
+@section('title', 'Groups List')
 
-    {{-- Create Group Button --}}
-    <a href="{{ route('members.groups.create') }}" class="btn btn-primary mb-3">
-        <i class="fas fa-plus"></i> Create Group
-    </a>
-
-    @if($groups->count())
-        <div class="accordion" id="groupsAccordion">
-            @foreach($groups as $group)
-                <div class="card mb-2">
-                    <div class="card-header d-flex justify-content-between align-items-center" id="heading{{ $group->id }}">
-                        <h5 class="mb-0">
-                            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ $group->id }}" aria-expanded="true" aria-controls="collapse{{ $group->id }}">
-                                {{ $group->name }}
-                            </button>
-                        </h5>
-
-                        <div>
-                            <a href="{{ route('members.groups.edit', $group) }}" class="btn btn-sm btn-warning">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-
-                            <form action="{{ route('members.groups.destroy', $group) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this group?');">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-danger">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div id="collapse{{ $group->id }}" class="collapse" aria-labelledby="heading{{ $group->id }}" data-bs-parent="#groupsAccordion">
-                        <div class="card-body">
-                            <h6>Members</h6>
-                            @if($group->members->count())
-                                <ul class="list-group mb-2">
-                                    @foreach($group->members as $member)
-                                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            {{ $member->name ?? $member->email ?? 'Unnamed Member' }}
-                                            <form action="{{ route('members.groups.removeMember', [$group, $member]) }}" method="POST" class="d-inline" onsubmit="return confirm('Remove this member?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-sm btn-outline-danger">Remove</button>
-                                            </form>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            @else
-                                <p>No members yet.</p>
-                            @endif
-
-                            {{-- Invite Member Form --}}
-                            <form action="{{ route('members.groups.invite', $group) }}" method="POST" class="d-flex mt-3">
-                                @csrf
-                                <input type="email" name="email" class="form-control me-2" placeholder="Member Email" required>
-                                <button class="btn btn-success" type="submit">Invite</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    @else
-        <p>No groups available.</p>
-    @endif
-</div>
+@section('breadcrumb')
+  @php
+    $crumbs[] = ['label' => 'Members', 'url' => route('members.list')];
+    $crumbs[] = ['label' => 'Groups'];
+  @endphp
 @endsection
+
+@push('styles')
+  <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css')}}">
+@endpush
+
+@section('content')
+<section class="section">
+  <div class="card g-4 mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Groups</h5>
+      <a href="{{ route('members.groups.create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i> Create Group
+      </a>
+    </div>
+
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table id="groupsTable" class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Group Name</th>
+              <th>Description</th>
+              <th>Members</th>
+              <th class="text-end pe-4" style="width: 100px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+{{-- Invite/Remove Modals can go here --}}
+@endsection
+
+@push('scripts')
+<script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
+<script>
+$(document).ready(function() {
+  const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+  const table = $('#groupsTable').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: {
+      url: "{{ route('members.groups.index') }}",
+      type: "GET",
+      headers: { 'X-CSRF-TOKEN': csrfToken },
+      error: function(xhr) {
+        if(xhr.status === 401) window.location.href = "{{ route('login') }}";
+        if(xhr.status === 419) location.reload();
+      }
+    },
+    columns: [
+      { data: 'name', name: 'name' },
+      { data: 'description', name: 'description' },
+      { data: 'members', name: 'members', orderable: false, searchable: false },
+      { data: 'actions', name: 'actions', orderable: false, searchable: false },
+    ],
+    pageLength: 10,
+    lengthChange: true,
+  });
+
+  // Optional: search input
+  $('#groupsSearch').on('keydown', function(e) {
+    if(e.key === "Enter") table.search(this.value).draw();
+  });
+});
+</script>
+@endpush
