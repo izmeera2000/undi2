@@ -50,7 +50,7 @@
 
         <x-sidebar.nav-item route="members.list" label="List" />
 
-        <x-sidebar.nav-item route="members.list" label="Groups" />
+        <x-sidebar.nav-item route="members.groups.index" label="Groups" />
 
 
         <x-sidebar.nav-item route="members.bulkimport" label="Bulk Import" />

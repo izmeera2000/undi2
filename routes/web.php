@@ -3,6 +3,7 @@
 use App\Http\Controllers\MembersController;
 use App\Http\Controllers\MembersImportController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\GroupController;
 
 use App\Http\Controllers\PermissionController;
 use App\Jobs\TestQueueJob;
@@ -62,12 +63,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/fetch-map', [MapController::class, 'fetchAndStoreGeoJson'])->name('map.fetch');
 
 
-    // Profile
-    // Route::prefix('profile')->group(function () {
-    //     Route::get('/', [ProfileController::class, 'edit'])->name('profile.edit');
-    //     Route::patch('/', [ProfileController::class, 'update'])->name('profile.update');
-    //     Route::delete('/', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    // });
 
     // Events
     Route::prefix('events')->group(function () {
@@ -234,25 +229,13 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-        // Display Paste Import page
-        // Route::get('pasteimport', [PengundiAnalyticsController::class, 'pasteimportpage'])
-        //     ->name('pasteimport');
-
-        // Handle submission of pasted data
-        // Route::post('pasteimport', [PengundiAnalyticsController::class, 'submit'])
-        //     ->name('pasteimport.submit');
-
-
-
-
-
-
     });
-    // Members Routes
+
+    // All members routes
     Route::prefix('members')->name('members.')->group(function () {
 
         // ---------------------------
-        // STATIC / FIXED ROUTES FIRST
+        // Member CRUD + static routes
         // ---------------------------
         Route::get('list', [MembersController::class, 'list'])->name('list');
         Route::post('data', [MembersController::class, 'getList'])->name('data');
@@ -261,28 +244,37 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('bulkimport', [MembersController::class, 'bulkimport'])->name('bulkimport');
         Route::post('import', [MembersImportController::class, 'import'])->name('import');
 
-
-
-        Route::get('importProgress', [MembersImportController::class, 'importProgress'])
-            ->name('importProgress');
-
-
-        Route::get('transferProgress', [MembersImportController::class, 'transferProgress'])
-            ->name('transferProgress');
-
+        Route::get('importProgress', [MembersImportController::class, 'importProgress'])->name('importProgress');
+        Route::get('transferProgress', [MembersImportController::class, 'transferProgress'])->name('transferProgress');
 
         Route::get('duns/{kod_dun}', [MembersController::class, 'getDmsByDun'])->name('duns');
 
-        // ---------------------------
-        // DYNAMIC ROUTES / PARAMETERIZED
-        // ---------------------------
+        // Member-specific dynamic routes
         Route::get('{member}', [MembersController::class, 'show'])->name('show');
         Route::get('{member}/edit', [MembersController::class, 'edit'])->name('edit');
         Route::delete('{member}', [MembersController::class, 'destroy'])->name('destroy');
 
         Route::post('{member}/avatar', [MembersController::class, 'updateAvatar']);
         Route::post('{member}/profile', [MembersController::class, 'updateProfile'])->name('profile.update');
-        // Route::post('{user}/change-password', [StaffController::class, 'changePassword'])->name('changePassword');
+
+        // ---------------------------
+        // Members Groups Routes
+        // ---------------------------
+        Route::prefix('groups')->name('groups.')->group(function () {
+
+            // CRUD resource routes for groups
+            Route::get('/', [GroupController::class, 'index'])->name('index');
+            Route::get('/create', [GroupController::class, 'create'])->name('create');
+            Route::post('/', [GroupController::class, 'store'])->name('store');
+            Route::get('/{group}', [GroupController::class, 'show'])->name('show');
+            Route::get('/{group}/edit', [GroupController::class, 'edit'])->name('edit');
+            Route::put('/{group}', [GroupController::class, 'update'])->name('update');
+            Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
+
+            // Member management
+            Route::post('{group}/invite', [GroupController::class, 'invite'])->name('invite');
+            Route::delete('{group}/members/{member}', [GroupController::class, 'removeMember'])->name('removeMember');
+        });
 
     });
 
@@ -413,17 +405,6 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-    // Route::prefix('permissions')->name('permissions.')->group(function () {
-    //     Route::get('/', [PermissionController::class, 'index'])->name('index');
-    //     Route::post('/store', [PermissionController::class, 'store'])->name('store');
-    //     Route::post('/update/{permission}', [PermissionController::class, 'update'])->name('update');
-    //     Route::delete('/delete/{permission}', [PermissionController::class, 'destroy'])->name('delete');
-    //     Route::get('/{role?}', [PermissionController::class, 'index'])
-    //         ->name('permissions.index');
-
-    //     Route::post('/{role}/sync', [PermissionController::class, 'sync'])
-    //         ->name('permissions.sync');
-    // });
 
 
     Route::get('/test-queue', function () {
