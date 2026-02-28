@@ -930,6 +930,9 @@ class PengundiAnalyticsController extends Controller
 
         $type = $request->type;
         $series = $request->series;
+        $dm = $request->dm;
+        $dun = $request->dun;
+        $parlimen = $request->parlimen;
 
         // -------------------------------
         // Step 1: Resolve PRU year
@@ -949,63 +952,77 @@ class PengundiAnalyticsController extends Controller
         // -------------------------------
         // Step 2: Build query
         // -------------------------------
-        $pengundi = DB::table('pengundi')
-            ->join('lokaliti', function ($join) use ($selectedPRUDate) {
-                $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
-                    ->where('lokaliti.effective_from', '<=', $selectedPRUDate)
-                    ->where(function ($q) use ($selectedPRUDate) {
-                        $q->whereNull('lokaliti.effective_to')
-                            ->orWhere('lokaliti.effective_to', '>=', $selectedPRUDate);
-                    });
-            })
-            ->join('dm', function ($join) use ($selectedPRUDate) {
-                $join->on('lokaliti.koddm', '=', 'dm.koddm')
-                    ->where('dm.effective_from', '<=', $selectedPRUDate)
-                    ->where(function ($q) use ($selectedPRUDate) {
-                        $q->whereNull('dm.effective_to')
-                            ->orWhere('dm.effective_to', '>=', $selectedPRUDate);
-                    })
-                    ->whereRaw('dm.effective_from = (
-            SELECT MAX(effective_from) 
-            FROM dm AS sub 
-            WHERE sub.koddm = dm.koddm 
-              AND sub.effective_from <= ?
-              AND (sub.effective_to IS NULL OR sub.effective_to >= ?)
-        )', [$selectedPRUDate, $selectedPRUDate]);
-            })->join('dun', 'dm.kod_dun', '=', 'dun.kod_dun')
-            ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
-            ->where('pengundi.pilihan_raya_type', $type)
-            ->where('pengundi.pilihan_raya_series', $series)
-            ->where('dun.parlimen_id', $request->parlimen)
-            ->where('dm.kod_dun', $request->dun)
-            ->where('lokaliti.koddm', $request->dm)
-            ->select(
-                'pengundi.id',
-                'pengundi.nama',
-                'pengundi.kod_lokaliti',
-                'pengundi.saluran',
-                'lokaliti.koddm',
-                'lokaliti.nama_lokaliti',
-                'dm.kod_dun',
-                'dm.namadm',
-                'dun.parlimen_id',
-                'dun.namadun',
-                'parlimen.namapar'
-            )
-            ->distinct()->get(); // <-- Ensure duplicates are removed
+        $pengundi = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate) {
+            $query->from('pengundi as p')
+                ->select('p.id', 'p.kod_lokaliti', 'p.saluran', 'l.nama_lokaliti')
+                ->distinct()
+                ->join('lokaliti as l', function ($join) use ($selectedPRUDate) {
+                    $join->on('p.kod_lokaliti', '=', 'l.kod_lokaliti')
+                        ->where('l.effective_from', '<=', $selectedPRUDate)
+                        ->where(function ($q) use ($selectedPRUDate) {
+                            $q->whereNull('l.effective_to')
+                                ->orWhere('l.effective_to', '>=', $selectedPRUDate);
+                        });
+                })
+                ->join('dm as d', function ($join) use ($selectedPRUDate) {
+                    $join->on('l.koddm', '=', 'd.koddm')
+                        ->where('d.effective_from', '<=', $selectedPRUDate)
+                        ->where(function ($q) use ($selectedPRUDate) {
+                            $q->whereNull('d.effective_to')
+                                ->orWhere('d.effective_to', '>=', $selectedPRUDate);
+                        });
+                })
+                ->join('dun as dn', function ($join) use ($selectedPRUDate) {
+                    $join->on('d.kod_dun', '=', 'dn.kod_dun')
+                        ->where('dn.effective_from', '<=', $selectedPRUDate)
+                        ->where(function ($q) use ($selectedPRUDate) {
+                            $q->whereNull('dn.effective_to')
+                                ->orWhere('dn.effective_to', '>=', $selectedPRUDate);
+                        });
+                })
+                ->where('p.pilihan_raya_type', $type)
+                ->where('p.pilihan_raya_series', $series)
+                ->where('dn.parlimen_id', $parlimen)
+                ->where('d.kod_dun', $dun)
+                ->where('l.koddm', $dm);
+        }, 'p') // alias the subquery as p
+            ->selectRaw("
+    p.kod_lokaliti,
+    p.nama_lokaliti,
+    SUM(CASE WHEN p.saluran = 1 THEN 1 ELSE 0 END) AS saluran_1,
+    SUM(CASE WHEN p.saluran = 2 THEN 1 ELSE 0 END) AS saluran_2,
+    SUM(CASE WHEN p.saluran = 3 THEN 1 ELSE 0 END) AS saluran_3,
+    SUM(CASE WHEN p.saluran = 4 THEN 1 ELSE 0 END) AS saluran_4,
+    SUM(CASE WHEN p.saluran = 5 THEN 1 ELSE 0 END) AS saluran_5,
+    SUM(CASE WHEN p.saluran = 6 THEN 1 ELSE 0 END) AS saluran_6,
+    SUM(CASE WHEN p.saluran = 7 THEN 1 ELSE 0 END) AS saluran_7,
+    COUNT(*) AS total
+")
+            ->groupBy('p.kod_lokaliti', 'p.nama_lokaliti')
+            ->orderBy('p.kod_lokaliti')
+            ->get();
 
-        // -------------------------------
-        // Step 3: Execute query
-        // -------------------------------
-        // $pengundi = $pengundiQuery->get();
+
+
+        $dataWithLinks = $pengundi->map(function ($row) use ($parlimen, $dun, $dm, $type, $series) {
+            $row = (array) $row; // convert object to array
+            for ($i = 1; $i <= 7; $i++) {
+                $row["link_saluran_$i"] = "/pengundi/list/"
+                    . ($parlimen ?? '0') . "/"
+                    . ($dun ?? '0') . "/"
+                    . ($dm ?? '0') . "/"
+                    . ($row['kod_lokaliti'] ?? '0') . "/"
+                    . $i . "/"
+                    . ($type ?? '0') . "/"
+                    . ($series ?? '0');
+            }
+            return $row;
+        });
 
         // // -------------------------------
         // // Step 4: Return JSON safely
         // // -------------------------------
-        // return response()->json([
-        //     'count' => $pengundi->count(),
-        //     'data' => $pengundi
-        // ], 200, [], JSON_PRETTY_PRINT);
+
 
         // -------------------------------
         // Step 4: Return empty if no data
@@ -1019,56 +1036,14 @@ class PengundiAnalyticsController extends Controller
             ]);
         }
 
-        // -------------------------------
-        // Step 5: Aggregate per lokaliti & saluran
-        // -------------------------------
-        $dataByLokaliti = $pengundi
-            ->groupBy('kod_lokaliti')
-            ->map(function ($group, $kod_lokaliti) use ($request, $type, $series) {
-                $row = [
-                    'parlimen_id' => $request->parlimen ?? $group[0]->parlimen_id ?? null,
-                    'dun' => $request->dun ?? $group[0]->kod_dun ?? null,
-                    'dm' => $request->dm ?? $group[0]->koddm ?? null,
-                    'kod_lokaliti' => $kod_lokaliti,
-                    'nama_lokaliti' => $group[0]->nama_lokaliti ?? null,
-                    'pilihan_raya_type' => $type,
-                    'pilihan_raya_series' => $series,
-                ];
-
-                // Initialize saluran 1-7
-                for ($i = 1; $i <= 7; $i++) {
-                    $row["saluran_$i"] = 0;
-                    $row["link_saluran_$i"] = null;
-                }
-
-                $saluranCounts = $group->groupBy('saluran')->map(fn($g) => count($g))->toArray();
-                foreach ($saluranCounts as $s => $count) {
-                    if (is_numeric($s) && $s >= 1 && $s <= 7) {
-                        $row["saluran_$s"] = $count;
-                        $row["link_saluran_$s"] = "/pengundi/list/"
-                            . ($row['parlimen_id'] ?? '0') . "/"
-                            . ($row['dun'] ?? '0') . "/"
-                            . ($row['dm'] ?? '0') . "/"
-                            . ($row['kod_lokaliti'] ?? '0') . "/"
-                            . $s . "/"
-                            . ($row['pilihan_raya_type'] ?? '0') . "/"
-                            . ($row['pilihan_raya_series'] ?? '0');
-                    }
-                }
-
-                $row['total'] = array_sum(array_map(fn($i) => $row["saluran_$i"], range(1, 7)));
-
-                return $row;
-            })->values();
-
-        $grandTotal = $pengundi->count();
 
         return response()->json([
             'draw' => intval($request->draw ?? 1),
-            'recordsTotal' => $grandTotal,
-            'recordsFiltered' => $grandTotal,
-            'data' => $dataByLokaliti
-        ]);
+            'count' => $dataWithLinks->count(),
+            'data' => $dataWithLinks
+        ], 200, [], JSON_PRETTY_PRINT);
+
+
     }
 
 

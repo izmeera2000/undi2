@@ -116,7 +116,6 @@
             </div>
 
 
-
             <table id="pengundiTable" class="table table-bordered table-striped">
                 <thead>
                     <tr>
@@ -135,6 +134,20 @@
                         <th>7</th>
                     </tr>
                 </thead>
+                <tfoot>
+                    <tr>
+                        <th style="display:none;"></th> <!-- Kod Lokaliti -->
+                        <th></th> <!-- Lokaliti -->
+                        <th></th> <!-- Saluran 1 -->
+                        <th></th> <!-- Saluran 2 -->
+                        <th></th> <!-- Saluran 3 -->
+                        <th></th> <!-- Saluran 4 -->
+                        <th></th> <!-- Saluran 5 -->
+                        <th></th> <!-- Saluran 6 -->
+                        <th></th> <!-- Saluran 7 -->
+                        <th></th> <!-- Total -->
+                    </tr>
+                </tfoot>
             </table>
 
 
@@ -299,7 +312,6 @@
             // =====================================================
             function initDataTable() {
 
-
                 table = $('#pengundiTable').DataTable({
                     processing: true,
                     serverSide: false,
@@ -327,9 +339,7 @@
                         url: "{{ route('pengundi.list_data') }}",
                         type: "POST",
                         data: function (d) {
-                            if (!allFiltersSelected()) {
-                                return {}; // send empty object, backend handles
-                            }
+                            if (!allFiltersSelected()) return {};
 
                             d.parlimen = parSelect.value;
                             d.dun = dunSelect.value;
@@ -338,19 +348,30 @@
                             d.series = seriesSelect.value;
                         },
                         dataSrc: function (json) {
-                            // Show or hide download button based on returned data
-
                             console.log(json);
                             checkPdfStatus();
-                            // if (downloadBtn) {
-                            //     if (json.data && json.data.length > 0) {
-                            //         downloadBtn.style.display = 'inline-block'; // show button
-                            //     } else {
-                            //         downloadBtn.style.display = 'none'; // hide button
-                            //     }
-                            // }
                             return json.data ?? [];
                         }
+                    },
+
+                    footerCallback: function (row, data, start, end, display) {
+let api = this.api();
+
+// Sum only the "Total" column (last column, index 9 if 0-based)
+const totalSum = api
+    .column(9, { page: 'current' })
+    .data()
+    .reduce((a, b) => a + (parseInt(b) || 0), 0);
+
+// Clear other footer cells
+$(api.column(0).footer()).html('');
+$(api.column(1).footer()).html('');
+for (let i = 2; i <= 8; i++) {
+    $(api.column(i).footer()).html('');
+}
+
+// Set only the last footer cell
+$(api.column(9).footer()).html(totalSum);
                     },
 
                     stateSaveParams: function (settings, data) {
@@ -367,6 +388,8 @@
                         emptyTable: "Sila pilih semua filter untuk lihat data"
                     }
                 });
+
+
             }
             // =====================================================
             // FULL RESTORE FLOW
@@ -480,6 +503,8 @@
 
             });
 
+
+
             function checkPdfStatus() {
 
                 const data = {
@@ -567,21 +592,21 @@
                         response.files.forEach(file => {
 
                             html += `
-                                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <strong>${file.name}</strong><br>
-                                                <small class="text-muted">${file.last_modified}</small>
+                                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>${file.name}</strong><br>
+                                                    <small class="text-muted">${file.last_modified}</small>
+                                                </div>
+                                                <div>
+                                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                                        View
+                                                    </a>
+                     <a href="${file.url}" download class="btn btn-sm btn-success">
+                                                        Download
+                                                    </a>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
-                                                    View
-                                                </a>
-                 <a href="${file.url}" download class="btn btn-sm btn-success">
-                                                    Download
-                                                </a>
-                                            </div>
-                                        </div>
-                                    `;
+                                        `;
                         });
 
                         html += '</div>';

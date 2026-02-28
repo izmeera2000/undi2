@@ -195,5 +195,7 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         Log::info('GenerateLokalitiBatchJob completed', [
             'execution_time_sec' => round(microtime(true) - $startTime, 2),
         ]);
+
+
     }
 }
