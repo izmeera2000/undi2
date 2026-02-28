@@ -137,7 +137,7 @@
         $.ajax({
           url: `/staff/${staffId}`, // matches Route::resource('staff')
           type: 'DELETE',
-          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+          headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
           success: function (res) {
             // Optionally remove the deleted staff from the DOM
             toast.success('Staff deleted successfully!');

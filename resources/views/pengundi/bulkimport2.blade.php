@@ -216,7 +216,7 @@
       fetch("{{ route('pengundi.import2') }}", {
         method: 'POST',
         body: formData,
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
       })
         .then(response => response.json().then(data => {
           if (!response.ok) throw data;

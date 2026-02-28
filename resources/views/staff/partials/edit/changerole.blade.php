@@ -10,7 +10,7 @@
             url: `/staff/${userId}/role`,
             data: {
                 role: role,
-                _token: '{{ csrf_token() }}'
+                _token: document.querySelector('meta[name="csrf-token"]').content
             },
             success: function () {
                 toast.success('Role updated successfully!');

@@ -34,7 +34,7 @@
     const toast = new ToastMagic();
     const toastr = new ToastMagic();
 
-$(document).ready(function() {
+    $(document).ready(function () {
 
         $.ajaxSetup({
             headers: {
@@ -44,7 +44,7 @@ $(document).ready(function() {
     });
 
 
-$(document).ready(function() {
+    $(document).ready(function () {
 
         const notificationList = document.getElementById('notification-list');
 
@@ -109,32 +109,32 @@ $(document).ready(function() {
 
 
 <script>
-async function submitLogout(formId) {
-    const form = document.getElementById(formId);
+    async function submitLogout(formId) {
+        const form = document.getElementById(formId);
 
-    try {
-        const res = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': form.querySelector('input[name=_token]').value,
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
-        });
+        try {
+            const res = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': form.querySelector('input[name=_token]').value,
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
 
-        if (res.ok) {
-            window.location = '/';
-        } else if (res.status === 419) {
-            // CSRF expired → fetch new token
-            const tokenRes = await fetch("{{ route('csrf.refresh') }}");
-            const data = await tokenRes.json();
-            form.querySelector('input[name=_token]').value = data.csrf_token;
+            if (res.ok) {
+                window.location = '/';
+            } else if (res.status === 419) {
+                // CSRF expired → fetch new token
+                const tokenRes = await fetch("{{ route('csrf.refresh') }}");
+                const data = await tokenRes.json();
+                form.querySelector('input[name=_token]').value = data.csrf_token;
 
-            // Retry logout automatically
-            submitLogout(formId);
+                // Retry logout automatically
+                submitLogout(formId);
+            }
+        } catch (e) {
+            console.error('Logout failed', e);
         }
-    } catch (e) {
-        console.error('Logout failed', e);
     }
-}
 </script>

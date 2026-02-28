@@ -262,7 +262,7 @@ $('#dun_id').on('change', function () {
       //   $.ajax({
       //     url: `/members/${membersId}`, // matches Route::resource('members')
       //     type: 'DELETE',
-      //     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+      //     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
       //     success: function (res) {
       //       $('#membersTable').DataTable().ajax.reload();
       //       toast.success("Member deleted successfully!");

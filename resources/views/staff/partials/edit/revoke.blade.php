@@ -8,7 +8,7 @@
 
         $.post({
             url: `/staff/${userId}/suspend`,
-            data: { _token: '{{ csrf_token() }}' },
+            data: { _token: document.querySelector('meta[name="csrf-token"]').content },
             success: function () {
                 toast.success('All sessions revoked');
             }

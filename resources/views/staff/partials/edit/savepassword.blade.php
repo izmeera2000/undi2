@@ -17,7 +17,7 @@
             data: {
                 password: password,
                 password_confirmation: confirm,
-                _token: '{{ csrf_token() }}'
+                _token: document.querySelector('meta[name="csrf-token"]').content
             },
             success: function (res) {
                 toast.success(res.message);

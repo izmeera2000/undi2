@@ -31,7 +31,7 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRF-TOKEN': '{{ csrf_token() }}'
+      'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
     },
     body: JSON.stringify({ charts: images })
   })

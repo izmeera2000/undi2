@@ -10,7 +10,7 @@
         $.ajax({
             url: `/members/${userId}`,
             type: 'DELETE',
-            data: { _token: '{{ csrf_token() }}' },
+            data: { _token: document.querySelector('meta[name="csrf-token"]').content },
             success: function () {
                 toast.success('User deleted');
                 window.location.href = "{{ route('members.list') }}";

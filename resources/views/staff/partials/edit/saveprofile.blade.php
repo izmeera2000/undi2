@@ -11,7 +11,7 @@
                 email: $('input[name="email"]').val(),
                 phone: $('input[name="phone"]').val(),
                 address: $('input[name="address"]').val(),
-                _token: '{{ csrf_token() }}'
+                _token: document.querySelector('meta[name="csrf-token"]').content
             };
 
             $.ajax({

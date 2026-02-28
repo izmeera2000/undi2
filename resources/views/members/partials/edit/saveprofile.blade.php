@@ -13,7 +13,7 @@ $(document).ready(function () {
             poskod: $('input[name="poskod"]').val(),
             bandar: $('input[name="bandar"]').val(),
             negeri: $('input[name="negeri"]').val(),
-            _token: '{{ csrf_token() }}'
+            _token: document.querySelector('meta[name="csrf-token"]').content
         };
 
         $.ajax({

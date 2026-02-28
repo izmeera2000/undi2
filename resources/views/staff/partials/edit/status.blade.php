@@ -9,7 +9,7 @@
 
             if (!confirm(confirmMsg)) return;
 
-            $.post(`/staff/${userId}/${action}`, { _token: '{{ csrf_token() }}' }, function (res) {
+            $.post(`/staff/${userId}/${action}`, { _token: document.querySelector('meta[name="csrf-token"]').content }, function (res) {
                 if (res.success) {
                     // Update button text & status dynamically
                     let newStatus = action === 'suspend' ? 'suspended' : 'active';

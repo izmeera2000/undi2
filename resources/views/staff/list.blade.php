@@ -210,7 +210,7 @@
           data: formData,
           processData: false,
           contentType: false,
-          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+          headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
           success: function (res) {
             $('#addStaffModal').modal('hide');
             $('#staffTable').DataTable().ajax.reload();
@@ -236,7 +236,7 @@
         $.ajax({
           url: `/staff/${staffId}`, // matches Route::resource('staff')
           type: 'DELETE',
-          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+          headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
           success: function (res) {
             $('#staffTable').DataTable().ajax.reload();
             toast.success("Staff deleted successfully!");

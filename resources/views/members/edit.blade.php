@@ -270,7 +270,7 @@
         function uploadAvatar(file) {
             let formData = new FormData();
             formData.append('avatar', file);
-            formData.append('_token', '{{ csrf_token() }}');
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
             $.ajax({
                 url: '/members/{{ $member->id }}/avatar',
