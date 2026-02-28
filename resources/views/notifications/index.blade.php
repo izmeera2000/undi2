@@ -61,7 +61,7 @@
                                         <div class="notif-item-content">
                                             <div class="notif-item-header">
                                                 <h6>{{ $notification->data['title'] }}</h6>
-                                                <span class="notif-item-time">{{ $notification->data['time'] }}</span>
+                                                <span class="notif-item-time">{{ $notification->created_at->diffForHumans() }}</span>
                                             </div>
                                             <p>{{ $notification->data['message'] }}</p>
                                             @if(isset($notification->data['file']))

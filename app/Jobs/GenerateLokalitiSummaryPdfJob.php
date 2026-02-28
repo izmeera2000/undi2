@@ -110,7 +110,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 ->get();
 
 
-                
+
             if ($rows->isEmpty()) {
                 Log::warning('No pengundi found for summary');
                 return;
@@ -142,10 +142,14 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
             */
 
             $user = User::find($this->userId);
-            if ($user) {
-                $user->notify(new LokalitiPdfGenerated($fullPath));
-            }
 
+            if ($user) {
+                $user->notify(
+                    new LokalitiPdfGenerated(
+                        route('pengundi.list')
+                    )
+                );
+            }
             Log::info('Summary Job COMPLETED SUCCESSFULLY');
 
         } catch (Throwable $e) {
