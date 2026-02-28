@@ -28,7 +28,10 @@ class LokalitiPdfGenerated extends Notification implements ShouldQueue
         return [
             'title' => 'PDF Generation Completed',
             'message' => 'Your PDF is ready.',
-            'file' => $this->filePath
+            'file' => $this->filePath,
+            'type' => 'success',            // success, danger, info, warning
+            'icon' => 'bi-file-earmark-pdf', // Icon for this notification
+            'time' => now()->format('d M Y, h:i A'), // Formatted timestamp
         ];
     }
 
@@ -37,7 +40,10 @@ class LokalitiPdfGenerated extends Notification implements ShouldQueue
         return new BroadcastMessage([
             'title' => 'PDF Generation Completed',
             'message' => 'Your PDF is ready.',
-            'file' => $this->filePath
+            'file' => $this->filePath,
+            'type' => 'success',
+            'icon' => 'bi-file-earmark-pdf',
+            'time' => now()->format('d M Y, h:i A'),
         ]);
     }
 }

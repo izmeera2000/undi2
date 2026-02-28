@@ -82,7 +82,7 @@
 
         <!-- Footer -->
         <div class="notification-footer text-center border-top p-2">
-            <a href="#" class="text-decoration-none small">
+            <a href="{{ route('notifications.index') }}" class="text-decoration-none small">
                 View all notifications
                 <i class="bi bi-arrow-right"></i>
             </a>
