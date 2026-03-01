@@ -29,10 +29,9 @@ class Dm extends Model
     /**
      * Get the Dun that owns the Dm
      */
-      public function dun()
+    public function dun()
     {
-        // DM belongs to a DUN
-        return $this->belongsTo(Dun::class, 'kod_dun');
+        return $this->belongsTo(Dun::class, 'kod_dun', 'kod_dun');
     }
 
     /**
@@ -53,7 +52,7 @@ class Dm extends Model
     /**
      * Get the Lokalitis that belong to this Dm
      */
-   public function lokalitis()
+    public function lokalitis()
     {
         return $this->hasMany(Lokaliti::class, 'koddm', 'koddm');
     }

@@ -29,40 +29,38 @@ class Lokaliti extends Model
      *
      * Update the foreign key to 'koddm' if it's changed from 'dm_id'.
      */
-    public function dm()
-    {
-        return $this->belongsTo(Dm::class, 'koddm', 'koddm');  // Ensure 'koddm' is used as foreign key
-    }
+// In Lokaliti.php
+public function dm()
+{
+    // Lokaliti.koddm → Dm.koddm
+    return $this->belongsTo(Dm::class, 'koddm', 'koddm');
+}
 
-    /**
-     * Get the related Dun via Dm.
-     */
-    public function dun()
-    {
-        return $this->hasOneThrough(
-            Dun::class,       // Related model
-            Dm::class,        // Intermediate model
-            'koddm',          // Foreign key on Dm model (linking with Lokaliti)
-            'id',              // Foreign key on Dun model
-            'dm_id',           // Local key on Lokaliti model (dm_id if this is correct)
-            'dun_id'           // Local key on Dm model (dun_id)
-        );
-    }
+public function dun()
+{
+    // Get Dun via Dm: Dm.kod_dun → Dun.kod_dun
+    return $this->hasOneThrough(
+        Dun::class,     // Related model
+        Dm::class,      // Intermediate model
+        'koddm',        // Foreign key on Dm model (links to Lokaliti.koddm)
+        'kod_dun',      // Foreign key on Dun model (links to Dm.kod_dun)
+        'koddm',        // Local key on Lokaliti
+        'kod_dun'       // Local key on Dm
+    );
+}
 
-    /**
-     * Get the related Parlimen via Dun.
-     */
-    public function parlimen()
-    {
-        return $this->hasOneThrough(
-            Parlimen::class,  // Related model
-            Dun::class,       // Intermediate model
-            'dm_id',          // Foreign key on Dun model
-            'id',             // Foreign key on Parlimen model
-            'koddm',          // Local key on Lokaliti model (should match the correct key)
-            'parlimen_id'     // Local key on Dun model
-        );
-    }
+public function parlimen()
+{
+    // Get Parlimen via Dun: Dun.kod_parlimen → Parlimen.kod_parlimen
+    return $this->hasOneThrough(
+        Parlimen::class, // Related model
+        Dun::class,      // Intermediate model
+        'kod_dun',       // Foreign key on Dun (links to Lokaliti via dun relation)
+        'kod_par',  // Foreign key on Parlimen
+        'koddm',         // Local key on Lokaliti
+        'kod_par'   // Local key on Dun
+    );
+}
 
     /**
      * Get the associated Pengundis for this Lokaliti.

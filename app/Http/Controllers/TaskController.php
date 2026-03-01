@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\TaskCategory;
 use App\Models\Subtask;
 use Illuminate\Http\Request;
+use App\Notifications\TaskAssignedNotification;
 
 class TaskController extends Controller
 {
@@ -74,6 +75,8 @@ class TaskController extends Controller
             'tags' => 'nullable|array',
         ]);
 
+
+
         // Ensure tags is always an array
         $validated['tags'] = collect($validated['tags'] ?? [])
             ->filter()
@@ -84,6 +87,10 @@ class TaskController extends Controller
         $validated['status'] = 'todo';
 
         $task = Task::create($validated);
+
+    if ($task->assignee && $task->assigned_to !== auth()->id()) {
+        $task->assignee->notify(new TaskAssignedNotification($task));
+    }
 
         return response()->json($task, 201);
     }

@@ -163,20 +163,20 @@ class DmController extends Controller
 
 
     public function bulkStore(Request $request)
-{
-    $rows = $request->data;
+    {
+        $rows = $request->data;
 
-    foreach ($rows as $row) {
+        foreach ($rows as $row) {
 
-        DM::create([
-            'kod_dun' => $row[0],
-            'koddm' => $row[1],
-            'namadm' => $row[2],
-            'effective_from' => $row[3] ?? null,
-            'effective_to' => $row[4] ?? null,
-        ]);
+            DM::create([
+                'kod_dun' => $row[0],
+                'koddm' => $row[0] . $row[1],
+                'namadm' => $row[2],
+                'effective_from' => $row[3] ?? null,
+                'effective_to' => $row[4] ?? null,
+            ]);
+        }
+
+        return response()->json(['success' => true]);
     }
-
-    return response()->json(['success' => true]);
-}
 }

@@ -179,7 +179,7 @@
                         contextMenu: true,
                         colHeaders: [
                             'kod_dun',
-                            'koddm',
+                            'koddm (2 digits)',
                             'namadm',
                             'effective_from',
                             'effective_to'

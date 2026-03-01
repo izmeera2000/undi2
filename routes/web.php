@@ -54,6 +54,7 @@ Route::get('/csrf-refresh', function () {
 // --------------------------------------------------
 
 Route::middleware('auth')->group(function () {
+    Route::get('/mergelokaliti', [LokalitiController::class, 'mergeDuplicates'])->name('mergeDuplicates');
 
 
     Route::get('/weather/today/{location?}', [WeatherController::class, 'today'])->name('weather.today');

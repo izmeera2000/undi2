@@ -6,6 +6,7 @@ use App\Models\Lokaliti;
 use App\Models\Dm;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\DB;
 
 class LokalitiController extends Controller
 {
@@ -105,24 +106,62 @@ class LokalitiController extends Controller
     // Show single Lokaliti
     public function show(Lokaliti $lokaliti)
     {
+        $from = $lokaliti->effective_from;
+        $to = $lokaliti->effective_to ?? now();
+
+        $lokaliti->load([
+            'dm' => function ($query) use ($from, $to) {
+                $query->where(function ($q) use ($from, $to) {
+                    $q->where('effective_from', '<=', $to)
+                        ->where(function ($q2) use ($from) {
+                            $q2->whereNull('effective_to')
+                                ->orWhere('effective_to', '>=', $from);
+                        });
+                });
+            }
+        ]);
+
         return view('lokaliti.show', compact('lokaliti'));
     }
-
     // Server-side DataTables
     public function getList(Request $request)
     {
-        $query = Lokaliti::with('dm'); // Make sure `dm` relationship is loaded correctly
+        $query = Lokaliti::with('dm'); // Load DM relationship
 
         return datatables($query)
+            // Direct column from table
             ->addColumn('kod_lokaliti', fn($row) => $row->kod_lokaliti)
+
+            // HTML link column
             ->addColumn('nama_lokaliti', fn($row) => '<a href="' . route('lokaliti.show', $row->id) . '">' . $row->nama_lokaliti . '</a>')
-            ->addColumn('dm_name', fn($row) => '-') // Get DM name based on koddm
+            ->filterColumn('nama_lokaliti', function ($query, $keyword) {
+                $query->where('nama_lokaliti', 'like', "%{$keyword}%");
+            })
+
+            // DM name column
+            ->addColumn('dm_name', fn($row) => $row->dm?->namadm ?? '-')
+            ->filterColumn('dm_name', function ($query, $keyword) {
+                $query->whereHas('dm', function ($q) use ($keyword) {
+                    $q->where('namadm', 'like', "%{$keyword}%"); // use actual column
+                });
+            })
+
+            // Optional: search on effective_from/effective_to if needed
+            ->filterColumn('effective_from', function ($query, $keyword) {
+                $query->where('effective_from', 'like', "%{$keyword}%");
+            })
+            ->filterColumn('effective_to', function ($query, $keyword) {
+                $query->where('effective_to', 'like', "%{$keyword}%");
+            })
+
+            // Actions column
             ->addColumn('actions', function ($row) {
                 $edit = '<a href="' . route('lokaliti.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
                 $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-lokaliti">Delete</button>';
                 return $edit . ' ' . $delete;
             })
-            ->rawColumns(['nama_lokaliti', 'actions'])
+
+            ->rawColumns(['nama_lokaliti', 'actions']) // Allow HTML
             ->make(true);
     }
 
@@ -132,7 +171,7 @@ class LokalitiController extends Controller
 
             Lokaliti::create([
                 'koddm' => $row[0],
-                'kod_lokaliti' => $row[1],
+                'kod_lokaliti' => $row[0] . $row[1],
                 'nama_lokaliti' => $row[2],
                 'effective_from' => $row[3] ?? null,
                 'effective_to' => $row[4] ?? null,
@@ -141,4 +180,55 @@ class LokalitiController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+
+public function mergeDuplicates()
+{
+    // Step 1: Get duplicate keys as array (no Eloquent methods)
+    $duplicates = Lokaliti::select('nama_lokaliti', 'kod_lokaliti')
+        ->groupBy('nama_lokaliti', 'kod_lokaliti')
+        ->havingRaw('COUNT(*) > 1')
+        ->get()
+        ->toArray(); // convert to array to avoid stdClass issues
+
+    $mergedCount = 0;
+    $deletedCount = 0;
+
+    foreach ($duplicates as $dup) {
+        // Step 2: Get all rows for this lokaliti AS ELOQUENT MODELS
+        $rows = Lokaliti::where('nama_lokaliti', $dup['nama_lokaliti'])
+            ->where('kod_lokaliti', $dup['kod_lokaliti'])
+            ->orderBy('effective_from')
+            ->get(); // returns Eloquent models
+
+        if ($rows->count() <= 1) {
+            continue; // nothing to merge
+        }
+
+        $mergedCount++;
+
+        // Step 3: Determine merged dates
+        $earliestFrom = $rows->min('effective_from');
+        $latestTo = $rows->max('effective_to');
+
+        // Step 4: Update the first model
+        $keep = $rows->first(); // this is Eloquent model
+        $keep->effective_from = $earliestFrom;
+        $keep->effective_to = $latestTo;
+        $keep->save();
+
+        // Step 5: Delete the other duplicates
+        $deletedCount += $rows->count() - 1;
+        $rows->skip(1)->each(function ($row) {
+            $row->delete();
+        });
+    }
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Duplicate lokaliti merged successfully!',
+        'merged_groups' => $mergedCount,
+        'deleted_rows' => $deletedCount,
+    ]);
+}
 }

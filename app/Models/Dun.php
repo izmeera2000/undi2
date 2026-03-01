@@ -37,19 +37,25 @@ class Dun extends Model
     /**
      * Get all Lokaliti through Dm
      */
-    public function lokalitis()
-    {
-        // Ensure correct relationship via 'kod_dun' if necessary
-        return $this->hasManyThrough(Lokaliti::class, Dm::class, 'kod_dun', 'kod_lokaliti');
-    }
+public function lokalitis()
+{
+    return $this->hasManyThrough(
+        Lokaliti::class,
+        Dm::class,
+        'kod_dun',      // Foreign key on dm table
+        'koddm',       // Foreign key on lokaliti table
+        'kod_dun',      // Local key on dun table
+        'koddm'        // Local key on dm table
+    );
+}
 
     /**
      * Get all DMs under this Dun (updated to use 'kod_dun')
      */
-      public function dms()
-    {
-        return $this->hasMany(Dm::class, 'dun_id');
-    }
+ public function dms()
+{
+    return $this->hasMany(Dm::class, 'kod_dun', 'kod_dun');
+}
 
     /**
      * Get all Pengundis through Dm

@@ -279,8 +279,10 @@
             });
 
             // Search
-            $('#lokalitiSearch').on('keyup', function () {
-                table.search(this.value).draw();
+            $('#lokalitiSearch').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    table.search(this.value).draw();
+                }
             });
 
             // Add Lokaliti
