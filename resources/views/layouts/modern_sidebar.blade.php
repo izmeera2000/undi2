@@ -24,9 +24,15 @@
           <x-sidebar.nav-item route="pengundi.analytics" label="Analytics" />
 
           @can('pengundi.add')
+
+            <x-sidebar.nav-item route="pengundi.bulkimport2" label="Expectiations" />
+
             <x-sidebar.nav-item route="pengundi.bulkimport" label="Bulk Import" />
 
             <x-sidebar.nav-item route="pengundi.bulkimport2" label="Bulk Import 2" />
+
+
+
           @endcan
 
         </x-sidebar.nav-group>
