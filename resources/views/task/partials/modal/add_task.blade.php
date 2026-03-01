@@ -35,7 +35,7 @@
                     </div>
 
                     <div class="row mb-3">
-                        <div class="col-6 @cannot('task.assign.others') d-none @endcannot">
+                        <div class="col-6 @cannot('task.add.others') d-none @endcannot">
                             <label class="form-label">Assigned To</label>
                             <select name="assigned_to" id="addTaskAssignee" class="form-select">
                                 <option value="">Select user</option>
