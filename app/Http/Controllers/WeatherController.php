@@ -21,7 +21,8 @@ class WeatherController extends Controller
             ->first();
 
         if (!$weather) {
-            $response = Http::get("https://api.data.gov.my/weather/forecast?contains={$location}@location__location_name");
+
+            $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=Pasir%20Mas@location__location_name");
 
             if ($response->successful() && !empty($response->json())) {
                 $data = $response->json()[0];

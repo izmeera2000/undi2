@@ -33,7 +33,7 @@
 
   <!-- Main CSS -->
   <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
-
+@livewireStyles
   @php
 
     use Devrabiul\ToastMagic\Facades\ToastMagic;

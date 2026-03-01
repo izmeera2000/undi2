@@ -18,7 +18,7 @@
 
 <!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
-
+@livewireScripts
 
 @php
 
@@ -27,7 +27,6 @@
 {!! ToastMagic::scripts() !!}
 
 
-@vite(['resources/js/app.js'])
 
 <script>
 
