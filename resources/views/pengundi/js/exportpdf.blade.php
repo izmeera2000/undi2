@@ -1,7 +1,7 @@
 <script>
     
 document.getElementById('exportPdf').addEventListener('click', async () => {
-   toast.info("Exporting", "Generating PDF...");
+   toastr.info("Exporting", "Generating PDF...");
 
   if (!DashboardState.charts) {
     alert('Charts not ready');
@@ -41,7 +41,7 @@ document.getElementById('exportPdf').addEventListener('click', async () => {
   })
   .finally(() => {
     spinner.classList.add('d-none'); // hide spinner
-    toast.success("PDF ready!");
+    toastr.success("PDF ready!");
   });
 });
 

@@ -15,8 +15,7 @@
 
 @push('styles')
 
-    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css')}}">
-
+ 
 @endpush
 
 
@@ -116,7 +115,7 @@
             </div>
 
 
-            <table id="pengundiTable" class="table table-bordered table-striped">
+            <table id="pengundiTable" class="table table-bordered table-striped table-hover">
                 <thead>
                     <tr>
                         <th rowspan="2" style="display:none;">Kod Lokaliti</th>

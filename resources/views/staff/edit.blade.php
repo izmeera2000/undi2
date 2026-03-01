@@ -378,13 +378,13 @@
                 processData: false,
                 contentType: false,
                 success: function (res) {
-                    toast.success('Avatar updated');
+                    toastr.success('Avatar updated');
                     $('img[data-avatar]').each(function () {
                         $(this).attr('src', res.avatar_url);
                     });
                 },
                 error: function (err) {
-                    toast.error('Failed to upload avatar');
+                    toastr.error('Failed to upload avatar');
                     console.error(err);
                 }
             });

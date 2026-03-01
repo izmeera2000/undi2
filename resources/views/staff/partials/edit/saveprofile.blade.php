@@ -25,14 +25,14 @@
                         $('input[name="phone"]').val(res.user.profile?.phone ?? '');
                         $('input[name="address"]').val(res.user.profile?.address ?? '');
 
-                        toast.info('Profile updated successfully!');
+                        toastr.info('Profile updated successfully!');
                     } else {
-                        toast.error('Failed to update profile. Invalid response data.');
+                        toastr.error('Failed to update profile. Invalid response data.');
                     }
                 },
                 error: function (err) {
                     console.log('Error:', err);
-                    toast.error('Failed to update profile. Check your input.');
+                    toastr.error('Failed to update profile. Check your input.');
                 }
             });
         });

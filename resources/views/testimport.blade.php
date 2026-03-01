@@ -7,14 +7,7 @@
   <!-- Welcome & Stats Row -->
   <div class="row g-4 mb-4">
 
-
-    <form action="{{ route('pengundi.import.paste') }}" method="POST">
-    @csrf
-    <label for="data">Paste Excel Data (from clipboard):</label>
-    <textarea name="data" id="data" rows="10" cols="50" placeholder="Paste copied data from Excel here..." required></textarea>
-
-    <button type="submit">Import Data</button>
-</form>
+ {{  phpinfo() }}
     
 {{-- <form action="/pengundi/import" method="POST" enctype="multipart/form-data">
     @csrf

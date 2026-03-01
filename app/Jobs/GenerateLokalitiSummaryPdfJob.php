@@ -123,21 +123,26 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 return;
             }
 
-            Log::info('Generating PDF...', [
-                'memory_before_pdf_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
-            ]);
+            Log::info('Memory before PDF loadView (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
 
             $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf', [
                 'data' => $rows,
                 'filters' => $this->filters
             ])->setPaper('a4', 'landscape');
 
+            Log::info('Memory after PDF loadView (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
+
             $pdfContent = $pdf->output();
 
-            Log::info('PDF generated', [
-                'memory_after_pdf_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
-                'pdf_size_kb' => round(strlen($pdfContent) / 1024, 2)
-            ]);
+            Log::info('Memory after PDF output (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
+            Log::info('PDF size KB: ' . round(strlen($pdfContent) / 1024, 2));
+
+
+            $pdfContent = $pdf->output();
+            unset($pdf);
+            gc_collect_cycles();
+
+            Log::info('Memory after unset and GC (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
 
             $folderPath = "pdfs/{$type}/{$series}/{$this->filters['dm']}";
             $fileName = "{$this->filters['dm']}_summary.pdf";

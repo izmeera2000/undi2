@@ -25,7 +25,7 @@
                         .addClass('badge ' + getStatusBadgeClass(newStatus))
                         .text(capitalizeFirstLetter(newStatus));
 
-                    toast.success(`User is now ${newStatus}`);
+                    toastr.success(`User is now ${newStatus}`);
                 }
             });
         });

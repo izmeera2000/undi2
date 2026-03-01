@@ -333,13 +333,13 @@
           headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
           success: function (res) {
             // Optionally remove the deleted staff from the DOM
-            toast.success('Staff deleted successfully!');
+            toastr.success('Staff deleted successfully!');
 
             location.reload(); // or reload your table via AJAX
           },
           error: function (err) {
             console.error(err);
-            toast.error('Error deleting staff.');
+            toastr.error('Error deleting staff.');
 
           }
         });

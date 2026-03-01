@@ -7,7 +7,7 @@
         let confirm = $('#confirmPassword').val();
 
         if (!password || !confirm) {
-            toast.warning('Please fill both password fields');
+            toastr.warning('Please fill both password fields');
             return;
         }
 
@@ -20,7 +20,7 @@
                 _token: document.querySelector('meta[name="csrf-token"]').content
             },
             success: function (res) {
-                toast.success(res.message);
+                toastr.success(res.message);
 
                 $('#newPassword').val('');
                 $('#confirmPassword').val('');
@@ -29,9 +29,9 @@
                 console.log(err);
 
                 if (err.responseJSON?.errors) {
-                    toast.error(Object.values(err.responseJSON.errors)[0][0]);
+                    toastr.error(Object.values(err.responseJSON.errors)[0][0]);
                 } else {
-                    toast.error('Failed to change password');
+                    toastr.error('Failed to change password');
                 }
             }
         });

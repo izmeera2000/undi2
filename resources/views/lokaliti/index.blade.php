@@ -245,20 +245,25 @@
                 processing: true,
                 serverSide: true,
                 stateSave: true,
+                dom: 'rtip', //
                 ajax: {
                     url: "{{ route('lokaliti.data') }}",
                     type: "POST",
                     headers: {
                         'X-CSRF-TOKEN': csrfToken
                     },
+                    dataSrc: function (json) {
+                        console.log("Server Response:", json);
+                        return json.data; // must return data array
+                    },
                     error: function (xhr) {
-                        // Handle 401 Unauthorized
+                        console.log("Error Response:", xhr.responseText);
+
                         if (xhr.status === 401) {
-                            window.location.href = "{{ route('login') }}";  // Redirect to login page
+                            window.location.href = "{{ route('login') }}";
                         }
-                        // Handle 419 Page Expired
                         if (xhr.status === 419) {
-                            location.reload();  // Reload the page
+                            location.reload();
                         }
                     }
                 },

@@ -13,11 +13,11 @@
                 _token: document.querySelector('meta[name="csrf-token"]').content
             },
             success: function () {
-                toast.success('Role updated successfully!');
+                toastr.success('Role updated successfully!');
                 location.reload();
             },
             error: function () {
-                toast.error('Failed to change role');
+                toastr.error('Failed to change role');
             }
         });
     });

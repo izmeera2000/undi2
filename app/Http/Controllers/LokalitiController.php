@@ -116,7 +116,7 @@ class LokalitiController extends Controller
         return datatables($query)
             ->addColumn('kod_lokaliti', fn($row) => $row->kod_lokaliti)
             ->addColumn('nama_lokaliti', fn($row) => '<a href="' . route('lokaliti.show', $row->id) . '">' . $row->nama_lokaliti . '</a>')
-            ->addColumn('dm_name', fn($row) => $row->dm?->namadm ?? '-') // Get DM name based on koddm
+            ->addColumn('dm_name', fn($row) => '-') // Get DM name based on koddm
             ->addColumn('actions', function ($row) {
                 $edit = '<a href="' . route('lokaliti.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
                 $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-lokaliti">Delete</button>';

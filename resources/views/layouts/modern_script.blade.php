@@ -31,7 +31,6 @@
 
 <script>
 
-    const toast = new ToastMagic();
     const toastr = new ToastMagic();
 
     $(document).ready(function () {
@@ -41,68 +40,63 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         });
-    });
 
-
-    $(document).ready(function () {
 
         const notificationList = document.getElementById('notification-list');
 
-        notificationList.addEventListener('click', function (e) {
+        if (notificationList) { // <-- check if element exists
+            notificationList.addEventListener('click', function (e) {
 
-            const item = e.target.closest('.notification-item');
-            if (!item) return;
+                const item = e.target.closest('.notification-item');
+                if (!item) return;
 
-            e.preventDefault(); // stop navigation first
+                e.preventDefault();
 
-            const id = item.dataset.id;
-            const url = item.getAttribute('href');
+                const id = item.dataset.id;
+                const url = item.getAttribute('href');
 
-            fetch(`/notifications/${id}/read`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
+                fetch(`/notifications/${id}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.json();
+                    }).then(data => {
+                        if (data.success) {
+                            item.classList.remove('bg-light', 'unread');
 
-                        // Remove unread style
-                        item.classList.remove('bg-light', 'unread');
+                            const badge = document.getElementById('notification-badge');
+                            const countSpan = document.getElementById('notification-count');
 
-                        // Update badge
-                        const badge = document.getElementById('notification-badge');
-                        const countSpan = document.getElementById('notification-count');
+                            if (badge) {
+                                let count = Math.max((parseInt(badge.innerText, 10) || 0) - 1, 0);
+                                if (count <= 0) {
+                                    badge.style.display = 'none';
+                                    countSpan.innerText = '0 new';
+                                } else {
+                                    badge.innerText = count;
+                                    countSpan.innerText = count + ' new';
+                                }
+                            }
 
-                        if (badge) {
-                            let count = parseInt(badge.innerText) || 0;
-                            count--;
-
-                            if (count <= 0) {
-                                badge.style.display = 'none';
-                                countSpan.innerText = '0 new';
-                            } else {
-                                badge.innerText = count;
-                                countSpan.innerText = count + ' new';
+                            if (url && url !== '#') {
+                                window.location.href = url;
                             }
                         }
-
-                        // Navigate after marking as read
+                    })
+                    .catch(error => {
+                        console.error('Notification error:', error);
                         if (url && url !== '#') {
                             window.location.href = url;
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Notification error:', error);
-                    if (url && url !== '#') {
-                        window.location.href = url;
-                    }
-                });
+                    });
 
-        });
+            });
+        }
 
     });
 </script>
@@ -131,7 +125,7 @@
                 form.querySelector('input[name=_token]').value = data.csrf_token;
 
                 // Retry logout automatically
-                submitLogout(formId);
+                await submitLogout(formId);
             }
         } catch (e) {
             console.error('Logout failed', e);

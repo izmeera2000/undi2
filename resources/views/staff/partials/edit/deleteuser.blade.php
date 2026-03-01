@@ -12,7 +12,7 @@
             type: 'DELETE',
             data: { _token: document.querySelector('meta[name="csrf-token"]').content },
             success: function () {
-                toast.success('User deleted');
+                toastr.success('User deleted');
                 window.location.href = "{{ route('staff.list') }}";
             }
         });

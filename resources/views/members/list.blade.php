@@ -265,12 +265,12 @@ $('#dun_id').on('change', function () {
       //     headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
       //     success: function (res) {
       //       $('#membersTable').DataTable().ajax.reload();
-      //       toast.success("Member deleted successfully!");
+      //       toastr.success("Member deleted successfully!");
 
       //     },
       //     error: function (err) {
       //       console.error(err);
-      //       toast.error("Error deleting members.");
+      //       toastr.error("Error deleting members.");
 
       //     }
       //   });

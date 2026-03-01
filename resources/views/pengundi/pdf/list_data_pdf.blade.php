@@ -1,118 +1,66 @@
-<!DOCTYPE html>
-<html>
+<h2>Senarai Pengundi Mengikut Lokaliti</h2>
 
-<head>
-    <meta charset="utf-8">
-    <title>Senarai Pengundi Mengikut DM</title>
+<table class="data-table" border="1" width="100%" cellspacing="0" cellpadding="5">
 
-    <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 10px;
-        }
+    <!-- Maklumat Penapis -->
+    <tr>
+        <td><strong>Jenis PRU:</strong> {{ $filters['type'] ?? '-' }}</td>
+        <td><strong>Series:</strong> {{ $filters['series'] ?? '-' }}</td>
+    </tr>
+    <tr>
+        <td><strong>Parlimen:</strong> {{ $filters['parlimen'] ?? '-' }}</td>
+        <td><strong>DUN:</strong> {{ $filters['dun'] ?? '-' }}</td>
+    </tr>
+    <tr>
+        <td colspan="2"><strong>DM:</strong> {{ $filters['dm'] ?? '-' }}</td>
+    </tr>
 
-        h2 {
-            text-align: center;
-            margin-bottom: 5px;
-        }
+    <!-- Spacer Row -->
+    <tr>
+        <td colspan="11">&nbsp;</td>
+    </tr>
 
-        .info-table {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-
-        .info-table td {
-            padding: 2px 4px;
-        }
-
-        table.data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table.data-table th,
-        table.data-table td {
-            border: 1px solid #000;
-            padding: 4px;
-            text-align: center;
-        }
-
-        table.data-table th {
-            background: #f0f0f0;
-        }
-
-        .text-left {
-            text-align: left;
-        }
-
-        .total-row {
-            font-weight: bold;
-            background: #f9f9f9;
-        }
-    </style>
-</head>
-
-<body>
-
-    <h2>Senarai Pengundi Mengikut Lokaliti</h2>
-
-    <table class="info-table">
+    <!-- Header Data -->
+    <thead>
         <tr>
-            <td><strong>Jenis PRU:</strong> {{ $filters['type'] ?? '-' }}</td>
-            <td><strong>Series:</strong> {{ $filters['series'] ?? '-' }}</td>
+            <th rowspan="2">No</th>
+            <th rowspan="2">Kod Lokaliti</th>
+            <th rowspan="2" class="text-left">Nama Lokaliti</th>
+            <th colspan="7">Saluran</th>
+            <th rowspan="2">Total</th>
         </tr>
         <tr>
-            <td><strong>Parlimen:</strong> {{ $filters['parlimen'] ?? '-' }}</td>
-            <td><strong>DUN:</strong> {{ $filters['dun'] ?? '-' }}</td>
+            @for ($i = 1; $i <= 7; $i++)
+                <th>{{ $i }}</th>
+            @endfor
         </tr>
+    </thead>
+    @php $grandTotal = 0; @endphp
+
+    @forelse ($data as $index => $row)
+        @php $grandTotal += $row->total; @endphp
         <tr>
-            <td colspan="2"><strong>DM:</strong> {{ $filters['dm'] ?? '-' }}</td>
+            <td>{{ $index + 1 }}</td>
+            <td>{{ $row->kod_lokaliti }}</td>
+            <td class="text-left">{{ $row->nama_lokaliti }}</td>
+
+            @for ($i = 1; $i <= 7; $i++)
+                <td>{{ $row->{'saluran_' . $i} }}</td>
+            @endfor
+
+            <td>{{ $row->total }}</td>
         </tr>
-    </table>
+    @empty
+        <tr>
+            <td colspan="11" align="center">Tiada data dijumpai</td>
+        </tr>
+    @endforelse
 
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>No</th>
-                <th>Kod Lokaliti</th>
-                <th class="text-left">Nama Lokaliti</th>
-                @for ($i = 1; $i <= 7; $i++)
-                    <th>S{{ $i }}</th>
-                @endfor
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php 
-                $grandTotal = 0; 
-            @endphp
+    @if($data->isNotEmpty())
+        <tr class="total-row">
+            <td colspan="10" align="right"><strong>GRAND TOTAL</strong></td>
+            <td><strong>{{ $grandTotal }}</strong></td>
+        </tr>
+    @endif
 
-            @foreach ($data as $index => $row)
-                @php
-                    $grandTotal += $row->total;
-                @endphp
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $row->kod_lokaliti }}</td>
-                    <td class="text-left">{{ $row->nama_lokaliti }}</td>
-                    <td>{{ $row->saluran_1 }}</td>
-                    <td>{{ $row->saluran_2 }}</td>
-                    <td>{{ $row->saluran_3 }}</td>
-                    <td>{{ $row->saluran_4 }}</td>
-                    <td>{{ $row->saluran_5 }}</td>
-                    <td>{{ $row->saluran_6 }}</td>
-                    <td>{{ $row->saluran_7 }}</td>
-                    <td>{{ $row->total }}</td>
-                </tr>
-            @endforeach
-
-            <tr class="total-row">
-                <td colspan="10">GRAND TOTAL</td>
-                <td>{{ $grandTotal }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-</body>
-
-</html>
+</table>

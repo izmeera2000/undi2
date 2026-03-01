@@ -34,14 +34,14 @@ $(document).ready(function () {
                     // $('input[name="bandar"]').val(res.member.bandar ?? '');
                     // $('input[name="negeri"]').val(res.member.negeri ?? '');
 
-                    toast.info('Profile updated successfully!');
+                    toastr.info('Profile updated successfully!');
                 } else {
-                    toast.error('Failed to update profile. Invalid response data.');
+                    toastr.error('Failed to update profile. Invalid response data.');
                 }
             },
             error: function (err) {
                 console.error('Error:', err);
-                toast.error('Failed to update profile. Check your input.');
+                toastr.error('Failed to update profile. Check your input.');
             }
         });
     });

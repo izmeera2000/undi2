@@ -214,12 +214,12 @@
           success: function (res) {
             $('#addStaffModal').modal('hide');
             $('#staffTable').DataTable().ajax.reload();
-            toast.success("Staff added successfully! They will set their password on first login.");
+            toastr.success("Staff added successfully! They will set their password on first login.");
 
           },
           error: function (err) {
             console.log(err);
-            toast.error("Error adding staff.");
+            toastr.error("Error adding staff.");
 
           }
         });
@@ -239,12 +239,12 @@
           headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
           success: function (res) {
             $('#staffTable').DataTable().ajax.reload();
-            toast.success("Staff deleted successfully!");
+            toastr.success("Staff deleted successfully!");
 
           },
           error: function (err) {
             console.error(err);
-            toast.error("Error deleting staff.");
+            toastr.error("Error deleting staff.");
 
           }
         });
