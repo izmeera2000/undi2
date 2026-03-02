@@ -91,7 +91,7 @@ Route::middleware('auth')->group(function () {
 
 
 
-Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
 
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
@@ -115,8 +115,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
- Route::get('/storage-link', function () {
-    Artisan::call('storage:link');
+    Route::get('/storage-link', function () {
+        Artisan::call('storage:link');
         return 'Linked';
     })->name('clear-all');
 
@@ -252,7 +252,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::get('/create', [GroupController::class, 'create'])->name('create');
             Route::post('/', [GroupController::class, 'store'])->name('store');
             Route::get('/{group}', [GroupController::class, 'show'])->name('show');
-            Route::get('/{group}/edit', [GroupController::class, 'edit'])->name('edit');
+            Route::get('/{group}/manage', [GroupController::class, 'manage'])->name('manage');
             Route::put('/{group}', [GroupController::class, 'update'])->name('update');
             Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
 

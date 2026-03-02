@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Group;
+use App\Models\User;
 use App\Models\Member;
 use App\Models\MemberGroup;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 
 class GroupController extends Controller
 {
@@ -16,40 +18,46 @@ class GroupController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $groups = Group::with('members');
+            $groups = Group::with(['members', 'creator']);
 
             return DataTables::of($groups)
                 ->addIndexColumn()
                 ->addColumn('members', function ($group) {
                     // Render member list with remove buttons
-                    $html = '<ul class="mb-0 ps-3">';
-                    foreach ($group->members as $member) {
-                        $html .= '<li class="d-flex justify-content-between align-items-center">';
-                        $html .= e($member->name ?? $member->email ?? 'Unnamed Member');
-                        $html .= '<form action="'.route('members.groups.removeMember', [$group, $member]).'" method="POST" class="d-inline ms-2" onsubmit="return confirm(\'Remove this member?\');">';
-                        $html .= csrf_field().method_field('DELETE');
-                        $html .= '<button class="btn btn-sm btn-outline-danger">Remove</button></form>';
-                        $html .= '</li>';
-                    }
-                    $html .= '</ul>';
+    
 
-                    // Invite form
-                    $html .= '<form action="'.route('members.groups.invite', $group).'" method="POST" class="d-flex mt-2">';
-                    $html .= csrf_field();
-                    $html .= '<input type="email" name="email" class="form-control form-control-sm me-2" placeholder="Member Email" required>';
-                    $html .= '<button class="btn btn-sm btn-success" type="submit">Invite</button>';
-                    $html .= '</form>';
+
+                    $html = '<div class="mt-2 text-muted small">';
+                    $html .= e($group->creator->name ?? 'System');
+                    $html .= '</div>';
 
                     return $html;
                 })
                 ->addColumn('actions', function ($group) {
-                    $edit = '<a href="'.route('members.groups.edit', $group).'" class="btn btn-sm btn-warning mb-1"><i class="fas fa-edit"></i> Edit</a>';
-                    $delete = '<form action="'.route('members.groups.destroy', $group).'" method="POST" class="d-inline" onsubmit="return confirm(\'Delete this group?\');">'
-                        .csrf_field().method_field('DELETE')
-                        .'<button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Delete</button></form>';
-                    return $edit.' '.$delete;
+
+                    $edit = '
+        <a href="' . route('members.groups.manage', $group) . '" 
+           class="btn btn-sm btn-outline-primary action-btn">
+            <i class="fas fa-cog me-1"></i> Manage
+        </a>';
+
+                    $delete = '
+        <form action="' . route('members.groups.destroy', $group) . '" 
+              method="POST" 
+              class="d-inline"
+              onsubmit="return confirm(\'Delete this group?\');">'
+                        . csrf_field() . method_field('DELETE') . '
+            <button type="submit" 
+                    class="btn btn-sm btn-outline-danger action-btn">
+                <i class="fas fa-trash me-1"></i> Delete
+            </button>
+        </form>';
+
+                    return '<div class="d-flex justify-content-end gap-2">'
+                        . $edit . $delete .
+                        '</div>';
                 })
-                ->rawColumns(['members','actions'])
+                ->rawColumns(['members', 'actions'])
                 ->make(true);
         }
 
@@ -74,17 +82,22 @@ class GroupController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        Group::create($request->only('name', 'description'));
+        Group::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'created_by' => auth()->id(),
+        ]);
 
         return redirect()->route('members.groups.index')->with('success', 'Group created!');
     }
 
     /**
-     * Show form to edit a group
+     * Show manage page for a group
      */
-    public function edit(Group $group)
+    public function manage(Group $group)
     {
-        return view('members.groups.edit', compact('group'));
+        $group->load('members');
+        return view('members.groups.manage', compact('group'));
     }
 
     /**
@@ -99,50 +112,50 @@ class GroupController extends Controller
 
         $group->update($request->only('name', 'description'));
 
-        return redirect()->route('members.groups.index')->with('success', 'Group updated!');
-    }
+        // Use ToastMagic instead of session flash
+        ToastMagic::success("Updated!", "Group details have been updated successfully.");
 
+        // Redirect back to the manage page
+        return redirect()->route('members.groups.manage', $group);
+    }
     /**
      * Delete a group
      */
+
     public function destroy(Group $group)
     {
-        // Remove all pivot entries first
         MemberGroup::where('group_id', $group->id)->delete();
         $group->delete();
 
-        return redirect()->route('members.groups.index')->with('success', 'Group deleted!');
+        ToastMagic::success("Deleted!", "The group has been deleted successfully.");
+        return redirect()->route('members.groups.index');
     }
 
-    /**
-     * Invite/add a member by email
-     */
     public function invite(Request $request, Group $group)
     {
         $request->validate([
-            'email' => 'required|email|exists:members,email',
+            'email' => 'required|email|exists:users,email',
         ]);
 
-        $member = Member::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->first();
 
-        // Use MemberGroup pivot directly
-        MemberGroup::firstOrCreate([
-            'group_id' => $group->id,
-            'member_id' => $member->id
-        ]);
+        if (!$user || !$user->members_id) {
+            ToastMagic::error("Oops!", "User has no linked member record.");
+            return back();
+        }
 
-        return back()->with('success', 'Member added!');
+        $memberId = $user->members_id;
+        $group->members()->syncWithoutDetaching([$memberId]);
+
+        ToastMagic::success("Added!", "Member has been added to the group.");
+        return back();
     }
 
-    /**
-     * Remove a member from a group
-     */
     public function removeMember(Group $group, Member $member)
     {
-        MemberGroup::where('group_id', $group->id)
-            ->where('member_id', $member->id)
-            ->delete();
+        $group->members()->detach($member->id);
 
-        return back()->with('success', 'Member removed!');
+        ToastMagic::success("Removed!", "Member has been removed from the group.");
+        return back();
     }
 }

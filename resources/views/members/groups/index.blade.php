@@ -25,14 +25,14 @@
       </a>
     </div>
 
-    <div class="card-body p-0">
+    <div class="card-body  ">
       <div class="table-responsive">
-        <table id="groupsTable" class="table table-hover align-middle mb-0">
+        <table id="groupsTable" class="table table-bordered table-striped table-hover">
           <thead>
             <tr>
               <th>Group Name</th>
               <th>Description</th>
-              <th>Members</th>
+              <th>Created By</th>
               <th class="text-end pe-4" style="width: 100px;">Actions</th>
             </tr>
           </thead>

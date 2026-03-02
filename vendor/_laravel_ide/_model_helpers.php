@@ -1351,6 +1351,7 @@ namespace App\Models {
     /**
      * App\Models\Group
      *
+     * @property int|null $created_by
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $description
@@ -1360,11 +1361,13 @@ namespace App\Models {
      * @property-read int|null $users_count
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Member> $members
      * @property-read int|null $members_count
+     * @property-read \App\Models\User $creator
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereName($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereDescription($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group whereCreatedBy($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Group>|Group query()
