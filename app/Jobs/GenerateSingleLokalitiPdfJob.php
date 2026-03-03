@@ -18,19 +18,17 @@ class GenerateSingleLokalitiPdfJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
 
-    protected $filters;
-    protected $PRMAP;
-    protected $page;
-    protected $perPage;
-    protected $kod_lokaliti;
+    protected array $filters;
+    protected string $kod_lokaliti;
+    protected int $page;
+    protected int $perPage;
 
-    public $tries = 5;        // Number of retry attempts
-    public $timeout = 300;    // 5 minutes per job
+    public $tries = 5;
+    public $timeout = 300;
 
-    public function __construct($filters, $prmap, $kod_lokaliti, $page = 1, $perPage = 200)
+    public function __construct(array $filters, string $kod_lokaliti, int $page = 1, int $perPage = 200)
     {
         $this->filters = $filters;
-        $this->PRMAP = $prmap;
         $this->kod_lokaliti = $kod_lokaliti;
         $this->page = $page;
         $this->perPage = $perPage;
@@ -38,21 +36,37 @@ class GenerateSingleLokalitiPdfJob implements ShouldQueue
 
     public function handle()
     {
-
         try {
-            $type = $this->filters['type'];
-            $series = $this->filters['series'];
 
-            if (!isset($this->PRMAP[$type][$series])) {
+            $type = $this->filters['type'] ?? null;
+            $series = isset($this->filters['series']) ? (int) $this->filters['series'] : null;
+
+            if (!$type || !$series) {
+                Log::error('Missing type/series in GenerateSingleLokalitiPdfJob', $this->filters);
                 return;
             }
 
-            $selectedPRUYear = $this->PRMAP[$type][$series];
+            // --------------------------------
+            // Fetch election year from DB
+            // --------------------------------
+            $selectedPRUYear = DB::table('elections')
+                ->where('type', $type)
+                ->where('number', $series)
+                ->value('year');
+
+            if (!$selectedPRUYear) {
+                Log::error('Election not found in DB', [
+                    'type' => $type,
+                    'series' => $series
+                ]);
+                return;
+            }
+
             $selectedPRUDate = $selectedPRUYear . '-12-31';
 
-            // -----------------------------
-            // Fetch pengundi with valid lokaliti date range
-            // -----------------------------
+            // --------------------------------
+            // Fetch pengundi
+            // --------------------------------
             $records = DB::table('pengundi')
                 ->join('lokaliti', function ($join) use ($selectedPRUDate) {
                     $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
@@ -79,8 +93,11 @@ class GenerateSingleLokalitiPdfJob implements ShouldQueue
                 )
                 ->get();
 
-            if ($records->isEmpty())
+            if ($records->isEmpty()) {
                 return;
+            }
+
+            $startNumber = ($this->page - 1) * $this->perPage + 1;
 
             $data = [
                 'kod_lokaliti' => $this->kod_lokaliti,
@@ -88,11 +105,7 @@ class GenerateSingleLokalitiPdfJob implements ShouldQueue
                 'pilihan_raya_type' => $type,
                 'pilihan_raya_series' => $series,
                 'details' => $records->toArray(),
-
-
             ];
-            $startNumber = ($this->page - 1) * $this->perPage + 1;
-
 
             $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf_single', [
                 'data' => [$data],
@@ -101,41 +114,39 @@ class GenerateSingleLokalitiPdfJob implements ShouldQueue
                 'startNumber' => $startNumber,
             ])->setPaper('a4', 'portrait');
 
-
-            $folderPath = "pdfs/{$this->filters['type']}/{$this->filters['series']}/{$this->filters['dm']}";
-
+            $folderPath = "pdfs/{$type}/{$series}/{$this->filters['dm']}";
             $fileName = "{$this->kod_lokaliti}_page_{$this->page}.pdf";
+            $fullPath = "{$folderPath}/{$fileName}";
 
-            if (Storage::disk('public')->exists($fileName)) {
-                Log::info("PDF already exists, skipping", ['file' => $fileName]);
+            // ✅ Fix: check correct full path
+            if (Storage::disk('public')->exists($fullPath)) {
+                Log::info("PDF already exists, skipping", ['file' => $fullPath]);
                 return;
             }
 
-            Storage::disk('public')->put(
-                "{$folderPath}/{$fileName}",
-                $pdf->output()
-            );
+            Storage::disk('public')->put($fullPath, $pdf->output());
 
-
+            unset($pdf, $records);
+            gc_collect_cycles();
 
         } catch (Throwable $e) {
+
             Log::error('GenerateSingleLokalitiPdfJob failed', [
                 'lokaliti' => $this->kod_lokaliti,
                 'page' => $this->page,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
             ]);
-            throw $e; // important to let Laravel handle retry
+
+            throw $e; // allow retry
         }
     }
 
     public function failed(Throwable $exception)
     {
         Log::error('GenerateSingleLokalitiPdfJob permanently failed', [
-            'lokaliti' => $this->kod_lokaliti, // fix here
+            'lokaliti' => $this->kod_lokaliti,
             'page' => $this->page,
             'error' => $exception->getMessage(),
-            'trace' => $exception->getTraceAsString()
         ]);
     }
 }

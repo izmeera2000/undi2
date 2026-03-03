@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             SqlImportSeeder::class,
             TaskCategorySeeder::class,
+            ElectionSeeder::class,
         ]);
     }
 }

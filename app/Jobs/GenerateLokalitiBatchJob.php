@@ -19,13 +19,11 @@ class GenerateLokalitiBatchJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected array $filters;
-    protected array $PRMAP;
     protected int $userId;
 
-    public function __construct(array $filters, array $PRMAP, int $userId)
+    public function __construct(array $filters, int $userId)
     {
         $this->filters = $filters;
-        $this->PRMAP = $PRMAP;
         $this->userId = $userId;
     }
 
@@ -40,7 +38,7 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         ]);
 
         $type = $this->filters['type'] ?? null;
-        $series = $this->filters['series'] ?? null;
+        $series = isset($this->filters['series']) ? (int) $this->filters['series'] : null;
         $parlimen = $this->filters['parlimen'] ?? null;
         $dun = $this->filters['dun'] ?? null;
         $dm = $this->filters['dm'] ?? null;
@@ -51,9 +49,26 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         }
 
         // -------------------------
+        // Get election year from DB
+        // -------------------------
+        $selectedPRUYear = DB::table('elections')
+            ->where('type', $type)
+            ->where('number', $series)
+            ->value('year');
+
+        if (!$selectedPRUYear) {
+            Log::error('Election not found in database', [
+                'type' => $type,
+                'series' => $series,
+            ]);
+            return;
+        }
+
+        // -------------------------
         // Folder cleanup
         // -------------------------
         $folderPath = "pdfs/{$type}/{$series}/{$dm}";
+
         if (Storage::disk('public')->exists($folderPath)) {
             $files = Storage::disk('public')->files($folderPath);
             if (!empty($files)) {
@@ -61,16 +76,6 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                 Log::info("Deleted existing PDFs", ['deleted_count' => count($files)]);
             }
         }
-
-        // -------------------------
-        // Validate PRMAP
-        // -------------------------
-        if (!isset($this->PRMAP[$type][$series])) {
-            Log::error('Invalid PRMAP combination', ['type' => $type, 'series' => $series]);
-            return;
-        }
-
-        $selectedPRUYear = $this->PRMAP[$type][$series];
 
         // -------------------------
         // Fetch DMs
@@ -84,9 +89,8 @@ class GenerateLokalitiBatchJob implements ShouldQueue
             ->where('kod_dun', $dun)
             ->where('koddm', $dm)
             ->pluck('koddm')
+            ->unique()
             ->toArray();
-
-        $validDMs = array_unique($validDMs); // remove duplicates
 
         if (empty($validDMs)) {
             Log::warning('No valid DMs found.');
@@ -99,9 +103,8 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         $validLokaliti = DB::table('lokaliti')
             ->whereIn('koddm', $validDMs)
             ->pluck('kod_lokaliti')
+            ->unique()
             ->toArray();
-
-        $validLokaliti = array_unique($validLokaliti); // remove duplicates
 
         if (empty($validLokaliti)) {
             Log::warning('No lokaliti found.');
@@ -115,22 +118,20 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         $jobs = [];
 
         foreach ($validLokaliti as $kodLokaliti) {
+
             $totalRows = DB::table('pengundi')
                 ->where('pilihan_raya_type', $type)
                 ->where('pilihan_raya_series', $series)
                 ->where('kod_lokaliti', $kodLokaliti)
                 ->count();
 
-            if ($totalRows === 0) {
-                continue;
-            }
+            if ($totalRows === 0) continue;
 
             $totalPages = ceil($totalRows / $perPage);
 
             for ($page = 1; $page <= $totalPages; $page++) {
                 $jobs[] = new GenerateSingleLokalitiPdfJob(
                     $this->filters,
-                    $this->PRMAP,
                     $kodLokaliti,
                     $page,
                     $perPage
@@ -145,11 +146,7 @@ class GenerateLokalitiBatchJob implements ShouldQueue
 
         Log::info('Jobs prepared', ['total_jobs' => count($jobs)]);
 
-        // -------------------------
-        // Dispatch batch safely
-        // -------------------------
         $filtersCopy = $this->filters;
-        $PRMAPCopy = $this->PRMAP;
         $userIdCopy = $this->userId;
         $typeCopy = $type;
         $seriesCopy = $series;
@@ -163,10 +160,11 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                 $seriesCopy,
                 $dmCopy,
                 $filtersCopy,
-                $PRMAPCopy,
                 $userIdCopy
             ) {
+
                 $mergeJobs = [];
+
                 foreach ($uniqueLokalitiCopy as $kodLokaliti) {
                     $mergeJobs[] = new MergeLokalitiPdfJob(
                         $kodLokaliti,
@@ -179,8 +177,11 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                 }
 
                 Bus::batch($mergeJobs)
-                    ->then(function (Batch $mergeBatch) use ($filtersCopy, $PRMAPCopy, $userIdCopy) {
-                        GenerateLokalitiSummaryPdfJob::dispatch($filtersCopy, $PRMAPCopy, $userIdCopy);
+                    ->then(function () use ($filtersCopy, $userIdCopy) {
+                        GenerateLokalitiSummaryPdfJob::dispatch(
+                            $filtersCopy,
+                            $userIdCopy
+                        );
                     })
                     ->catch(function (Batch $mergeBatch, Throwable $e) {
                         Log::error('Merge batch FAILED', ['error' => $e->getMessage()]);
@@ -195,7 +196,5 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         Log::info('GenerateLokalitiBatchJob completed', [
             'execution_time_sec' => round(microtime(true) - $startTime, 2),
         ]);
-
-
     }
 }

@@ -26,6 +26,7 @@ use App\Jobs\GenerateLokalitiBatchJob;
 use Illuminate\Routing\Controller;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
+use App\Models\Election;
 
 use Throwable;
 
@@ -73,29 +74,50 @@ class PengundiAnalyticsController extends Controller
     public function analytics_data(Request $request)
     {
         /*
-        |----------------------------------------------------------------------
-        | 0️⃣ Extract Inputs & Resolve Years
-        |----------------------------------------------------------------------
+        |--------------------------------------------------------------------------
+        | 0️⃣ Extract Inputs
+        |--------------------------------------------------------------------------
         */
+
         $type1 = $request->input('type1', 'PRU');
-        $series1 = $request->input('series1', '12');
-        $mode = $request->input('mode', 'single'); // 'single' or 'compare'
+        $series1 = (int) $request->input('series1', 12);
+        $mode = $request->input('mode', 'single');
 
         $type2 = $request->input('type2');
         $series2 = $request->input('series2');
 
-        // Resolve PR years from PRMAP
-        $year1 = $this->PRMAP[$type1][$series1] ?? null;
-        if (!$year1)
-            return response()->json(['error' => 'Invalid first PR type/series'], 400);
+        /*
+        |--------------------------------------------------------------------------
+        | 1️⃣ Resolve Election Years From Database
+        |--------------------------------------------------------------------------
+        */
 
-        $year2 = null;
-        if ($mode === 'compare' && $type2 && $series2) {
-            $year2 = $this->PRMAP[$type2][$series2] ?? null;
-            if (!$year2)
-                return response()->json(['error' => 'Invalid second PR type/series'], 400);
+        $year1 = DB::table('elections')
+            ->where('type', $type1)
+            ->where('number', $series1)
+            ->value('year');
+
+        if (!$year1) {
+            return response()->json([
+                'error' => 'Invalid first PR type/series'
+            ], 400);
         }
 
+        $year2 = null;
+
+        if ($mode === 'compare' && $type2 && $series2) {
+
+            $year2 = DB::table('elections')
+                ->where('type', $type2)
+                ->where('number', (int) $series2)
+                ->value('year');
+
+            if (!$year2) {
+                return response()->json([
+                    'error' => 'Invalid second PR type/series'
+                ], 400);
+            }
+        }
         /*
         |----------------------------------------------------------------------
         | 1️⃣ Base Filters
@@ -848,17 +870,39 @@ class PengundiAnalyticsController extends Controller
 
         ));
     }
+
     public function getHierarchyByPru(Request $request)
     {
         $request->validate([
             'type' => 'required|string',
-            'series' => 'required|string',
+            'series' => 'required|integer',
         ]);
 
-        $selectedPRUYear = $this->PRMAP[$request->type][$request->series] ?? 2022;
+        /*
+        |--------------------------------------------------------------------------
+        | Resolve Election Year From DB
+        |--------------------------------------------------------------------------
+        */
+
+        $selectedPRUYear = DB::table('elections')
+            ->where('type', $request->type)
+            ->where('number', $request->series)
+            ->value('year');
+
+        if (!$selectedPRUYear) {
+            return response()->json([
+                'error' => 'Invalid election type/series',
+                'test' => $selectedPRUYear,
+            ], 400);
+        }
 
         $selectedPRUDate = $selectedPRUYear . '-12-31';
 
+        /*
+        |--------------------------------------------------------------------------
+        | Build Hierarchy Query
+        |--------------------------------------------------------------------------
+        */
 
         $data = DB::table('pengundi')
             ->join('lokaliti', function ($join) use ($selectedPRUDate) {
@@ -886,8 +930,6 @@ class PengundiAnalyticsController extends Controller
                     });
             })
             ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
-            // ->where('pengundi.pilihan_raya_type', $request->type)
-            // ->where('pengundi.pilihan_raya_series', $request->series)
             ->select(
                 'pengundi.kod_lokaliti',
                 'lokaliti.koddm',
@@ -903,7 +945,6 @@ class PengundiAnalyticsController extends Controller
 
         return response()->json($data);
     }
-
 
 
     public function list_data(Request $request)
@@ -1279,8 +1320,7 @@ class PengundiAnalyticsController extends Controller
 
         GenerateLokalitiBatchJob::dispatch(
             $filters,
-            $this->PRMAP,
-            auth()->id()   // ✅ pass user id
+             auth()->id()   // ✅ pass user id
         );
         return response()->json([
             'success' => true,

@@ -21,20 +21,16 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Batchable;
 
     protected array $filters;
-    protected array $PRMAP;
     protected int $userId;
 
-    public function __construct(array $filters, array $PRMAP, int $userId)
+    public function __construct(array $filters, int $userId)
     {
         $this->filters = $filters;
-        $this->PRMAP = $PRMAP;
         $this->userId = $userId;
     }
 
     public function handle()
     {
-        // ini_set('memory_limit', '512M'); // temporary safety
-
         Log::info('Summary Job STARTED', [
             'filters' => $this->filters,
             'userId' => $this->userId,
@@ -46,24 +42,46 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
         try {
 
             $type = $this->filters['type'] ?? null;
-            $series = $this->filters['series'] ?? null;
+            $series = isset($this->filters['series']) ? (int) $this->filters['series'] : null;
             $dun = $this->filters['dun'] ?? null;
             $dm = $this->filters['dm'] ?? null;
             $parlimen = $this->filters['parlimen'] ?? null;
 
-            if (!$type || !$series || !isset($this->PRMAP[$type][$series])) {
-                Log::error('Invalid type/series', $this->filters);
+            if (!$type || !$series || !$dun || !$dm || !$parlimen) {
+                Log::error('Missing required filters', $this->filters);
                 return;
             }
 
-            $selectedPRUYear = $this->PRMAP[$type][$series];
+            // --------------------------------
+            // Fetch election year from DB
+            // --------------------------------
+            $selectedPRUYear = DB::table('elections')
+                ->where('type', $type)
+                ->where('number', $series)
+                ->value('year');
+
+            if (!$selectedPRUYear) {
+                Log::error('Election not found in DB', [
+                    'type' => $type,
+                    'series' => $series
+                ]);
+                return;
+            }
+
             $selectedPRUDate = $selectedPRUYear . '-12-31';
 
             Log::info('Running aggregation query...', [
                 'memory_before_query_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
             ]);
 
-            $rows = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate) {
+            $rows = DB::table(function ($query) use (
+                $type,
+                $series,
+                $parlimen,
+                $dun,
+                $dm,
+                $selectedPRUDate
+            ) {
                 $query->from('pengundi as p')
                     ->select('p.id', 'p.kod_lokaliti', 'p.saluran', 'l.nama_lokaliti')
                     ->distinct()
@@ -98,64 +116,54 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                     ->where('l.koddm', $dm);
             }, 'p')
                 ->selectRaw("
-                p.kod_lokaliti,
-                p.nama_lokaliti,
-                SUM(CASE WHEN p.saluran = 1 THEN 1 ELSE 0 END) AS saluran_1,
-                SUM(CASE WHEN p.saluran = 2 THEN 1 ELSE 0 END) AS saluran_2,
-                SUM(CASE WHEN p.saluran = 3 THEN 1 ELSE 0 END) AS saluran_3,
-                SUM(CASE WHEN p.saluran = 4 THEN 1 ELSE 0 END) AS saluran_4,
-                SUM(CASE WHEN p.saluran = 5 THEN 1 ELSE 0 END) AS saluran_5,
-                SUM(CASE WHEN p.saluran = 6 THEN 1 ELSE 0 END) AS saluran_6,
-                SUM(CASE WHEN p.saluran = 7 THEN 1 ELSE 0 END) AS saluran_7,
-                COUNT(*) AS total
-            ")
+                    p.kod_lokaliti,
+                    p.nama_lokaliti,
+                    SUM(CASE WHEN p.saluran = 1 THEN 1 ELSE 0 END) AS saluran_1,
+                    SUM(CASE WHEN p.saluran = 2 THEN 1 ELSE 0 END) AS saluran_2,
+                    SUM(CASE WHEN p.saluran = 3 THEN 1 ELSE 0 END) AS saluran_3,
+                    SUM(CASE WHEN p.saluran = 4 THEN 1 ELSE 0 END) AS saluran_4,
+                    SUM(CASE WHEN p.saluran = 5 THEN 1 ELSE 0 END) AS saluran_5,
+                    SUM(CASE WHEN p.saluran = 6 THEN 1 ELSE 0 END) AS saluran_6,
+                    SUM(CASE WHEN p.saluran = 7 THEN 1 ELSE 0 END) AS saluran_7,
+                    COUNT(*) AS total
+                ")
                 ->groupBy('p.kod_lokaliti', 'p.nama_lokaliti')
                 ->orderBy('p.kod_lokaliti')
                 ->get();
-
-            Log::info('Query finished', [
-                'row_count' => $rows->count(),
-                'memory_after_query_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
-            ]);
 
             if ($rows->isEmpty()) {
                 Log::warning('No pengundi found for summary');
                 return;
             }
 
-            Log::info('Memory before PDF loadView (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
+            Log::info('Generating PDF...', [
+                'row_count' => $rows->count(),
+                'memory_before_pdf_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
+            ]);
 
             $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf', [
                 'data' => $rows,
                 'filters' => $this->filters
             ])->setPaper('a4', 'landscape');
 
-            Log::info('Memory after PDF loadView (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
-
             $pdfContent = $pdf->output();
 
-            Log::info('Memory after PDF output (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
-            Log::info('PDF size KB: ' . round(strlen($pdfContent) / 1024, 2));
-
-
-            $pdfContent = $pdf->output();
             unset($pdf);
             gc_collect_cycles();
 
-            Log::info('Memory after unset and GC (MB): ' . round(memory_get_usage(true) / 1024 / 1024, 2));
-
-            $folderPath = "pdfs/{$type}/{$series}/{$this->filters['dm']}";
-            $fileName = "{$this->filters['dm']}_summary.pdf";
+            $folderPath = "pdfs/{$type}/{$series}/{$dm}";
+            $fileName = "{$dm}_summary.pdf";
             $fullPath = "{$folderPath}/{$fileName}";
 
             Storage::disk('public')->put($fullPath, $pdfContent);
 
-            unset($rows, $pdfContent); // free memory
+            unset($rows, $pdfContent);
+            gc_collect_cycles();
 
             Log::info('Summary PDF saved', [
                 'path' => $fullPath,
-                'memory_after_save_mb' => round(memory_get_usage(true) / 1024 / 1024, 2),
-                'execution_time_sec' => round(microtime(true) - $startTime, 2)
+                'execution_time_sec' => round(microtime(true) - $startTime, 2),
+                'memory_after_save_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
             ]);
 
             $user = User::find($this->userId);
@@ -178,5 +186,4 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
             throw $e;
         }
     }
-
 }
