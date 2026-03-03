@@ -15,32 +15,24 @@ class WeatherController extends Controller
     {
         $today = now()->toDateString();
 
-        // Check DB first
+        // Pure Read
         $weather = WeatherForecast::where('forecast_date', $today)
             ->where('location_name', $location)
             ->first();
 
-        if (!$weather) {
-
-            $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=Pasir%20Mas@location__location_name");
-
+        // Only hit the API and WRITE to DB if it's a real API request (JSON)
+        // or if we absolutely have to. 
+        if (!$weather && request()->expectsJson()) {
+            $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=" . urlencode($location));
             if ($response->successful() && !empty($response->json())) {
                 $data = $response->json()[0];
-
                 $weather = WeatherForecast::updateOrCreate(
-                    [
-                        'forecast_date' => $today,
-                        'location_name' => $data['location']['location_name'],
-                    ],
-                    [
-                        'max_temp' => $data['max_temp'],
-                        'min_temp' => $data['min_temp'],
-                        'summary_forecast' => $data['summary_forecast'] ?? null,
-                    ]
+                    ['forecast_date' => $today, 'location_name' => $data['location']['location_name']],
+                    ['max_temp' => $data['max_temp'], 'min_temp' => $data['min_temp'], 'summary_forecast' => $data['summary_forecast'] ?? null]
                 );
             }
         }
 
-        return response()->json($weather);
+        return request()->expectsJson() ? response()->json($weather) : $weather;
     }
 }

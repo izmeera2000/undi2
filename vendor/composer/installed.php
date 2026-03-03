@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '24fe4e64b05e30fe260c5d8307e6ba37d4542174',
+        'reference' => '11baeab93ff0b6fa0bbd28e2222f461c7a7101c1',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -499,7 +499,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '24fe4e64b05e30fe260c5d8307e6ba37d4542174',
+            'reference' => '11baeab93ff0b6fa0bbd28e2222f461c7a7101c1',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -1237,6 +1237,15 @@
             'install_path' => __DIR__ . '/../staabm/side-effects-detector',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'sweetalert2/laravel' => array(
+            'pretty_version' => '1.3.2',
+            'version' => '1.3.2.0',
+            'reference' => 'f263fbbc228300b929774e064bb98f00e4016984',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../sweetalert2/laravel',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'symfony/clock' => array(
             'pretty_version' => 'v7.4.0',

@@ -6,6 +6,7 @@ use Carbon\Carbon;
 
 new class extends Component {
     public $tasks = [];
+    public $loadFailed = false;
 
     public function mount()
     {
@@ -14,33 +15,42 @@ new class extends Component {
 
     public function loadTasks()
     {
-        $this->tasks = Task::with(['category', 'assignee'])
-            ->where('status', 'todo')
-            ->orderBy('due_at')
-            ->get();
+        try {
+            // Using toArray() ensures the Snapshot is lightweight and 
+            // prevents "Snapshot Missing" errors caused by heavy Eloquent objects.
+            $this->tasks = Task::with(['category', 'assignee'])
+                ->where('status', 'todo')
+                ->orderBy('due_at')
+                ->take(5)
+                ->get()
+                ->toArray(); 
+
+            $this->loadFailed = false;
+        } catch (\Exception $e) {
+            logger()->error("Task Widget Error: " . $e->getMessage());
+            $this->loadFailed = true;
+        }
     }
 
     public function relativeTime($date)
     {
+        if (!$date) return 'No date';
+        
         $date = Carbon::parse($date);
-        if ($date->isToday())
-            return 'Today';
-        if ($date->isTomorrow())
-            return 'Tomorrow';
+        if ($date->isToday()) return 'Today';
+        if ($date->isTomorrow()) return 'Tomorrow';
+        
         return $date->diffForHumans();
     }
-
 }; 
 ?>
 
 @placeholder
-
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white border-bottom-0 pt-3">
         <div class="skeleton-shimmer" style="width: 80px; height: 20px; border-radius: 4px;"></div>
     </div>
     <div class="card-body">
-        <!-- Repeat 3 skeleton rows -->
         @for ($i = 0; $i < 3; $i++)
             <div class="d-flex align-items-center mb-3">
                 <div class="flex-grow-1">
@@ -53,25 +63,6 @@ new class extends Component {
             </div>
         @endfor
     </div>
-    <style>
-        .skeleton-shimmer {
-            background: #f6f7f8;
-            background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-            background-repeat: no-repeat;
-            background-size: 800px 104px;
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        @keyframes shimmer {
-            0% {
-                background-position: -468px 0;
-            }
-
-            100% {
-                background-position: 468px 0;
-            }
-        }
-    </style>
 </div>
 @endplaceholder
 
@@ -83,7 +74,13 @@ new class extends Component {
         </div>
     </div>
     <div class="card-body">
-        @if(count($tasks) === 0)
+        @if($loadFailed)
+            <div class="text-center py-5">
+                <i class="bi bi-exclamation-triangle text-danger" style="font-size: 40px; opacity: .4;"></i>
+                <h6 class="mt-2">Failed to load tasks</h6>
+                <button wire:click="loadTasks" class="btn btn-sm btn-outline-primary mt-2">Retry</button>
+            </div>
+        @elseif(count($tasks) === 0)
             <div class="text-center py-5">
                 <i class="bi bi-check2-circle text-success" style="font-size: 40px; opacity: .4;"></i>
                 <h6 class="mt-2">No pending tasks 🎉</h6>
@@ -91,20 +88,31 @@ new class extends Component {
             </div>
         @else
             @foreach($tasks as $task)
-                <div class="todo-item mb-2 p-2 rounded-3 border-start border-4 border-primary bg-light bg-opacity-50"
-                    wire:click="$dispatch('taskSelected', { id: {{ $task->id }} })" style="cursor: pointer; transition: 0.2s;">
+                {{-- wire:key prevents the "Snapshot Missing" error during re-renders --}}
+                <div wire:key="task-{{ $task['id'] }}" 
+                    class="todo-item mb-2 p-2 rounded-3 border-start border-4 border-primary bg-light bg-opacity-50"
+                    wire:click="$dispatch('taskSelected', { id: {{ $task['id'] }} })" 
+                    style="cursor: pointer; transition: 0.2s;"
+                    onmouseover="this.style.backgroundColor='#e9ecef'" 
+                    onmouseout="this.style.backgroundColor='rgba(248, 249, 250, 0.5)'">
+                    
                     <div class="todo-item-content">
-                        <div class="todo-item-title fw-bold text-dark">{{ $task->title }}</div>
-                        <div class="todo-item-meta small text-muted mt-1">
-                            @if($task->category)
-                                <span class="badge bg-white text-dark border me-1">{{ $task->category->name }}</span>
+                        <div class="todo-item-title fw-bold text-dark">{{ $task['title'] }}</div>
+                        <div class="todo-item-meta small text-muted mt-1 d-flex flex-wrap align-items-center gap-2">
+                            
+                            @if(!empty($task['category']))
+                                <span class="badge bg-white text-dark border">{{ $task['category']['name'] }}</span>
                             @endif
-                            @if($task->due_at)
-                                <span class="me-2"><i
-                                        class="bi bi-calendar-event me-1"></i>{{ $this->relativeTime($task->due_at) }}</span>
+                            
+                            @if($task['due_at'])
+                                @php $isPast = Carbon::parse($task['due_at'])->isPast(); @endphp
+                                <span class="{{ $isPast ? 'text-danger fw-bold' : '' }}">
+                                    <i class="bi bi-calendar-event me-1"></i>{{ $this->relativeTime($task['due_at']) }}
+                                </span>
                             @endif
-                            @if($task->assignee)
-                                <span><i class="bi bi-person me-1"></i>{{ $task->assignee->name }}</span>
+                            
+                            @if(!empty($task['assignee']))
+                                <span><i class="bi bi-person me-1"></i>{{ $task['assignee']['name'] }}</span>
                             @endif
                         </div>
                     </div>

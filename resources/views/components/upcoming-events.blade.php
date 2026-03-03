@@ -4,34 +4,41 @@ use Livewire\Component;
 use App\Models\Event;
 use Carbon\Carbon;
 
-new class extends Component
-{
+new class extends Component {
     public $events = [];
+    public $loadFailed = false;
 
     public function mount()
     {
-        // Add sleep(1); here if you want to test the shimmer effect
         $this->loadEvents();
     }
 
     public function loadEvents()
     {
-        $today = Carbon::today();
+        try {
+            $today = Carbon::today();
 
-        $this->events = Event::whereDate('start_date', '>=', $today)
-            ->orderBy('start_date')
-            ->take(5)
-            ->get()
-            ->map(function($event) {
-                return [
-                    'id' => $event->id,
-                    'title' => $event->title,
-                    'start' => $event->start_date->toDateTimeString(),
-                    'end' => $event->end_date?->toDateTimeString(),
-                    'allDay' => $event->allDay,
-                    'backgroundColor' => $event->backgroundColor ?? '#0d6efd'
-                ];
-            })->toArray();
+            $this->events = Event::whereDate('start_date', '>=', $today)
+                ->orderBy('start_date')
+                ->take(5)
+                ->get()
+                ->map(function ($event) {
+                    return [
+                        'id' => $event->id,
+                        'title' => $event->title,
+                        'start' => $event->start_date->toDateTimeString(),
+                        'end' => $event->end_date?->toDateTimeString(),
+                        'allDay' => $event->allDay,
+                        'backgroundColor' => $event->backgroundColor ?? '#0d6efd'
+                    ];
+                })->toArray();
+
+            $this->loadFailed = false;
+        } catch (\Exception $e) {
+            logger()->error("Events Widget Failed: " . $e->getMessage());
+            $this->loadFailed = true;
+            $this->events = [];
+        }
     }
 }; 
 ?>
@@ -71,7 +78,15 @@ new class extends Component
 <div class="card mb-3 border-0 shadow-sm">
     <div class="card-header bg-white border-bottom-0 pt-3 fw-bold">Upcoming Events</div>
     <div class="card-body p-2">
-        @if(count($events) === 0)
+        @if($loadFailed)
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-exclamation-circle text-danger" style="font-size:32px; opacity:.5;"></i>
+                <div class="mt-2 fw-semibold">Couldn't load events</div>
+                <button wire:click="loadEvents" class="btn btn-sm btn-outline-secondary mt-2">
+                    <i class="bi bi-arrow-clockwise"></i> Retry
+                </button>
+            </div>
+        @elseif(count($events) === 0)
             <div class="text-center text-muted py-4">
                 <i class="bi bi-calendar-x text-warning" style="font-size:36px; opacity:.4;"></i>
                 <div class="mt-2 fw-semibold">No upcoming events</div>
@@ -86,14 +101,20 @@ new class extends Component
                     $month = $start->format('M');
                     $timeText = $event['allDay'] ? 'All Day' : $start->format('H:i') . ($end ? ' - ' . $end->format('H:i') : '');
                 @endphp
-                <div class="upcoming-event-item d-flex mb-2 p-1 rounded-2">
+                
+                {{-- Added wire:key to ensure Livewire tracks each item correctly --}}
+                <div wire:key="event-{{ $event['id'] }}" class="upcoming-event-item d-flex mb-2 p-1 rounded-2">
                     <div class="upcoming-event-color rounded-start" style="background: {{ $event['backgroundColor'] }}; width:6px;"></div>
-                    <div class="upcoming-event-date text-center px-2 bg-light rounded-end me-2">
+                    
+                    <div class="upcoming-event-date text-center px-2 bg-light rounded-end me-2" style="min-width: 50px;">
                         <div class="fw-bold" style="font-size: 1.1rem; line-height: 1.2;">{{ $day }}</div>
                         <div class="small text-uppercase text-muted" style="font-size: 0.7rem;">{{ $month }}</div>
                     </div>
+                    
                     <div class="flex-grow-1">
-                        <div class="fw-semibold text-dark" style="font-size: 0.95rem;">{{ $event['title'] }}</div>
+                        <div class="fw-semibold text-dark text-truncate" style="font-size: 0.95rem; max-width: 180px;">
+                            {{ $event['title'] }}
+                        </div>
                         <div class="upcoming-event-time text-muted" style="font-size: 0.85rem;">
                             <i class="bi bi-clock me-1"></i>{{ $timeText }}
                         </div>

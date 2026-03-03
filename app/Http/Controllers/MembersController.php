@@ -134,6 +134,7 @@ class MembersController extends Controller
 
     public function show(Member $member)
     {
+        
         return view('members.profile', compact('member'));
     }
 

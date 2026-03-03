@@ -25,7 +25,7 @@
     use Devrabiul\ToastMagic\Facades\ToastMagic;
 @endphp
 {!! ToastMagic::scripts() !!}
-
+@include('sweetalert2::index')
 
 
 <script>
@@ -34,11 +34,7 @@
 
     $(document).ready(function () {
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        });
+      
 
 
         const notificationList = document.getElementById('notification-list');

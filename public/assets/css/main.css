@@ -13276,6 +13276,7 @@ textarea.form-control {
 }
 
 .avatar-upload-btn {
+    line-height: 0;
     position: absolute;
     bottom: 4px;
     right: 4px;

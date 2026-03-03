@@ -2,34 +2,28 @@
 
 @section('title', 'Dashboard')
 
-@section('breadcrumb')
-  @php $crumbs = []; @endphp
-@endsection
-
 @section('content')
   <div class="row g-4">
 
-    <div class="col col-md-6">
- <livewire:welcome-banner />
+    {{-- Welcome Banner (Non-lazy usually safe, but good to key) --}}
+    <div class="col-md-6" wire:key="dash-welcome">
+        <livewire:welcome-banner />
     </div>
 
-    <div class="col col-md-6 g-4">
-      <livewire:weather-widget  lazy />
+    {{-- Weather - Added unique wire:key --}}
+    <div class="col-md-6" wire:key="dash-weather">
+        <livewire:weather-widget  />
     </div>
 
-    <div class="col-md-4">
-       <livewire:upcoming-events lazy  />
-
+    {{-- Events - Added unique wire:key --}}
+    <div class="col-md-4" wire:key="dash-events">
+        <livewire:upcoming-events  />
     </div>
 
-    <div class="col-lg-8">
-       <livewire:tasks lazy/>
-
+    {{-- Tasks - Added unique wire:key --}}
+    <div class="col-lg-8" wire:key="dash-tasks">
+        <livewire:tasks  />
     </div>
 
   </div>
 @endsection
-
-@push('scripts')
-  
-@endpush

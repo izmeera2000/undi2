@@ -57,7 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/mergelokaliti', [LokalitiController::class, 'mergeDuplicates'])->name('mergeDuplicates');
 
 
-    Route::get('/weather/today/{location}', [WeatherController::class, 'today'])->name('weather.today');
+    Route::post('/weather/today/{location}', [WeatherController::class, 'today'])->name('weather.today');
 
     Route::get('/map-page', [MapController::class, 'showPage'])->name('map.page');
     Route::get('/map', [MapController::class, 'showPage2'])->name('map.page2');

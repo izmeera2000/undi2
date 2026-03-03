@@ -28,16 +28,16 @@
     <div class="todo-container">
       <div class="todo-main">
         {{-- THE NEW LIVEWIRE COMPONENT --}}
-        <livewire:task-manager />
+        <livewire:tasks.task-manager />
       </div>
     </div>
 
     {{-- Keep your modals --}}
     {{-- @include('task.partials.modal.add_category') --}}
-    <livewire:add-task-modal />
-     <livewire:edit-task-modal />
+    <livewire:tasks.add-task-modal />
+    <livewire:tasks.edit-task-modal />
 
-    <livewire:view-task-modal />
+    <livewire:tasks.view-task-modal />
   </section>
 @endsection
 
