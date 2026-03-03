@@ -36,16 +36,7 @@ class PengundiAnalyticsController extends Controller
     //
 
 
-    protected array $PRMAP = [
-        'PRU' => [
-            '12' => 2008,
-            '15' => 2022,
-        ],
-        // 'PRN' => [
-        //     '12' => 2008,
-        //     '15' => 2022,
-        // ],
-    ];
+
 
     public function __construct()
     {
@@ -978,7 +969,15 @@ class PengundiAnalyticsController extends Controller
         // -------------------------------
         // Step 1: Resolve PRU year
         // -------------------------------
-        if (!isset($this->PRMAP[$type][$series])) {
+        // -------------------------------
+        // Step 1: Resolve PR year from elections table
+        // -------------------------------
+        $selectedPRUYear = DB::table('elections')
+            ->where('type', $type)
+            ->where('number', $series)
+            ->value('year');
+
+        if (!$selectedPRUYear) {
             return response()->json([
                 'draw' => intval($request->draw ?? 1),
                 'recordsTotal' => 0,
@@ -987,8 +986,8 @@ class PengundiAnalyticsController extends Controller
             ]);
         }
 
-        $selectedPRUYear = $this->PRMAP[$type][$series];
         $selectedPRUDate = $selectedPRUYear . '-12-31';
+
 
         // -------------------------------
         // Step 2: Build query
@@ -1049,13 +1048,14 @@ class PengundiAnalyticsController extends Controller
             $row = (array) $row; // convert object to array
             for ($i = 1; $i <= 7; $i++) {
                 $row["link_saluran_$i"] = "/pengundi/list/"
+                    . ($type ?? '0') . "/"
+                    . ($series ?? '0') . "/"
                     . ($parlimen ?? '0') . "/"
                     . ($dun ?? '0') . "/"
                     . ($dm ?? '0') . "/"
                     . ($row['kod_lokaliti'] ?? '0') . "/"
-                    . $i . "/"
-                    . ($type ?? '0') . "/"
-                    . ($series ?? '0');
+                    . $i  ;
+
             }
             return $row;
         });
@@ -1090,21 +1090,31 @@ class PengundiAnalyticsController extends Controller
 
 
 
+
     public function list_details(
+        $pilihan_raya_type = null,
+        $pilihan_raya_series = null,
         $parlimen = null,
         $dun_kod = null,
         $dm = null,
         $lokaliti = null,
         $saluran = null,
-        $pilihan_raya_type = null,
-        $pilihan_raya_series = null
+
     ) {
         // -------------------------------
         // Step 0: Determine year
         // -------------------------------
-        $year = $pilihan_raya_series
-            ? $this->PRMAP[$pilihan_raya_type][$pilihan_raya_series]
-            : date('Y');
+        $year = null;
+
+        if ($pilihan_raya_type && $pilihan_raya_series) {
+            $year = DB::table('elections')
+                ->where('type', $pilihan_raya_type)
+                ->where('number', $pilihan_raya_series)
+                ->value('year');
+        }
+
+        // fallback to current year if no record found
+        $year = $year ?: date('Y');
 
         // -------------------------------
         // Step 1: Filter DM
@@ -1199,7 +1209,10 @@ class PengundiAnalyticsController extends Controller
             ['label' => 'List', 'url' => route('pengundi.list')],
 
         ];
-
+        if ($pilihan_raya_type)
+            $crumbs[] = ['label' => "$pilihan_raya_type"];
+        if ($pilihan_raya_series)
+            $crumbs[] = ['label' => "$pilihan_raya_series"];
         if ($parlimenName)
             $crumbs[] = ['label' => "$parlimenName"];
         if ($dunName)
@@ -1208,10 +1221,7 @@ class PengundiAnalyticsController extends Controller
             $crumbs[] = ['label' => "$dmName"];
         if ($lokalitiName)
             $crumbs[] = ['label' => "$lokalitiName"];
-        if ($pilihan_raya_type)
-            $crumbs[] = ['label' => "$pilihan_raya_type"];
-        if ($pilihan_raya_series)
-            $crumbs[] = ['label' => "$pilihan_raya_series"];
+
         if ($saluran)
             $crumbs[] = ['label' => "Saluran $saluran"];
 
@@ -1246,9 +1256,17 @@ class PengundiAnalyticsController extends Controller
         $pilihan_raya_type = $request->input('pilihan_raya_type');
         $pilihan_raya_series = $request->input('pilihan_raya_series');
 
-        $year = $pilihan_raya_series
-            ? $this->PRMAP[$pilihan_raya_type][$pilihan_raya_series] ?? date('Y')
-            : date('Y');
+        $year = null;
+
+        if ($pilihan_raya_type && $pilihan_raya_series) {
+            $year = DB::table('elections')
+                ->where('type', $pilihan_raya_type)
+                ->where('number', $pilihan_raya_series)
+                ->value('year');
+        }
+
+        // fallback to current year if no record found
+        $year = $year ?: date('Y');
 
         // Step 1: Get valid DMs
         $validDMs = DB::table('dm')
@@ -1320,7 +1338,7 @@ class PengundiAnalyticsController extends Controller
 
         GenerateLokalitiBatchJob::dispatch(
             $filters,
-             auth()->id()   // ✅ pass user id
+            auth()->id()   // ✅ pass user id
         );
         return response()->json([
             'success' => true,

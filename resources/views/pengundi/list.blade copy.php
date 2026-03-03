@@ -76,38 +76,41 @@
                     </select>
                 </div>
 
-              <div class="col-md-3">
-    <label class="form-label d-none d-md-block">&nbsp;</label>
-    
-    <div class="btn-group w-100 shadow-sm" id="pdfButtonGroup" style="display:none;">
-        
-        <button id="generatePdfBtn" type="button" class="btn btn-primary d-flex align-items-center justify-content-center">
-            <i class="fas fa-file-pdf me-2"></i> Generate PDF
-        </button>
+                <div class="col-md-3">
 
-        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-            data-bs-toggle="dropdown" aria-expanded="false">
-            <span class="visually-hidden">Toggle Dropdown</span>
-        </button>
+                    <div class="btn-group" id="pdfButtonGroup" style="display:none;">
 
-        <ul class="dropdown-menu dropdown-menu-end shadow">
-            <li>
-                <a class="dropdown-item d-flex align-items-center" href="#" id="viewPdfBtn">
-                    <i class="fas fa-list me-2 text-muted"></i> View Files
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <div class="px-3 py-1">
-                    <small class="text-muted d-block" style="font-size: 0.75rem;">Status:</small>
-                    <span class="dropdown-item-text p-0 small fw-bold text-primary" id="lastGeneratedInfo">
-                        No PDF generated yet
-                    </span>
+                        <!-- Main Action -->
+                        <button id="generatePdfBtn" type="button" class="btn btn-primary">
+                            Generate PDF
+                        </button>
+
+                        <!-- Split Dropdown Toggle -->
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="#" id="viewPdfBtn">
+                                    View
+                                </a>
+                            </li>
+
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <span class="dropdown-item-text text-muted small" id="lastGeneratedInfo">
+                                    No PDF generated yet
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+
                 </div>
-            </li>
-        </ul>
-    </div>
-</div>
 
             </div>
 
@@ -588,21 +591,21 @@
                         response.files.forEach(file => {
 
                             html += `
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>${file.name}</strong><br>
-                                                            <small class="text-muted">${file.last_modified}</small>
-                                                        </div>
-                                                        <div>
-                                                            <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
-                                                                View
-                                                            </a>
-                             <a href="${file.url}" download class="btn btn-sm btn-success">
-                                                                Download
-                                                            </a>
-                                                        </div>
+                                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>${file.name}</strong><br>
+                                                        <small class="text-muted">${file.last_modified}</small>
                                                     </div>
-                                                `;
+                                                    <div>
+                                                        <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                                            View
+                                                        </a>
+                         <a href="${file.url}" download class="btn btn-sm btn-success">
+                                                            Download
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            `;
                         });
 
                         html += '</div>';

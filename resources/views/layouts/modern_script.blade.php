@@ -34,7 +34,11 @@
 
     $(document).ready(function () {
 
-      
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
 
 
         const notificationList = document.getElementById('notification-list');

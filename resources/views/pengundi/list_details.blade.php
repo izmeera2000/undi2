@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}">
+    {{--
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}"> --}}
 @endpush
 @section('breadcrumb')
     @php
@@ -64,9 +65,18 @@
                     { data: 'id' },
                     { data: 'nama' },
                     { data: 'nokp_baru' },
-                    { data: 'jantina' },
-                    { data: 'bangsa' },
-                    { data: 'umur' },
+                    {
+                        data: 'jantina',
+                        render: function (data, type, row) {
+                            if (!data) return '';
+                            return data === 'L' ? 'Lelaki' : (data === 'P' ? 'Perempuan' : data);
+                        }
+                    }, {
+                        data: 'bangsa',
+                        render: function (data, type, row) {
+                            return data ? data.toUpperCase() : '';
+                        }
+                    }, { data: 'umur' },
                     { data: 'no_siri' },
                     { data: 'alamat_spr' }
                 ],

@@ -102,7 +102,7 @@ Route::middleware('auth')->group(function () {
 // Verified Routes (Dashboard + Staff + Protected Features)
 // --------------------------------------------------
 
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth'])->group(function () {
 
 
 
@@ -169,7 +169,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         ////lsit details saluran page
 
         Route::get(
-            'list/{parlimen}/{dun}/{dm}/{lokaliti}/{saluran}/{pr_type}/{pr_series}',
+            'list/{pr_type}/{pr_series}/{parlimen}/{dun}/{dm}/{lokaliti}/{saluran}/',
             [PengundiAnalyticsController::class, 'list_details']
         )->name('list_details');
 
