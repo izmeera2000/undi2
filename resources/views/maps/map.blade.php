@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script>
-        $(document).ready(function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Initialize the map centered on a default location (Kelantan)
             var map = L.map('map').setView([6.14882, 102.1187], 10); // Adjusted zoom level for Kelantan
 
@@ -64,7 +64,7 @@
                 // Fit map bounds to include the GeoJSON data (zoom to feature bounds)
                 map.fitBounds(geoJsonLayer.getBounds());
             @endforeach
-    });
+        });
 
 
     </script>

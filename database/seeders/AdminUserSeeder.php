@@ -13,8 +13,9 @@ class AdminUserSeeder extends Seeder
         $testUser = User::factory()->create([
             'name' => 'Test Admin',
             'email' => 'test@example.com',
-            'password' => Hash::make('test'),
+            'password' => Hash::make('test1234'),
             'role' =>'admin',
+            'status' =>'active',
         ]);
 
         $testUser->profile()->create([

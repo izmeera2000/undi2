@@ -4,8 +4,8 @@ use App\Http\Controllers\MembersController;
 use App\Http\Controllers\MembersImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\ElectionController;
 
-use App\Http\Controllers\PermissionController;
 use App\Jobs\TestQueueJob;
 
 use App\Http\Controllers\PengundiImportController;
@@ -102,7 +102,7 @@ Route::middleware('auth')->group(function () {
 // Verified Routes (Dashboard + Staff + Protected Features)
 // --------------------------------------------------
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
 
 
 
@@ -289,6 +289,20 @@ Route::middleware(['auth'])->group(function () {
 
     });
 
+
+
+Route::prefix('elections')->name('elections.')->middleware('auth')->group(function () {
+
+    Route::get('/', [ElectionController::class, 'index'])->name('index');
+    Route::post('/', [ElectionController::class, 'store'])->name('store');
+
+    // ✅ FIXED HERE
+    Route::post('/list_data', [ElectionController::class, 'data'])->name('data');
+
+    Route::put('/{election}', [ElectionController::class, 'update'])->name('update');
+    Route::delete('/{election}', [ElectionController::class, 'destroy'])->name('destroy');
+    Route::get('/{election}', [ElectionController::class, 'show'])->name('show');
+});
 
     Route::prefix('parlimen')->name('parlimen.')->group(function () {
         Route::get('/', [ParlimenController::class, 'index'])->name('index');   // list page

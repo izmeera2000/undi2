@@ -10,5 +10,19 @@ class Election extends Model
         'type',
         'number',
         'year',
+        'created_by',
     ];
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by')
+            ->withDefault(function ($user, $election) {
+                $user->name = 'System';
+            });
+    }
+    
+    public function getLabelAttribute()
+    {
+        return "{$this->type}-{$this->number} ({$this->year})";
+    }
 }

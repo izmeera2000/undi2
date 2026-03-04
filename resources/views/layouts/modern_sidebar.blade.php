@@ -72,6 +72,9 @@
       {{-- Settings Heading --}}
       <x-sidebar.nav-heading label="Settings" icon="ph-light ph-gear" />
 
+      <x-sidebar.nav-item route="elections.index" label="Elections" icon="ph-light ph-seal-check" />
+
+
       <x-sidebar.nav-item route="parlimen.index" label="Parlimen" icon="ph-light ph-buildings" />
 
       <x-sidebar.nav-item route="dun.index" label="Dun" icon="ph-light ph-map-trifold" />
@@ -95,8 +98,10 @@
           <i class="umno-logo">@include('layouts.logo')</i>
         </x-slot>
 
-        <x-sidebar.nav-item route="map.page2" label="Fetch" />
-        <x-sidebar.nav-item route="map.page" label="Map" />
+        <x-sidebar.nav-item route="map.page2" label="Map" />
+        
+        <x-sidebar.nav-item route="map.page" label="Fetch" />
+
       </x-sidebar.nav-group>
       @endrole
 

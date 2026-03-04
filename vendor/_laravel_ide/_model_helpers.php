@@ -682,18 +682,22 @@ namespace App\Models {
     /**
      * App\Models\Election
      *
+     * @property int $created_by
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string $year
      * @property string $number
      * @property string $type
      * @property int $id
+     * @property-read mixed $label
+     * @property-read \App\Models\User $creator
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereType($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereNumber($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereYear($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereUpdatedAt($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election whereCreatedBy($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election newModelQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election newQuery()
      * @method static \Illuminate\Database\Eloquent\Builder<Election>|Election query()

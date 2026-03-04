@@ -19,6 +19,12 @@ class RolePermissionSeeder extends Seeder
             'members.view',
             'members.edit',
             'members.delete',
+
+            'elections.add',
+            'elections.view',
+            'elections.edit',
+            'elections.delete',
+
             'staff.view',
             'staff.add',
             'staff.edit',
@@ -26,23 +32,28 @@ class RolePermissionSeeder extends Seeder
             'staff.suspend',
             'staff.role',
             'staff.revoke',
+
             'pengundi.add',
             'pengundi.export',
             'pengundi.view',
+
             'task.add',
             'task.add.others',
             'task.edit',
             'task.delete.others',
             'task.delete',
+
             'event.add',
             'event.add.others',
             'event.delete',
             'event.delete.others',
             'event.view',
+
             'parlimen.view',
             'parlimen.add',
             'parlimen.edit',
             'parlimen.delete',
+
             'dun.view',
             'dun.add',
             'dun.edit',
@@ -51,6 +62,7 @@ class RolePermissionSeeder extends Seeder
             'dm.add',
             'dm.edit',
             'dm.delete',
+
             'lokaliti.view',
             'lokaliti.add',
             'lokaliti.edit',
@@ -78,6 +90,12 @@ class RolePermissionSeeder extends Seeder
             'members.view',
             'members.edit',
             'members.delete',
+
+            'elections.add',
+            'elections.view',
+            'elections.edit',
+            'elections.delete',
+
             'staff.view',
             'staff.add',
             'staff.edit',
@@ -85,22 +103,28 @@ class RolePermissionSeeder extends Seeder
             'staff.suspend',
             'staff.role',
             'staff.revoke',
+
             'pengundi.add',
             'pengundi.export',
             'pengundi.view',
+
             'task.add',
             'task.add.others',
             'task.edit',
             'task.delete.others',
             'task.delete',
+
             'event.add',
             'event.add.others',
             'event.delete',
             'event.delete.others',
+            'event.view',
+
             'parlimen.view',
             'parlimen.add',
             'parlimen.edit',
             'parlimen.delete',
+
             'dun.view',
             'dun.add',
             'dun.edit',
@@ -109,23 +133,36 @@ class RolePermissionSeeder extends Seeder
             'dm.add',
             'dm.edit',
             'dm.delete',
+            
+            'lokaliti.view',
+            'lokaliti.add',
+            'lokaliti.edit',
+            'lokaliti.delete',
         ]);
 
         // User permissions
         $user->syncPermissions([
-            'members.add',
-            'members.edit',
+            'members.view',
+
+            'elections.view',
+
+
             'staff.view',
             'staff.edit',
-            'pengundi.add',
+
+
             'pengundi.export',
             'pengundi.view',
+
             'task.add',
             'task.edit',
             'task.delete',
+
             'event.add',
             'event.delete',
             'event.view',
+
+
         ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Models\TaskCategory;
 use App\Models\Subtask;
 use Illuminate\Http\Request;
 use App\Notifications\TaskAssignedNotification;
+use Illuminate\Routing\Controller;
 
 class TaskController extends Controller
 {
@@ -17,6 +18,31 @@ class TaskController extends Controller
     | Page View (NO DATA — jQuery will load it)
     |--------------------------------------------------------------------------
     */
+
+    public function __construct()
+    {
+        // View permissions
+
+
+        // Create permission
+        $this->middleware('permission:tasks.add')->only([
+            'store',
+            'addSubtask',
+        ]);
+
+        // Edit permission
+        $this->middleware('permission:tasks.edit')->only([
+            'update',
+            'toggleComplete',
+            'toggleImportant',
+            'toggleSubtask',
+        ]);
+
+        // Delete permission
+        $this->middleware('permission:tasks.delete')->only([
+            'destroy',
+        ]);
+    }
 
     public function index()
     {
@@ -88,9 +114,9 @@ class TaskController extends Controller
 
         $task = Task::create($validated);
 
-    if ($task->assignee && $task->assigned_to !== auth()->id()) {
-        $task->assignee->notify(new TaskAssignedNotification($task));
-    }
+        if ($task->assignee && $task->assigned_to !== auth()->id()) {
+            $task->assignee->notify(new TaskAssignedNotification($task));
+        }
 
         return response()->json($task, 201);
     }
