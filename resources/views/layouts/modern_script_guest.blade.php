@@ -1,6 +1,5 @@
 <!-- Vendor JS Files -->
 <script src="{{ asset('assets/vendors/jquery/jquery-3.7.1.js') }}"></script>
-
 <script src="{{ asset('assets/vendors/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/chart.js/chart.umd.js') }}"></script>
@@ -15,68 +14,72 @@
 <!-- Template Main JS Files -->
 <script src="{{ asset('assets/js/theme.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
-
-<!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
 
-
 @php
-
     use Devrabiul\ToastMagic\Facades\ToastMagic;
 @endphp
 {!! ToastMagic::scripts() !!}
 
-
 @vite(['resources/js/app.js'])
 
 <script>
-
-    const toast = new ToastMagic();
+    // ==========================
+    // ToastMagic Init
+    // ==========================
     const toastr = new ToastMagic();
 
-$(document).ready(function() {
+    // ==========================
+    // Global AJAX / Fetch Setup
+    // ==========================
+    document.addEventListener('DOMContentLoaded', () => {
 
-
+        // jQuery AJAX CSRF setup
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
             }
         });
+
     });
 
+    // ==========================
+    // Logout Function (async + retry)
+    // ==========================
+    async function submitLogout(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return;
 
+        const tokenInput = form.querySelector('input[name="_token"]');
 
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': tokenInput.value,
+                    'Accept': 'application/json'
+                },
+                credentials: 'same-origin'
+            });
 
-</script>
+            if (response.ok) {
+                window.location.href = '/';
+            } 
+            else if (response.status === 419) {
+                // CSRF token expired, refresh it
+                const tokenRes = await fetch("{{ route('csrf.refresh') }}");
+                const data = await tokenRes.json();
+                tokenInput.value = data.csrf_token;
 
+                // Retry logout
+                await submitLogout(formId);
+            } 
+            else {
+                console.error('Logout failed with status:', response.status);
+            }
 
-<script>
-async function submitLogout(formId) {
-    const form = document.getElementById(formId);
-
-    try {
-        const res = await fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': form.querySelector('input[name=_token]').value,
-                'Accept': 'application/json'
-            },
-            credentials: 'same-origin'
-        });
-
-        if (res.ok) {
-            window.location = '/';
-        } else if (res.status === 419) {
-            // CSRF expired → fetch new token
-            const tokenRes = await fetch("{{ route('csrf.refresh') }}");
-            const data = await tokenRes.json();
-            form.querySelector('input[name=_token]').value = data.csrf_token;
-
-            // Retry logout automatically
-            submitLogout(formId);
+        } catch (error) {
+            console.error('Logout failed', error);
         }
-    } catch (e) {
-        console.error('Logout failed', e);
     }
-}
 </script>
