@@ -3,6 +3,7 @@
 use Livewire\Component;
 use App\Models\WeatherForecast;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 
 new class extends Component {
     public $weather = [];
@@ -13,28 +14,51 @@ new class extends Component {
         $this->fetchWeather();
     }
 
+
     public function fetchWeather()
     {
         try {
             $today = now()->toDateString();
             $location = 'Pasir Mas';
 
-            // Fetch from DB
-            $weather = WeatherForecast::where('forecast_date', $today)
-                ->where('location_name', $location)
+            // First, try fetching from DB
+            $weather = WeatherForecast::whereDate('forecast_date', $today)
+                ->whereRaw('LOWER(location_name) = ?', [strtolower($location)])
                 ->first();
 
-            if ($weather) {
-                $this->weather = $weather->toArray();
-            } else {
-                // Optionally, call API directly here if not in DB
-                $this->weather = [
-                    'location_name' => $location,
-                    'max_temp' => '--',
-                    'min_temp' => '--',
-                    'forecast_date' => $today,
-                ];
+            // If not in DB, call external API
+            if (!$weather) {
+                $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=" . urlencode($location) . "@location__location_name");
+
+
+                $json = $response->json();
+
+                if ($response->successful() && !empty($json)) {
+                    $data = $json[0] ?? null;
+
+                    if ($data && isset($data['location']['location_name'])) {
+                        $weather = WeatherForecast::updateOrCreate(
+                            [
+                                'forecast_date' => $today,
+                                'location_name' => $data['location']['location_name']
+                            ],
+                            [
+                                'max_temp' => $data['max_temp'] ?? null,
+                                'min_temp' => $data['min_temp'] ?? null,
+                                'summary_forecast' => $data['summary_forecast'] ?? null
+                            ]
+                        );
+                    }
+                }
             }
+
+            // Set Livewire property
+            $this->weather = $weather ? $weather->toArray() : [
+                'location_name' => $location,
+                'max_temp' => '--',
+                'min_temp' => '--',
+                'forecast_date' => $today,
+            ];
 
             $this->loadFailed = false;
 

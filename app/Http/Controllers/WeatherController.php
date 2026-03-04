@@ -22,8 +22,8 @@ class WeatherController extends Controller
 
         // Only hit the API and WRITE to DB if it's a real API request (JSON)
         // or if we absolutely have to. 
-        if (!$weather && request()->expectsJson()) {
-            $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=" . urlencode($location));
+        if (!$weather) {
+            $response = Http::get("https://api.data.gov.my/weather/forecast/?contains=" . urlencode($location). "@location__location_name");
             if ($response->successful() && !empty($response->json())) {
                 $data = $response->json()[0];
                 $weather = WeatherForecast::updateOrCreate(
@@ -33,6 +33,6 @@ class WeatherController extends Controller
             }
         }
 
-        return request()->expectsJson() ? response()->json($weather) : $weather;
+        return request()? response()->json($weather) : $weather;
     }
 }
