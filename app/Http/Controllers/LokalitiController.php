@@ -146,18 +146,20 @@ class LokalitiController extends Controller
                 });
             })
 
-            // Optional: search on effective_from/effective_to if needed
-            ->filterColumn('effective_from', function ($query, $keyword) {
-                $query->where('effective_from', 'like', "%{$keyword}%");
-            })
-            ->filterColumn('effective_to', function ($query, $keyword) {
-                $query->where('effective_to', 'like', "%{$keyword}%");
-            })
+            // // Optional: search on effective_from/effective_to if needed
+            // ->filterColumn('effective_from', function ($query, $keyword) {
+            //     $query->where('effective_from', 'like', "%{$keyword}%");
+            // })
+            // ->filterColumn('effective_to', function ($query, $keyword) {
+            //     $query->where('effective_to', 'like', "%{$keyword}%");
+            // })
 
             // Actions column
             ->addColumn('actions', function ($row) {
-                $edit = '<a href="' . route('lokaliti.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
-                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-lokaliti">Delete</button>';
+
+
+                $edit = '<a href="' . route('lokaliti.edit', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-cog me-1"></i> Manage</a>';
+                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-lokaliti"><i class="fas fa-trash me-1"></i> Delete</button>';
                 return $edit . ' ' . $delete;
             })
 
@@ -182,53 +184,53 @@ class LokalitiController extends Controller
     }
 
 
-public function mergeDuplicates()
-{
-    // Step 1: Get duplicate keys as array (no Eloquent methods)
-    $duplicates = Lokaliti::select('nama_lokaliti', 'kod_lokaliti')
-        ->groupBy('nama_lokaliti', 'kod_lokaliti')
-        ->havingRaw('COUNT(*) > 1')
-        ->get()
-        ->toArray(); // convert to array to avoid stdClass issues
+    public function mergeDuplicates()
+    {
+        // Step 1: Get duplicate keys as array (no Eloquent methods)
+        $duplicates = Lokaliti::select('nama_lokaliti', 'kod_lokaliti')
+            ->groupBy('nama_lokaliti', 'kod_lokaliti')
+            ->havingRaw('COUNT(*) > 1')
+            ->get()
+            ->toArray(); // convert to array to avoid stdClass issues
 
-    $mergedCount = 0;
-    $deletedCount = 0;
+        $mergedCount = 0;
+        $deletedCount = 0;
 
-    foreach ($duplicates as $dup) {
-        // Step 2: Get all rows for this lokaliti AS ELOQUENT MODELS
-        $rows = Lokaliti::where('nama_lokaliti', $dup['nama_lokaliti'])
-            ->where('kod_lokaliti', $dup['kod_lokaliti'])
-            ->orderBy('effective_from')
-            ->get(); // returns Eloquent models
+        foreach ($duplicates as $dup) {
+            // Step 2: Get all rows for this lokaliti AS ELOQUENT MODELS
+            $rows = Lokaliti::where('nama_lokaliti', $dup['nama_lokaliti'])
+                ->where('kod_lokaliti', $dup['kod_lokaliti'])
+                ->orderBy('effective_from')
+                ->get(); // returns Eloquent models
 
-        if ($rows->count() <= 1) {
-            continue; // nothing to merge
+            if ($rows->count() <= 1) {
+                continue; // nothing to merge
+            }
+
+            $mergedCount++;
+
+            // Step 3: Determine merged dates
+            $earliestFrom = $rows->min('effective_from');
+            $latestTo = $rows->max('effective_to');
+
+            // Step 4: Update the first model
+            $keep = $rows->first(); // this is Eloquent model
+            $keep->effective_from = $earliestFrom;
+            $keep->effective_to = $latestTo;
+            $keep->save();
+
+            // Step 5: Delete the other duplicates
+            $deletedCount += $rows->count() - 1;
+            $rows->skip(1)->each(function ($row) {
+                $row->delete();
+            });
         }
 
-        $mergedCount++;
-
-        // Step 3: Determine merged dates
-        $earliestFrom = $rows->min('effective_from');
-        $latestTo = $rows->max('effective_to');
-
-        // Step 4: Update the first model
-        $keep = $rows->first(); // this is Eloquent model
-        $keep->effective_from = $earliestFrom;
-        $keep->effective_to = $latestTo;
-        $keep->save();
-
-        // Step 5: Delete the other duplicates
-        $deletedCount += $rows->count() - 1;
-        $rows->skip(1)->each(function ($row) {
-            $row->delete();
-        });
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Duplicate lokaliti merged successfully!',
+            'merged_groups' => $mergedCount,
+            'deleted_rows' => $deletedCount,
+        ]);
     }
-
-    return response()->json([
-        'status' => 'success',
-        'message' => 'Duplicate lokaliti merged successfully!',
-        'merged_groups' => $mergedCount,
-        'deleted_rows' => $deletedCount,
-    ]);
-}
 }

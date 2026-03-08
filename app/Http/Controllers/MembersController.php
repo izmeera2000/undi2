@@ -122,7 +122,7 @@ class MembersController extends Controller
                 return '
             <div class="btn-group">
                 <a href="' . route('members.show', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn" title="Manage">
-<i class="fas fa-cog me-1"></i> Manage
+            <i class="fas fa-cog me-1"></i> Manage
                 </a>
             </div>';
             })

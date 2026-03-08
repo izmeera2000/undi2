@@ -43,14 +43,14 @@
                 </div>
             </div>
 
-            <div class="card-body p-1">
+            <div class="card-body p-2">
                 <div class="table-responsive">
                     <table id="lokalitiTable" class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
+                                <th>DM</th>
                                 <th>Kod Lokaliti</th>
                                 <th>Nama Lokaliti</th>
-                                <th>DM</th>
                                 <th>Effective From</th>
                                 <th>Effective To</th>
                                 <th>Actions</th>
@@ -245,7 +245,9 @@
                 processing: true,
                 serverSide: true,
                 stateSave: true,
-                dom: 'rtip', //
+                layout: {
+                    topEnd: null // Hides the search input from the top right
+                },
                 ajax: {
                     url: "{{ route('lokaliti.data') }}",
                     type: "POST",
@@ -268,11 +270,11 @@
                     }
                 },
                 columns: [
+                    { data: 'dm_name', name: 'dm_name', searchable: false },
                     { data: 'kod_lokaliti', name: 'kod_lokaliti' },
                     { data: 'nama_lokaliti', name: 'nama_lokaliti' },
-                    { data: 'dm_name', name: 'dm_name' },
-                    { data: 'effective_from', name: 'effective_from' },
-                    { data: 'effective_to', name: 'effective_to' },
+                    { data: 'effective_from', name: 'effective_from', searchable: false },
+                    { data: 'effective_to', name: 'effective_to', searchable: false },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
 

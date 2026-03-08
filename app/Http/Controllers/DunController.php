@@ -128,9 +128,17 @@ class DunController extends Controller
                 // Ensure that the route is generated properly
                 return '<a href="' . route('dun.show', ['dun' => $row->id]) . '">' . $row->namadun . '</a>';
             })
-            ->addColumn('status', function ($row) {
-                return $row->status; // Display status
+
+                ->filterColumn('dun_name', function ($query, $keyword) {
+                $query->where('namadun', 'like', "%{$keyword}%");
             })
+
+            
+                ->filterColumn('kod_dun', function ($query, $keyword) {
+                $query->where('kod_dun', 'like', "%{$keyword}%");
+            })
+
+        
             ->addColumn('effective_from', function ($row) {
                 return $row->effective_from ? $row->effective_from->format('Y-m-d') : '-';
             })
@@ -138,8 +146,10 @@ class DunController extends Controller
                 return $row->effective_to ? $row->effective_to->format('Y-m-d') : '-';
             })
             ->addColumn('actions', function ($row) {
-                $edit = '<a href="' . route('dun.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
-                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-dun">Delete</button>';
+ 
+                $edit = '<a href="' . route('dun.edit', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-cog me-1"></i> Manage</a>';
+                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-dun"><i class="fas fa-trash me-1"></i> Delete</button>';
+                
                 return $edit . ' ' . $delete;
             })
             ->rawColumns(['dun_name', 'status', 'effective_from', 'effective_to', 'actions'])

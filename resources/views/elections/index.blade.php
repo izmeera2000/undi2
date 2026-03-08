@@ -14,7 +14,9 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}">
     <style>
-        #electionTable tbody tr { cursor: pointer; }
+        #electionTable tbody tr {
+            cursor: pointer;
+        }
     </style>
 @endpush
 
@@ -23,15 +25,13 @@
         <div class="card g-4 mb-4">
             <div class="card-header">
                 <div class="row g-3 align-items-center w-100">
-            
-                    <div class="col-md-8 col-12">
-                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
+
+                         <div class="d-flex flex-wrap justify-content-md-end gap-2">
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addElectionModal">
                                 <i class="bi bi-plus-lg me-1"></i> Add Election
                             </button>
                         </div>
-                    </div>
-                </div>
+                 </div>
             </div>
 
             <div class="card-body p-1">
@@ -79,7 +79,7 @@
                             <label class="form-label">Year</label>
                             <input type="number" name="year" class="form-control" value="{{ date('Y') }}" required>
                         </div>
-                   
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
@@ -95,22 +95,25 @@
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
             const table = $('#electionTable').DataTable({
                 processing: true,
                 serverSide: true,
-                    searching: false,
-                 ajax: {
+                searching: false,
+                layout: {
+                    topEnd: null // Hides the search input from the top right
+                },
+                ajax: {
                     url: "{{ route('elections.data') }}", // Ensure this route exists in web.php
                     type: "POST",
                     headers: { 'X-CSRF-TOKEN': csrfToken }
                 },
                 columns: [
-                    { 
-                        data: 'type', 
-                        render: function(data) {
+                    {
+                        data: 'type',
+                        render: function (data) {
                             let badgeClass = data === 'PRU' ? 'bg-primary' : 'bg-info text-dark';
                             return `<span class="badge ${badgeClass}">${data}</span>`;
                         }

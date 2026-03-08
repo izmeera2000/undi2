@@ -180,7 +180,7 @@
                     { data: 'election', name: 'election' },
                     { data: 'creator', name: 'creator' },
                     { data: 'actions', orderable: false, searchable: false }
-                 ]
+                ]
 
             });
 

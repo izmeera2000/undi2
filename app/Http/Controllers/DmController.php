@@ -130,32 +130,28 @@ class DmController extends Controller
     // Get list of DM for Datatables (AJAX)
     public function getList(Request $request)
     {
-        $query = Dm::with('dun'); // Eager load dun relationship for each DM
+        $query = Dm::with('dun'); // eager load dun
 
         return datatables($query)
-            ->addColumn('koddm', function ($row) {
-                return $row->koddm;
+            ->addColumn('koddm', fn($row) => $row->koddm)
+            ->filterColumn('koddm', function ($query, $keyword) {
+                $query->where('koddm', 'like', "%{$keyword}%");
             })
-            ->addColumn('namadm', function ($row) {
-                // Link to DM show page
-                return '<a href="' . route('dm.show', ['dm' => $row->id]) . '">' . $row->namadm . '</a>';
+
+            ->addColumn('namadm', fn($row) => '<a href="' . route('dm.show', $row->id) . '">' . $row->namadm . '</a>')
+            ->filterColumn('namadm', function ($query, $keyword) {
+                $query->where('namadm', 'like', "%{$keyword}%");
             })
-            ->addColumn('dun_name', function ($row) {
-                // Show related DUN name
-                return $row->dun ? $row->dun->namadun : '-';
-            })
-            ->addColumn('effective_from', function ($row) {
-                return $row->effective_from ? $row->effective_from->format('Y-m-d') : '-';
-            })
-            ->addColumn('effective_to', function ($row) {
-                return $row->effective_to ? $row->effective_to->format('Y-m-d') : '-';
-            })
+
+            ->addColumn('dun_name', fn($row) => $row->dun?->namadun ?? '-') // null safe operator
+            ->addColumn('effective_from', fn($row) => $row->effective_from?->format('Y-m-d') ?? '-')
+            ->addColumn('effective_to', fn($row) => $row->effective_to?->format('Y-m-d') ?? '-')
             ->addColumn('actions', function ($row) {
-                $edit = '<a href="' . route('dm.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
-                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-dm">Delete</button>';
+                $edit = '<a href="' . route('dm.edit', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-cog me-1"></i> Manage</a>';
+                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-dm"><i class="fas fa-trash me-1"></i> Delete</button>';
                 return $edit . ' ' . $delete;
             })
-            ->rawColumns(['namadm', 'actions']) // namadm has HTML link, actions have buttons
+            ->rawColumns(['namadm', 'actions'])
             ->make(true);
     }
 

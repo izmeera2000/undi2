@@ -107,12 +107,12 @@ class ParlimenController extends Controller
         return datatables($query)
             ->addColumn('name', function ($row) {
                 // Ensure that the route is generated properly
-                return '<a href="' . route('parlimen.show', ['parlimen' => $row->id]) . '">' . $row->namapar . '</a>';
+                return '<a href="' . route('parlimen.show', ['parlimen' => $row->id]) . '" >' . $row->namapar . '</a>';
             })
             ->addColumn('actions', function ($row) {
                 // Add 'Edit' and 'Delete' buttons
-                $edit = '<a href="' . route('parlimen.edit', $row->id) . '" class="btn btn-sm btn-warning">Edit</a>';
-                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-danger delete-parlimen">Delete</button>';
+                $edit = '<a href="' . route('parlimen.edit', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-cog me-1"></i> Manage</a>';
+                $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-parlimen"><i class="fas fa-trash me-1"></i> Delete</button>';
                 return $edit . ' ' . $delete;
             })
             ->rawColumns(['name', 'actions'])  // Mark 'name' and 'actions' as raw HTML

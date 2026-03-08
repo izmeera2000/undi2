@@ -100,11 +100,15 @@ class StaffController extends Controller
 
             ->addColumn('actions', function ($row) {
                 return '
-            <div class="btn-group">
-                <a href="' . route('staff.show', $row->id) . '" class="btn btn-sm btn-light" title="View">
-                    <i class="bi bi-eye"></i>
+         
+                       <div class="btn-group">
+                <a href="' . route('staff.show', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn" title="View">
+            <i class="fas fa-eye me-1"></i> View
                 </a>
-            </div>';
+            </div>
+            ';
+
+            
             })
 
             ->rawColumns(['staff', 'role', 'actions'])

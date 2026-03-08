@@ -4,10 +4,10 @@
 
 @section('breadcrumb')
     @php
-        $crumbs = [
-            ['label' => 'Culaan', 'url' => route('culaan.index')],
-            ['label' => $culaan->name]
-        ];
+$crumbs = [
+    ['label' => 'Culaan', 'url' => route('culaan.index')],
+    ['label' => $culaan->name]
+];
     @endphp
 @endsection
 
@@ -24,20 +24,13 @@
         <div class="card mb-3">
             <div class="card-header">
                 <div class="row g-3 align-items-center w-100">
-                    <!-- Title -->
-                    <div class="col-md-4 col-12">
-                        {{-- <h5 class="card-title mb-0">Culaan Pengundi</h5> --}}
-                    </div>
 
-                    <!-- Buttons -->
-                    <div class="col-md-8  col-12">
-                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
+                    <div class="d-flex flex-wrap justify-content-md-end gap-2">
 
 
-                            <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-primary ">
-                                <i class="fas fa-chart-line me-1"></i> Analytics
-                            </a>
-                        </div>
+                        <a href="{{ route('culaan.pengundi.analytics', $culaan) }}" class="btn btn-primary ">
+                            <i class="fas fa-chart-line me-1"></i> Analytics
+                        </a>
                     </div>
                 </div>
             </div>
@@ -114,7 +107,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2 d-flex align-items-end">
+                    <div class="col-md-3 d-flex align-items-end">
                         <button id="applyFilter" class="btn btn-primary w-100">
                             Filter
                         </button>
@@ -289,49 +282,40 @@
         function format(row) {
 
             return `
-                                                            <div class="p-3">
+                    <div class="p-3">
 
-                                                                <div class="row">
+                        <div class="row">
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>No Siri</strong><br>
-                                                                        ${row.no_siri ?? '-'}
-                                                                    </div>
+                            <div class="col-md-3">
+                                <strong>No Siri</strong><br>
+                                ${row.no_siri ?? '-'}
+                            </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Saluran</strong><br>
-                                                                        ${row.saluran ?? '-'}
-                                                                    </div>
+                            <div class="col-md-3">
+                                <strong>Saluran</strong><br>
+                                ${row.saluran ?? '-'}
+                            </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Bangsa</strong><br>
-                                                                        ${row.bangsa ?? '-'}
-                                                                    </div>
+                            <div class="col-md-3">
+                                <strong>Bangsa</strong><br>
+                                ${row.bangsa ?? '-'}
+                            </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Umur</strong><br>
-                                                                        ${row.umur ?? '-'}
-                                                                    </div>
+                            <div class="col-md-3">
+                                <strong>Umur</strong><br>
+                                ${row.umur ?? '-'}
+                            </div>
 
-                                                                    <div class="col-md-6 mt-3">
-                                                                        <strong>Alamat</strong><br>
-                                                                        ${row.alamat ?? '-'}
-                                                                    </div>
+                    
+                            <div class="col-md-3 mt-3">
+                                <strong>Cawangan</strong><br>
+                                ${row.nama_cwgn ?? '-'}
+                            </div>
 
-                                                                    <div class="col-md-3 mt-3">
-                                                                        <strong>No Ahli</strong><br>
-                                                                        ${row.no_ahli ?? '-'}
-                                                                    </div>
+                        </div>
 
-                                                                    <div class="col-md-3 mt-3">
-                                                                        <strong>Cawangan</strong><br>
-                                                                        ${row.cawangan ?? '-'}
-                                                                    </div>
-
-                                                                </div>
-
-                                                            </div>
-                                                        `;
+                    </div>
+                `;
         }
 
         $(function () {

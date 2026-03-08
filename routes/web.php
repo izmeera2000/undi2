@@ -4,7 +4,13 @@ use App\Http\Controllers\MembersController;
 use App\Http\Controllers\MembersImportController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
+
+
 use App\Http\Controllers\ElectionController;
+use App\Http\Controllers\ParlimenController;
+use App\Http\Controllers\DunController;
+use App\Http\Controllers\DmController;
+use App\Http\Controllers\LokalitiController;
 
 use App\Jobs\TestQueueJob;
 
@@ -17,10 +23,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\MailController;
-use App\Http\Controllers\DunController;
-use App\Http\Controllers\DmController;
-use App\Http\Controllers\LokalitiController;
-use App\Http\Controllers\ParlimenController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ActivityLogController;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -412,6 +414,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/updateStatus', [CulaanController::class, 'updateStatus'])->name('updateStatus');
             Route::post('/deletePengundi', [CulaanController::class, 'deletePengundi'])->name('deletePengundi');
 
+            Route::get('/analytics', [CulaanController::class, 'analytics'])->name('analytics');
 
             // Bulk import page (GET)
             Route::get('/bulkimport', [CulaanController::class, 'showBulkImport'])->name('bulkimport');

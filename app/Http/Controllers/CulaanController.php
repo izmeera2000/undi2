@@ -150,8 +150,37 @@ class CulaanController extends Controller
 
             </div>';
             })
+            ->editColumn('jantina', function ($row) {
+
+                // Mapping codes to labels
+                $jantinaAll = [
+                    'L' => 'Lelaki',
+                    'P' => 'Perempuan',
+                ];
+
+                $code = strtoupper($row->jantina);
+
+                // Return label or original code if not found
+                return $jantinaAll[$code] ?? $code;
+            })
 
 
+
+            ->editColumn('bangsa', function ($row) {
+
+                // Mapping codes to labels
+                $bangsaall = [
+                    'M' => 'Melayu',
+                    'C' => 'Cina',
+                    'I' => 'India',
+                    'L' => 'Lain-lain',
+                ];
+
+                $code = strtoupper($row->bangsa);
+
+                // Return label or original code if not found
+                return $bangsaall[$code] ?? $code;
+            })
 
             ->addColumn('status_culaan', function ($row) {
 
@@ -198,11 +227,135 @@ class CulaanController extends Controller
                 <i class="bi bi-trash"></i>
             </button>';
             })
+ 
 
             ->rawColumns(['pengundi_details', 'lokaliti_details', 'status_culaan', 'actions'])
 
             ->make(true);
     }
+
+
+public function analytics(Request $request, Culaan $culaan)
+{
+    $query = CulaanPengundi::where('culaan_id', $culaan->id);
+
+    if ($request->lokaliti) {
+        $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
+    }
+
+    if ($request->status_culaan) {
+        $query->where('status_culaan', 'like', $request->status_culaan . '%');
+    }
+
+    if ($request->search_name) {
+        $query->where(function ($q) use ($request) {
+            $q->where('nama', 'like', "%{$request->search_name}%")
+              ->orWhere('no_kp', 'like', "%{$request->search_name}%");
+        });
+    }
+
+    $base = clone $query;
+
+    // TOTAL
+    $total = $base->count();
+
+    // STATUS CULAAN
+    $status = (clone $query)
+        ->selectRaw("LEFT(status_culaan,1) as status, COUNT(*) as total")
+        ->groupBy('status')
+        ->pluck('total','status');
+
+    // SALURAN
+    $saluran = (clone $query)
+        ->selectRaw("saluran, COUNT(*) as total")
+        ->groupBy('saluran')
+        ->orderBy('saluran')
+        ->get();
+
+    // JANTINA
+    $jantina = (clone $query)
+        ->selectRaw("jantina, COUNT(*) as total")
+        ->groupBy('jantina')
+        ->pluck('total','jantina');
+
+    // BANGSA
+    $bangsa = (clone $query)
+        ->selectRaw("bangsa, COUNT(*) as total")
+        ->groupBy('bangsa')
+        ->pluck('total','bangsa');
+
+    // UMUR GROUP
+    $umur = (clone $query)
+        ->selectRaw("
+            CASE
+                WHEN umur < 30 THEN '18-29'
+                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+                ELSE '60+'
+            END as umur_group,
+            COUNT(*) as total
+        ")
+        ->groupBy('umur_group')
+        ->pluck('total','umur_group');
+
+    // TOP LOKALITI
+    $lokaliti = (clone $query)
+        ->selectRaw("lokaliti, COUNT(*) as total")
+        ->groupBy('lokaliti')
+        ->orderByDesc('total')
+        ->limit(10)
+        ->get();
+
+    // TOP PM
+    $pm = (clone $query)
+        ->selectRaw("pm, COUNT(*) as total")
+        ->groupBy('pm')
+        ->orderByDesc('total')
+        ->limit(10)
+        ->get();
+
+    return response()->json([
+
+        'total' => $total,
+
+        'status_chart' => [
+            'labels' => $status->keys(),
+            'series' => $status->values(),
+        ],
+
+        'saluran_chart' => [
+            'labels' => $saluran->pluck('saluran'),
+            'series' => $saluran->pluck('total'),
+        ],
+
+        'jantina_chart' => [
+            'labels' => $jantina->keys(),
+            'series' => $jantina->values(),
+        ],
+
+        'bangsa_chart' => [
+            'labels' => $bangsa->keys(),
+            'series' => $bangsa->values(),
+        ],
+
+        'umur_chart' => [
+            'labels' => $umur->keys(),
+            'series' => $umur->values(),
+        ],
+
+        'lokaliti_chart' => [
+            'labels' => $lokaliti->pluck('lokaliti'),
+            'series' => $lokaliti->pluck('total'),
+        ],
+
+        'pm_chart' => [
+            'labels' => $pm->pluck('pm'),
+            'series' => $pm->pluck('total'),
+        ],
+
+    ]);
+}
 
     public function storePengundi(Request $request, Culaan $culaan)
     {

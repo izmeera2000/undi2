@@ -49,8 +49,7 @@
                                 <th>Parlimen Name</th>
                                 <th>Kod DUN</th>
                                 <th>Nama DUN</th>
-                                <th>Status</th>
-                                <th>Effective From</th>
+                                 <th>Effective From</th>
                                 <th>Effective To</th>
                                 <th>Actions</th>
                             </tr>
@@ -121,6 +120,9 @@
             const table = $('#dunTable').DataTable({
                 processing: true,
                 serverSide: true,
+                           layout: {
+                    topEnd: null // Hides the search input from the top right
+                },
                 ajax: {
                     url: "{{ route('dun.data') }}",
                     type: "POST",
@@ -140,17 +142,20 @@
                     { data: 'parlimen_name', name: 'parlimen.namapar' },
                     { data: 'kod_dun', name: 'kod_dun' },
                     { data: 'namadun', name: 'namadun' },
-                    { data: 'status', name: 'status' },
-                    { data: 'effective_from', name: 'effective_from' },
-                    { data: 'effective_to', name: 'effective_to' },
+                     { data: 'effective_from', name: 'effective_from', searchable: false  },
+                    { data: 'effective_to', name: 'effective_to', searchable: false },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
             });
 
-            // Search input
-            $('#dunSearch').on('keyup', function () {
-                table.search(this.value).draw();
+           
+
+            $('#dunSearch').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    table.search(this.value).draw();
+                }
             });
+
 
             // Add DUN
             $('#addDUNForm').submit(function (e) {

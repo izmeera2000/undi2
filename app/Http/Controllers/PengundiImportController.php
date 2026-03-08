@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\TransferPengundiJob;
+use App\Jobs\TransferPengundiJob2;
 use App\Models\{Dun, Dm, Lokaliti, Parlimen};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -167,7 +168,7 @@ class PengundiImportController extends Controller
                     $request->pilihan_raya_series
                 );
 
-                $job->handleWithCache($this->transferCacheKey);
+                $job->handle($this->transferCacheKey);
             } catch (\Exception $e) {
                 return response()->json(['error' => 'Error dispatching transfer job: ' . $e->getMessage()], 500);
             }
@@ -274,14 +275,14 @@ class PengundiImportController extends Controller
 
             // 3️⃣ Dispatch transfer job (pass effective dates and transfer cache)
             try {
-                $job = new TransferPengundiJob(
+                $job = new TransferPengundiJob2(
                     $tarikhUndian,
                     $effectiveFrom,
                     $effectiveTo,
                     $request->pilihan_raya_type,
                     $request->pilihan_raya_series
                 );
-                $job->handleWithCache2($this->transferCacheKey);
+                $job->handle($this->transferCacheKey);
             } catch (\Exception $e) {
                 return response()->json(['error' => 'Error dispatching transfer job: ' . $e->getMessage()], 500);
             }

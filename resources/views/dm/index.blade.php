@@ -50,9 +50,9 @@
                     <table id="dmTable" class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
+                                <th>DUN</th>
                                 <th>Kod DM</th>
                                 <th>Nama DM</th>
-                                <th>DUN</th>
                                 <th>Effective From</th>
                                 <th>Effective To</th>
                                 <th>Actions</th>
@@ -238,7 +238,9 @@
                 processing: true,
                 serverSide: true,
                 stateSave: true,
-
+           layout: {
+                    topEnd: null // Hides the search input from the top right
+                },
                 ajax: {
                     url: "{{ route('dm.data') }}",
                     type: "POST",
@@ -257,18 +259,21 @@
                     }
                 },
                 columns: [
+                    { data: 'dun_name', name: 'dun' , searchable: false},
                     { data: 'koddm', name: 'koddm' },
                     { data: 'namadm', name: 'namadm' },
-                    { data: 'dun_name', name: 'dun' },
-                    { data: 'effective_from', name: 'effective_from' },
-                    { data: 'effective_to', name: 'effective_to' },
+                    { data: 'effective_from', name: 'effective_from' , searchable: false},
+                    { data: 'effective_to', name: 'effective_to' , searchable: false},
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
             });
 
-            // Search
-            $('#dmSearch').on('keyup', function () {
-                table.search(this.value).draw();
+   
+
+            $('#dmSearch').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    table.search(this.value).draw();
+                }
             });
 
             // Add DM

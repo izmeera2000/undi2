@@ -109,12 +109,15 @@
     <script>
 
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const table = $('#parlimenTable').DataTable({
                 processing: true,
                 serverSide: true,
+                layout: {
+                    topEnd: null // Hides the search input from the top right
+                },
                 ajax: {
                     url: "{{ route('parlimen.data') }}",
                     type: "POST",
@@ -140,9 +143,12 @@
                 ]
             });
 
-            // Search input
-            $('#parlimenSearch').on('keyup', function () {
-                table.search(this.value).draw();
+
+
+            $('#parlimenSearch').on('keyup', function (e) {
+                if (e.key === 'Enter') {
+                    table.search(this.value).draw();
+                }
             });
 
             // Add Parlimen

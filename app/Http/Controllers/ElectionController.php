@@ -20,7 +20,7 @@ class ElectionController extends Controller
         $this->middleware('permission:elections.view')->only([
             'index',
             'show',
-       
+
         ]);
 
         // Create permission
@@ -100,7 +100,7 @@ class ElectionController extends Controller
                 return "{$election->type}-{$election->number} ({$election->year})";
             })
 
-         
+
 
             ->addColumn('actions', function ($election) {
                 $showUrl = route('elections.show', $election);
@@ -108,14 +108,21 @@ class ElectionController extends Controller
 
                 return '
     <div class="d-flex gap-1">
-        <a href="' . $showUrl . '" class="btn btn-sm btn-info">View</a>
+         <div class="btn-group">
+                <a href="' . route('elections.show', $election) . '" class="btn btn-sm btn-outline-primary action-btn" title="View">
+            <i class="fas fa-eye me-1"></i> View
+                </a>
+            </div>
+
+
 
         <form action="' . $deleteUrl . '" method="POST" style="display:inline;">
             ' . csrf_field() . '
             ' . method_field("DELETE") . '
             <button type="submit"
-                class="btn btn-sm btn-danger"
+                class="btn btn-sm btn-outline-danger action-btn"
                 onclick="return confirm(\'Delete?\')">
+                <i class="fas fa-trash me-1"></i>
                 Delete
             </button>
         </form>
