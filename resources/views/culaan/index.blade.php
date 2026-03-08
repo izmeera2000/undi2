@@ -7,7 +7,7 @@
         // Build dynamic crumbs based on request
         $crumbs = [
             ['label' => 'Culaan', 'url' => route('culaan.index')],
-            ['label' => 'Culaan', 'url' => route('culaan.index')],
+            ['label' => 'List', 'url' => route('culaan.index')],
         ];
     @endphp
 @endsection
@@ -166,7 +166,7 @@
 
                 processing: true,
                 serverSide: true,
-
+                dom: 'lrtip',
                 ajax: {
                     url: "{{ route('culaan.data') }}",
                     type: "POST",

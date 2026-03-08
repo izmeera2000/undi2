@@ -8,7 +8,7 @@ use SweetAlert2\Laravel\Traits\WithSweetAlert;
 new class extends Component {
     public Member $member;
     use WithSweetAlert;
-    
+
 
     public function mount(Member $member)
     {

@@ -322,6 +322,8 @@
 
                 processing: true,
                 serverSide: true,
+                dom: 'lrtip',
+
 
                 ajax: {
                     url: "{{ route('culaan.pengundi.data', $culaan) }}",

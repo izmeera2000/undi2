@@ -13,9 +13,6 @@ return new class extends Migration {
         Schema::create('members', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('dun_id')
-                ->constrained('duns')
-                ->cascadeOnDelete();
 
             $table->string('kod_cwgn')->nullable();
             $table->string('nama_cwgn')->nullable();
@@ -44,6 +41,8 @@ return new class extends Migration {
             $table->string('bandar')->nullable();
             $table->string('negeri')->nullable();
 
+            $table->string('status_ahli')->nullable();
+ 
             $table->timestamps();
         });
 

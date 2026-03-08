@@ -32,6 +32,7 @@ class Member extends Model
         'bandar',
         'negeri',
         'profile_picture',
+        'status_ahli',
     ];
 
     public function dun()
@@ -113,5 +114,7 @@ class Member extends Model
 
         return $result;
     }
+
+
 
 }

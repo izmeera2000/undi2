@@ -3694,6 +3694,7 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $deleted_at
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
+     * @property string|null $status_ahli
      * @property string|null $phone
      * @property string|null $email
      * @property string|null $negeri
@@ -3718,14 +3719,12 @@ namespace App\Models {
      * @property string|null $no_ahli
      * @property string|null $nama_cwgn
      * @property string|null $kod_cwgn
-     * @property int $kod_dun
      * @property int $id
      * @property-read mixed $profile_picture_url
      * @property-read \App\Models\Dun $dun
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Group> $groups
      * @property-read int|null $groups_count
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereKodDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereKodCwgn($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNamaCwgn($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNoAhli($value)
@@ -3750,6 +3749,7 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNegeri($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereEmail($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member wherePhone($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereStatusAhli($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereDeletedAt($value)

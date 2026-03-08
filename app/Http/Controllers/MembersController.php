@@ -127,6 +127,20 @@ class MembersController extends Controller
             </div>';
             })
 
+            ->filter(function ($query) use ($request) {
+
+                if ($request->has('search') && $request->search['value']) {
+
+                    $search = $request->search['value'];
+
+                    $query->where(function ($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%")
+                            ->orWhere('no_ahli', 'like', "%{$search}%");
+
+                    });
+                }
+            })
+
             ->rawColumns(['members', 'groups', 'actions'])
             ->make(true);
     }
@@ -134,7 +148,7 @@ class MembersController extends Controller
 
     public function show(Member $member)
     {
-        
+
         return view('members.profile', compact('member'));
     }
 
@@ -210,43 +224,43 @@ class MembersController extends Controller
         ]);
     }
 
-public function updateProfile(Request $request, Member $member)
-{
-    // Validate input
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'nullable|email|max:255',
-        'phone' => 'nullable|string|max:20',
-        'alamat_1' => 'nullable|string|max:255',
-        'alamat_2' => 'nullable|string|max:255',
-        'alamat_3' => 'nullable|string|max:255',
-        'poskod' => 'nullable|string|max:10',
-        'bandar' => 'nullable|string|max:100',
-        'negeri' => 'nullable|string|max:100',
-    ]);
+    public function updateProfile(Request $request, Member $member)
+    {
+        // Validate input
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'alamat_1' => 'nullable|string|max:255',
+            'alamat_2' => 'nullable|string|max:255',
+            'alamat_3' => 'nullable|string|max:255',
+            'poskod' => 'nullable|string|max:10',
+            'bandar' => 'nullable|string|max:100',
+            'negeri' => 'nullable|string|max:100',
+        ]);
 
-    // Only update fillable fields
-    $member->update($request->only([
-        'name',
-        'email',
-        'phone',
-        'alamat_1',
-        'alamat_2',
-        'alamat_3',
-        'poskod',
-        'bandar',
-        'negeri',
-    ]));
+        // Only update fillable fields
+        $member->update($request->only([
+            'name',
+            'email',
+            'phone',
+            'alamat_1',
+            'alamat_2',
+            'alamat_3',
+            'poskod',
+            'bandar',
+            'negeri',
+        ]));
 
-    // Reload fresh values
-    $member->refresh();
+        // Reload fresh values
+        $member->refresh();
 
-    // Return updated member
-    return response()->json([
-        'success' => true,
-        'member' => $member,
-    ]);
-}
+        // Return updated member
+        return response()->json([
+            'success' => true,
+            'member' => $member,
+        ]);
+    }
 
 
 

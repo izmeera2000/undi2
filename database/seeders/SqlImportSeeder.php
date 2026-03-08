@@ -12,7 +12,7 @@ class SqlImportSeeder extends Seeder
     {
         $files = [
             database_path('sql/pengundi.sql'),
-            database_path('sql/members.sql'),
+            // database_path('sql/members.sql'),
             database_path('sql/maps.sql'),
 
             

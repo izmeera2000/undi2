@@ -53,8 +53,7 @@
             <div class="mt-3 d-none" id="importProgressWrapper">
               <label>Import Progress</label>
               <div class="progress">
-                <div id="importProgressBar" class="progress-bar progress-bar-striped "
-                  style="width:0%">0%</div>
+                <div id="importProgressBar" class="progress-bar progress-bar-striped " style="width:0%">0%</div>
               </div>
             </div>
 
@@ -62,8 +61,7 @@
             <div class="mt-3 d-none" id="transferProgressWrapper">
               <label>Transfer Progress</label>
               <div class="progress">
-                <div id="transferProgressBar" class="progress-bar progress-bar-striped bg-info"
-                  style="width:0%">0%</div>
+                <div id="transferProgressBar" class="progress-bar progress-bar-striped bg-info" style="width:0%">0%</div>
               </div>
             </div>
 
@@ -153,79 +151,129 @@
 
   {{-- SCRIPT --}}
   <script>
+
     document.getElementById('importForm').addEventListener('submit', function (e) {
+
       e.preventDefault();
 
       const form = e.target;
+
       const submitBtn = document.getElementById('submitBtn');
+
       const loading = document.getElementById('loading');
-      const importWrapper = document.getElementById('importProgressWrapper');
-      const importBar = document.getElementById('importProgressBar');
-      const transferWrapper = document.getElementById('transferProgressWrapper');
-      const transferBar = document.getElementById('transferProgressBar');
+
+      const progressWrapper = document.getElementById('importProgressWrapper');
+
+      const progressBar = document.getElementById('importProgressBar');
+
       const successMsg = document.getElementById('successMsg');
+
       const errorMsg = document.getElementById('errorMsg');
 
+
       submitBtn.disabled = true;
+
       loading.classList.remove('d-none');
-      importWrapper.classList.remove('d-none');
-      transferWrapper.classList.remove('d-none');
+
+      progressWrapper.classList.remove('d-none');
+
       successMsg.classList.add('d-none');
+
       errorMsg.classList.add('d-none');
+
 
       const formData = new FormData(form);
 
-      // Start import
+
       fetch("{{ route('members.import') }}", {
+
         method: 'POST',
+
         body: formData,
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+
+        headers: {
+
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+
+        }
+
       })
+
         .then(response => response.json().then(data => {
+
           if (!response.ok) throw data;
+
           return data;
+
         }))
+
         .then(data => {
+
           if (data.success) {
+
             successMsg.innerText = data.success;
+
             successMsg.classList.remove('d-none');
+
           }
+
           loading.classList.add('d-none');
+
           submitBtn.disabled = false;
+
         })
+
         .catch(data => {
-          console.error('Import Error:', data);
-          errorMsg.innerText = data.error || 'Unknown error during import';
+
+          console.error(data);
+
+          errorMsg.innerText = data.error || 'Import failed';
+
           errorMsg.classList.remove('d-none');
+
           loading.classList.add('d-none');
+
           submitBtn.disabled = false;
+
         });
 
-      // Poll import progress every 1s
-      const importInterval = setInterval(() => {
+
+      // progress polling
+
+      const interval = setInterval(() => {
+
         fetch("{{ route('members.importProgress') }}")
           .then(res => res.json())
           .then(progress => {
-            const pct = Math.round((progress.count / progress.total) * 100);
-            importBar.style.width = pct + '%';
-            importBar.innerText = pct + '%';
-            if (progress.count >= progress.total) clearInterval(importInterval);
-          });
-      }, 1000);
 
-      // Poll transfer progress every 1s
-      const transferInterval = setInterval(() => {
-        fetch("{{ route('members.transferProgress') }}")
-          .then(res => res.json())
-          .then(progress => {
+            // cache removed / job finished
+            if (!progress.total || progress.total === 0) {
+              progressBar.style.width = '100%';
+              progressBar.innerText = 'Completed';
+              clearInterval(interval);
+              return;
+            }
+
             const pct = Math.round((progress.count / progress.total) * 100);
-            transferBar.style.width = pct + '%';
-            transferBar.innerText = pct + '%';
-            if (progress.count >= progress.total) clearInterval(transferInterval);
+
+            progressBar.style.width = pct + '%';
+            progressBar.innerText = pct + '%';
+
+            if (progress.count >= progress.total) {
+              progressBar.style.width = '100%';
+              progressBar.innerText = 'Completed';
+              clearInterval(interval);
+            }
+
+          })
+          .catch(() => {
+            clearInterval(interval);
           });
+
       }, 1000);
 
     });
+
   </script>
 
 @endsection
