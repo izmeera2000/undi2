@@ -256,6 +256,7 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/', [GroupController::class, 'store'])->name('store');
             Route::get('/{group}', [GroupController::class, 'show'])->name('show');
             Route::get('/{group}/manage', [GroupController::class, 'manage'])->name('manage');
+            Route::post('/{group}/membersList', [GroupController::class, 'membersList'])->name('membersList');
             Route::put('/{group}', [GroupController::class, 'update'])->name('update');
             Route::delete('/{group}', [GroupController::class, 'destroy'])->name('destroy');
 

@@ -28,18 +28,18 @@ class Group extends Model
         )->withTimestamps();
     }
 
-public function members()
-{
-    return $this->belongsToMany(Member::class, 'member_groups')
-                ->withTimestamps()
-                ->withPivot('id'); // if pivot table has its own id
-}
+    public function members()
+    {
+        return $this->belongsToMany(Member::class, 'member_groups')
+            ->withTimestamps()
+            ->withPivot('id'); // if pivot table has its own id
+    }
 
 
     public function creator()
-{
-    return $this->belongsTo(User::class, 'created_by');
-}
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
 
 }

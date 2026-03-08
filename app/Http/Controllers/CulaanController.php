@@ -41,19 +41,19 @@ class CulaanController extends Controller
 
             ->addColumn('actions', function ($row) {
                 return '
-                <div class="d-flex justify-content-center gap-2">
+                <div class="d-flex justify-content-end gap-2">
                     <a href="' . route('culaan.show', $row->id) . '" 
-                    class="btn  btn-icon btn-primary"   
+                    class="btn btn-sm btn-outline-primary action-btn"   
                     data-bs-toggle="tooltip" 
                     title="View Details">
-                        <i class="bi bi-eye"></i>
+                        <i class="fas fa-cog me-1"></i> Manage
                     </a>
 
-                    <button class="btn  btn-icon btn-danger delete-culaan"
+                    <button class="btn btn-sm btn-outline-danger action-btn  delete-culaan"
                             data-id="' . $row->id . '"
                             data-bs-toggle="tooltip"
                             title="Delete Record">
-                        <i class="bi bi-trash3"></i>
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>';
             })
@@ -84,12 +84,12 @@ class CulaanController extends Controller
         return redirect()->back()->with('success', 'Culaan created successfully!');
     }
 
-public function destroy(Culaan $culaan)
-{
-    $culaan->delete();
+    public function destroy(Culaan $culaan)
+    {
+        $culaan->delete();
 
-    return response()->json(['success' => true]);
-}
+        return response()->json(['success' => true]);
+    }
 
     public function show(Culaan $culaan)
     {

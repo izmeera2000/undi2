@@ -112,7 +112,7 @@ class CulaanPengundiImportJob implements ShouldQueue
         ], 3600);
 
         fclose($handle);
-
+        Cache::forget($cacheKey);
         Storage::delete($this->path);
     }
 

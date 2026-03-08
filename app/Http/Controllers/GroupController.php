@@ -100,6 +100,40 @@ class GroupController extends Controller
         return view('members.groups.manage', compact('group'));
     }
 
+
+    public function membersList(Group $group, Request $request)
+    {
+        // $group is already a model instance (thanks to route model binding)
+        $query = $group->members()->select('members.*'); // ✅ members() works here
+
+        return DataTables::of($query)
+            ->addColumn('members', function ($row) {
+                return '
+            <div class="d-flex align-items-center gap-3">
+                <img src="' . $row->getProfilePictureUrlAttribute() . '" 
+                     class="rounded-circle" width="40">
+                <div>
+                    <a href="' . route('members.show', $row->id) . '" class="fw-semibold">
+                        ' . $row->nama . '
+                    </a>
+                    <div class="text-muted small">' . ($row->no_ahli) . '</div>
+                </div>
+            </div>';
+            })->addColumn('actions', function ($member) use ($group) {
+                return '
+            <form action="' . route('members.groups.removeMember', [$group, $member]) . '" method="POST"
+                onsubmit="return confirm(\'Remove this member?\');" class="d-inline">
+                ' . csrf_field() . method_field('DELETE') . '
+                <button class="btn btn-sm btn-outline-danger">
+                    <i class="fas fa-user-minus me-1"></i> Remove
+                </button>
+            </form>';
+            })
+            ->rawColumns(['actions', 'members'])
+            ->make(true);
+    }
+
+
     /**
      * Update a group
      */
@@ -134,18 +168,17 @@ class GroupController extends Controller
     public function invite(Request $request, Group $group)
     {
         $request->validate([
-            'email' => 'required|email|exists:users,email',
+            'no_ahli' => 'required|exists:members,no_ahli',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $user = Member::where('no_ahli', $request->no_ahli)->first();
 
-        if (!$user || !$user->members_id) {
-            ToastMagic::error("Oops!", "User has no linked member record.");
+        if (!$user) {
+            ToastMagic::error("Oops!", "Member not found.");
             return back();
         }
 
-        $memberId = $user->members_id;
-        $group->members()->syncWithoutDetaching([$memberId]);
+        $group->members()->syncWithoutDetaching([$user->id]);
 
         ToastMagic::success("Added!", "Member has been added to the group.");
         return back();

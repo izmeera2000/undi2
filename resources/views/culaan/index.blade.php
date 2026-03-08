@@ -25,14 +25,14 @@
                 <div class="row g-3 align-items-center w-100">
 
                     <div class="col-md-4 col-12">
-                        <div class="input-group">
+                        {{-- <div class="input-group">
                             <span class="input-group-text bg-transparent border-end-0">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
 
                             <input type="text" id="culaanSearch" class="form-control border-start-0 ps-0"
                                 placeholder="Search Culaan...">
-                        </div>
+                        </div> --}}
                     </div>
 
                     <div class="col-md-8 col-12">
@@ -49,23 +49,31 @@
                 </div>
             </div>
 
-            <div class="card-body p-1">
+            <div class="card-body">
                 <div class="table-responsive">
 
-                    <table id="culaanTable" class="table table-hover align-middle mb-0">
+                    <table id="culaanTable" class="table table-bordered table-striped table-hover">
 
                         <thead>
                             <tr>
                                 <th>Date</th>
                                 <th>Name</th>
                                 <th>Election</th>
-                                <th>Description</th>
                                 <th>Created By</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
 
-                        <tbody></tbody>
+                        <tfoot>
+                            <tr>
+                                <th></th> <!-- Kod Lokaliti -->
+                                <th></th> <!-- Kod Lokaliti -->
+                                <th></th> <!-- Lokaliti -->
+                                <th></th> <!-- Saluran 1 -->
+                                <th></th> <!-- Saluran 2 -->
+
+                            </tr>
+                        </tfoot>
 
                     </table>
 
@@ -163,11 +171,14 @@
             let table;
 
             table = $('#culaanTable').DataTable({
-
-                processing: true,
-                serverSide: true,
-                dom: 'lrtip',
-                ajax: {
+                    processing: true,
+                    serverSide: false,
+                    stateSave: true,
+                     paging: true,
+                    fixedHeader: true,
+                    searching: false,
+                
+                 ajax: {
                     url: "{{ route('culaan.data') }}",
                     type: "POST",
                     headers: {
@@ -179,7 +190,6 @@
                     { data: 'date', name: 'date' },
                     { data: 'name', name: 'name' },
                     { data: 'election', name: 'election' },
-                    { data: 'description', name: 'description' },
                     { data: 'creator', name: 'creator' },
                     { data: 'actions', orderable: false, searchable: false }
                 ]

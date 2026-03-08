@@ -14,6 +14,7 @@
 
 
 @push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}">
 
 
 @endpush
@@ -111,43 +112,43 @@
                     </div>
 
                 </div>
-
             </div>
 
-
-            <table id="pengundiTable" class="table table-bordered table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th rowspan="2" style="display:none;">Kod Lokaliti</th>
-                        <th rowspan="2">Lokaliti</th>
-                        <th colspan="7" class="text-center">Saluran</th>
-                        <th rowspan="2">Total</th>
-                    </tr>
-                    <tr>
-                        <th>1</th>
-                        <th>2</th>
-                        <th>3</th>
-                        <th>4</th>
-                        <th>5</th>
-                        <th>6</th>
-                        <th>7</th>
-                    </tr>
-                </thead>
-                <tfoot>
-                    <tr>
-                        <th style="display:none;"></th> <!-- Kod Lokaliti -->
-                        <th></th> <!-- Lokaliti -->
-                        <th></th> <!-- Saluran 1 -->
-                        <th></th> <!-- Saluran 2 -->
-                        <th></th> <!-- Saluran 3 -->
-                        <th></th> <!-- Saluran 4 -->
-                        <th></th> <!-- Saluran 5 -->
-                        <th></th> <!-- Saluran 6 -->
-                        <th></th> <!-- Saluran 7 -->
-                        <th></th> <!-- Total -->
-                    </tr>
-                </tfoot>
-            </table>
+            <div class="table-responsive">
+                <table id="pengundiTable" class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th rowspan="2" style="display:none;">Kod Lokaliti</th>
+                            <th rowspan="2">Lokaliti</th>
+                            <th colspan="7" class="text-center">Saluran</th>
+                            <th rowspan="2">Total</th>
+                        </tr>
+                        <tr>
+                            <th>1</th>
+                            <th>2</th>
+                            <th>3</th>
+                            <th>4</th>
+                            <th>5</th>
+                            <th>6</th>
+                            <th>7</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <th style="display:none;"></th> <!-- Kod Lokaliti -->
+                            <th></th> <!-- Lokaliti -->
+                            <th></th> <!-- Saluran 1 -->
+                            <th></th> <!-- Saluran 2 -->
+                            <th></th> <!-- Saluran 3 -->
+                            <th></th> <!-- Saluran 4 -->
+                            <th></th> <!-- Saluran 5 -->
+                            <th></th> <!-- Saluran 6 -->
+                            <th></th> <!-- Saluran 7 -->
+                            <th></th> <!-- Total -->
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
 
 
         </div>
@@ -591,21 +592,21 @@
                         response.files.forEach(file => {
 
                             html += `
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>${file.name}</strong><br>
-                                                            <small class="text-muted">${file.last_modified}</small>
+                                                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>${file.name}</strong><br>
+                                                                <small class="text-muted">${file.last_modified}</small>
+                                                            </div>
+                                                            <div>
+                                                                <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
+                                                                    View
+                                                                </a>
+                                 <a href="${file.url}" download class="btn btn-sm btn-success">
+                                                                    Download
+                                                                </a>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">
-                                                                View
-                                                            </a>
-                             <a href="${file.url}" download class="btn btn-sm btn-success">
-                                                                Download
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                `;
+                                                    `;
                         });
 
                         html += '</div>';

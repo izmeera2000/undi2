@@ -15,7 +15,7 @@ new class extends Component {
     public $name, $email, $avatar, $selectedGroups = [];
     public $dun_id, $kod_dm;
     public $dms = [];
-
+    public $groupFilter = '';
     protected $paginationTheme = 'bootstrap';
 
     protected $rules = [
@@ -65,10 +65,20 @@ new class extends Component {
     {
         return [
             'members' => Member::with('groups')
-                ->where('nama', 'like', "%{$this->search}%")
-                ->orWhere('email', 'like', "%{$this->search}%")
+                ->when($this->search, function ($query) {
+                    $query->where(function ($q) {
+                        $q->where('nama', 'like', "%{$this->search}%")
+                            ->orWhere('email', 'like', "%{$this->search}%");
+                    });
+                })
+                ->when($this->groupFilter, function ($query) {
+                    $query->whereHas('groups', function ($q) {
+                        $q->where('groups.id', $this->groupFilter);
+                    });
+                })
                 ->latest()
                 ->paginate(10),
+
             'groups' => Group::all(),
             'duns' => Dun::all(),
         ];
@@ -90,9 +100,22 @@ new class extends Component {
                 <input type="text" wire:model.live.debounce.300ms="search" class="form-control"
                     placeholder="Search members...">
             </div>
+
+        </div>
+        <div class="col-md-3">
+            <select wire:model.live="groupFilter" class="form-select">
+                <option value="">All Groups</option>
+
+                @foreach($groups as $group)
+                    <option value="{{ $group->id }}">
+                        {{ $group->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
-        <div class="col-md-8 text-end">
+
+        <div class="col-md-5 text-end">
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="bi bi-plus-lg me-1"></i> Add Member
             </button>
@@ -102,6 +125,8 @@ new class extends Component {
     <!-- Members Table -->
     <div class="card shadow-sm">
         <div class="card-body p-2">
+                <div class="table-responsive">
+
             <table class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
@@ -123,7 +148,7 @@ new class extends Component {
                                         style="width: 40px; aspect-ratio: 1/1;">
 
                                     <div>
-                                        <a href="http://undi2/members/{{ $member->id }}" class="fw-semibold">
+                                        <a href="{{ route('members.show', $member) }}" class="fw-semibold" wire:navigate>
                                             {{ $member->nama }}
                                         </a>
                                         <div class="text-muted small">{{ $member->no_ahli }}</div>
@@ -151,9 +176,10 @@ new class extends Component {
 
 
                                 <div class="btn-group">
-                                    <a href="http://undi2/members/{{ $member->id }}" class="btn btn-sm btn-light"
-                                        title="View">
-                                        <i class="bi bi-eye"></i>
+                                    <a href="{{ route('members.show', $member) }}"
+                                        class="btn btn-sm btn-outline-primary action-btn" wire:navigate>
+
+                                        <i class="fas fa-eye"></i> View
                                     </a>
                                 </div>
                             </td>
@@ -162,6 +188,7 @@ new class extends Component {
                     @endforeach
                 </tbody>
             </table>
+            </div>
 
             <div class="p-3">
                 {{ $members->links() }}
@@ -171,5 +198,5 @@ new class extends Component {
 
 
 
- 
+
 </div>

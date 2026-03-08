@@ -18,11 +18,11 @@
 
       @can('pengundi.view')
         <x-sidebar.nav-group pattern="pengundi.*" icon="ph-light ph-identification-card" label="Pengundi">
-          <x-sidebar.nav-item route="pengundi.list" label="All List" />
+          <x-sidebar.nav-link route="pengundi.list" label="All List" />
           {{-- <x-sidebar.nav-item route="pengundi.analytics" label="Analytics" /> --}}
           @can('pengundi.add')
-            <x-sidebar.nav-item route="culaan.index" label="Expectations" />
-            <x-sidebar.nav-item route="pengundi.bulkimport2" label="Bulk Import" />
+            <x-sidebar.nav-link route="culaan.index" label="Expectations" />
+            <x-sidebar.nav-link route="pengundi.bulkimport2" label="Bulk Import" />
           @endcan
         </x-sidebar.nav-group>
       @endcan
@@ -31,13 +31,13 @@
         <x-slot name="iconSlot">
           <i class="umno-logo">@include('layouts.logo')</i>
         </x-slot>
-        <x-sidebar.nav-item route="members.list" label="Member List" />
-        <x-sidebar.nav-item route="members.groups.index" label="Groups" />
-        <x-sidebar.nav-item route="members.bulkimport" label="Bulk Import" />
+        <x-sidebar.nav-link route="members.list" label="Member List" />
+        <x-sidebar.nav-link route="members.groups.index" label="Groups" />
+        <x-sidebar.nav-link route="members.bulkimport" label="Bulk Import" />
       </x-sidebar.nav-group>
 
       <x-sidebar.nav-group pattern="staff.*" icon="ph-light ph-users" label="Staff">
-        <x-sidebar.nav-item route="staff.list" label="Staff Directory" />
+        <x-sidebar.nav-link route="staff.list" label="Staff Directory" />
       </x-sidebar.nav-group>
 
       <x-sidebar.nav-heading label="Operations" />
@@ -50,10 +50,10 @@
       <x-sidebar.nav-item route="elections.index" label="Elections" icon="ph-light ph-seal-check" />
 
       <x-sidebar.nav-group pattern="geo.*" icon="ph-light ph-map-trifold" label="Jurisdiction">
-        <x-sidebar.nav-item route="parlimen.index" label="Parlimen" />
-        <x-sidebar.nav-item route="dun.index" label="DUN" />
-        <x-sidebar.nav-item route="dm.index" label="DM" />
-        <x-sidebar.nav-item route="lokaliti.index" label="Lokaliti" />
+        <x-sidebar.nav-link route="parlimen.index" label="Parlimen" />
+        <x-sidebar.nav-link route="dun.index" label="DUN" />
+        <x-sidebar.nav-link route="dm.index" label="DM" />
+        <x-sidebar.nav-link route="lokaliti.index" label="Lokaliti" />
       </x-sidebar.nav-group>
 
       @role('admin')
@@ -61,12 +61,10 @@
       <x-sidebar.nav-item route="testimport" label="Test Import" icon="ph-light ph-flask" />
       <x-sidebar.nav-item route="clear-all" label="System Reset" icon="ph-light ph-warning-octagon" />
 
-      <x-sidebar.nav-group pattern="map.*" label="Maps">
-        <x-slot name="iconSlot">
-          <i class="umno-logo">@include('layouts.logo')</i>
-        </x-slot>
-        <x-sidebar.nav-item route="map.page2" label="Live Map" />
-        <x-sidebar.nav-item route="map.page" label="Data Fetch" />
+      <x-sidebar.nav-group pattern="map.*" label="Maps" icon="ph-light ph-map-pin">
+
+        <x-sidebar.nav-link route="map.page2" label="Live Map" />
+        <x-sidebar.nav-link route="map.page" label="Data Fetch" />
       </x-sidebar.nav-group>
       @endrole
 

@@ -37,13 +37,13 @@ class CulaanPengundiImportController extends Controller
         }
     }
 
-public function importProgress($culaanId)
-{
-    return response()->json(
-        Cache::get("culaan_import_progress_{$culaanId}", [
-            'count' => 0,
-            'total' => 1
-        ])
-    );
-}
+    public function importProgress($culaanId)
+    {
+        return response()->json(
+            Cache::get("culaan_import_progress_{$culaanId}", [
+                'count' => 0,
+                'total' => 1
+            ])
+        );
+    }
 }
