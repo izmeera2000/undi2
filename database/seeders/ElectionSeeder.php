@@ -29,6 +29,15 @@ class ElectionSeeder extends Seeder
                 'created_at' => $now,
                 'updated_at' => $now,
             ],
+   [
+                'type' => 'PRU',
+                'number' => '16',
+                'year' => 2028,
+                'created_by' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+
         ]);
     }
 }

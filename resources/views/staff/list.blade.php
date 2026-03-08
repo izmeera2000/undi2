@@ -60,7 +60,7 @@
             <table id="staffTable" class="table table-hover align-middle mb-0">
               <thead>
                 <tr>
- `
+                  
                   <th>Staff</th>
                   <th>Role</th>
                   <th>Joined</th>
@@ -153,9 +153,9 @@
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
-      $(document).ready(function() {
+      $(document).ready(function () {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
- 
+
         const table = $('#staffTable').DataTable({
           processing: true,
           serverSide: true,
@@ -169,8 +169,8 @@
               if (xhr.status === 401) {
                 window.location.href = "{{ route('login') }}";
               }
-                            if (xhr.status == 419) {
-                 location.reload();
+              if (xhr.status == 419) {
+                location.reload();
               }
             }
           },

@@ -8,6 +8,9 @@ use App\Http\Controllers\ElectionController;
 
 use App\Jobs\TestQueueJob;
 
+use App\Http\Controllers\CulaanController;
+use App\Http\Controllers\CulaanPengundiImportController;
+
 use App\Http\Controllers\PengundiImportController;
 use App\Http\Controllers\PengundiAnalyticsController;
 use App\Http\Controllers\NotificationController;
@@ -291,18 +294,18 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
-Route::prefix('elections')->name('elections.')->middleware('auth')->group(function () {
+    Route::prefix('elections')->name('elections.')->middleware('auth')->group(function () {
 
-    Route::get('/', [ElectionController::class, 'index'])->name('index');
-    Route::post('/', [ElectionController::class, 'store'])->name('store');
+        Route::get('/', [ElectionController::class, 'index'])->name('index');
+        Route::post('/', [ElectionController::class, 'store'])->name('store');
 
-    // ✅ FIXED HERE
-    Route::post('/list_data', [ElectionController::class, 'data'])->name('data');
+        // ✅ FIXED HERE
+        Route::post('/list_data', [ElectionController::class, 'data'])->name('data');
 
-    Route::put('/{election}', [ElectionController::class, 'update'])->name('update');
-    Route::delete('/{election}', [ElectionController::class, 'destroy'])->name('destroy');
-    Route::get('/{election}', [ElectionController::class, 'show'])->name('show');
-});
+        Route::put('/{election}', [ElectionController::class, 'update'])->name('update');
+        Route::delete('/{election}', [ElectionController::class, 'destroy'])->name('destroy');
+        Route::get('/{election}', [ElectionController::class, 'show'])->name('show');
+    });
 
     Route::prefix('parlimen')->name('parlimen.')->group(function () {
         Route::get('/', [ParlimenController::class, 'index'])->name('index');   // list page
@@ -376,6 +379,57 @@ Route::prefix('elections')->name('elections.')->middleware('auth')->group(functi
     });
 
 
+    Route::prefix('culaan')->name('culaan.')->group(function () {
+
+        // Standard Culaan routes
+        Route::get('/', [CulaanController::class, 'index'])->name('index');
+        Route::post('/list_data', [CulaanController::class, 'data'])->name('data');
+        Route::post('/', [CulaanController::class, 'store'])->name('store');
+
+
+        Route::post('/import', [CulaanPengundiImportController::class, 'import'])
+            ->name('culaan.import');
+
+        // Route::get('/import-progress', [CulaanPengundiImportController::class, 'importProgress'])
+        //     ->name('culaan.import.progress');
+
+
+
+        Route::get('/{culaan}', [CulaanController::class, 'show'])->name('show');
+        Route::put('/{culaan}', [CulaanController::class, 'update'])->name('update');
+        Route::delete('/{culaan}', [CulaanController::class, 'destroy'])->name('destroy');
+        // Route::post('/{culaan}/import', [CulaanController::class, 'import'])->name('import');
+
+        // Nested group for Pengundi routes
+        Route::prefix('{culaan}/pengundi')->name('pengundi.')->group(function () {
+            // AJAX data table
+            Route::post('/data', [CulaanController::class, 'pengundiData'])->name('data');
+
+            // Store individual pengundi
+            Route::post('/store', [CulaanController::class, 'storePengundi'])->name('store');
+
+            Route::post('/updateStatus', [CulaanController::class, 'updateStatus'])->name('updateStatus');
+            Route::post('/deletePengundi', [CulaanController::class, 'deletePengundi'])->name('deletePengundi');
+
+
+            // Bulk import page (GET)
+            Route::get('/bulkimport', [CulaanController::class, 'showBulkImport'])->name('bulkimport');
+            Route::post('/import', [CulaanPengundiImportController::class, 'store'])->name('import.store');
+
+ 
+
+        Route::get('/import-progress', [CulaanPengundiImportController::class, 'importProgress'])
+            ->name('import.progress');
+
+            // Bulk import action (POST)
+
+
+        });
+
+
+
+
+    });
 
 
 
@@ -427,6 +481,8 @@ Route::prefix('elections')->name('elections.')->middleware('auth')->group(functi
         Route::delete('/{activity}', [ActivityLogController::class, 'destroy'])->name('destroy');
         Route::delete('/clear/all', [ActivityLogController::class, 'clear'])->name('clear');
     });
+
+
 
 
 
