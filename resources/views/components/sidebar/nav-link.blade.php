@@ -1,6 +1,8 @@
-    <a class="nav-link {{ $active ? 'active' : '' }}" href="{{ route($route) }}"  >
+    <li>
+      <a class="nav-link {{ $active ? 'active' : '' }}" href="{{ route($route) }}"  >
 
          
         {{ $label }}
 
     </a>
+  </li>
