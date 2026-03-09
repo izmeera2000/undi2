@@ -403,6 +403,16 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::delete('/{culaan}', [CulaanController::class, 'destroy'])->name('destroy');
         // Route::post('/{culaan}/import', [CulaanController::class, 'import'])->name('import');
 
+
+        Route::get('/{culaan}/analytics/data', [CulaanController::class, 'analytics_data'])->name('analytics_data');
+
+        Route::get('/{culaan}/analytics', [CulaanController::class, 'analytics'])
+            ->name('analytics');
+
+                    Route::post('/{culaan}/analytics_pdf', [CulaanController::class, 'generatePdf'])
+            ->name('analytics_pdf');
+
+
         // Nested group for Pengundi routes
         Route::prefix('{culaan}/pengundi')->name('pengundi.')->group(function () {
             // AJAX data table
@@ -414,16 +424,16 @@ Route::middleware(['auth', 'active'])->group(function () {
             Route::post('/updateStatus', [CulaanController::class, 'updateStatus'])->name('updateStatus');
             Route::post('/deletePengundi', [CulaanController::class, 'deletePengundi'])->name('deletePengundi');
 
-            Route::get('/analytics', [CulaanController::class, 'analytics'])->name('analytics');
+
 
             // Bulk import page (GET)
             Route::get('/bulkimport', [CulaanController::class, 'showBulkImport'])->name('bulkimport');
             Route::post('/import', [CulaanPengundiImportController::class, 'store'])->name('import.store');
 
- 
 
-        Route::get('/import-progress', [CulaanPengundiImportController::class, 'importProgress'])
-            ->name('import.progress');
+
+            Route::get('/import-progress', [CulaanPengundiImportController::class, 'importProgress'])
+                ->name('import.progress');
 
             // Bulk import action (POST)
 

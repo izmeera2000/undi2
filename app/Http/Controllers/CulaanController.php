@@ -6,6 +6,7 @@ use App\Models\Culaan;
 use App\Models\CulaanPengundi;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CulaanController extends Controller
 {
@@ -227,7 +228,7 @@ class CulaanController extends Controller
                 <i class="bi bi-trash"></i>
             </button>';
             })
- 
+
 
             ->rawColumns(['pengundi_details', 'lokaliti_details', 'status_culaan', 'actions'])
 
@@ -235,58 +236,102 @@ class CulaanController extends Controller
     }
 
 
-public function analytics(Request $request, Culaan $culaan)
-{
-    $query = CulaanPengundi::where('culaan_id', $culaan->id);
 
-    if ($request->lokaliti) {
-        $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
+    public function analytics(Request $request, Culaan $culaan)
+    {
+        return view('culaan.analytics', compact('culaan'));
     }
 
-    if ($request->status_culaan) {
-        $query->where('status_culaan', 'like', $request->status_culaan . '%');
-    }
 
-    if ($request->search_name) {
-        $query->where(function ($q) use ($request) {
-            $q->where('nama', 'like', "%{$request->search_name}%")
-              ->orWhere('no_kp', 'like', "%{$request->search_name}%");
-        });
-    }
+    public function analytics_data(Request $request, Culaan $culaan)
+    {
+        $query = CulaanPengundi::where('culaan_id', $culaan->id);
 
-    $base = clone $query;
+        if ($request->lokaliti) {
+            $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
+        }
 
-    // TOTAL
-    $total = $base->count();
+        if ($request->status_culaan) {
+            if ($request->status_culaan == 'O') {
+                $query->where(function ($q) {
+                    $q->whereNull('status_culaan')
+                        ->orWhere('status_culaan', 'O');
+                });
+            } else {
+                $query->where('status_culaan', 'like', $request->status_culaan . '%');
+            }
+        }
 
-    // STATUS CULAAN
-    $status = (clone $query)
-        ->selectRaw("LEFT(status_culaan,1) as status, COUNT(*) as total")
-        ->groupBy('status')
-        ->pluck('total','status');
+        // if ($request->search_name) {
+        //     $query->where(function ($q) use ($request) {
+        //         $q->where('nama', 'like', "%{$request->search_name}%")
+        //             ->orWhere('no_kp', 'like', "%{$request->search_name}%");
+        //     });
+        // }
 
-    // SALURAN
-    $saluran = (clone $query)
-        ->selectRaw("saluran, COUNT(*) as total")
-        ->groupBy('saluran')
-        ->orderBy('saluran')
-        ->get();
+        $base = clone $query;
 
-    // JANTINA
-    $jantina = (clone $query)
-        ->selectRaw("jantina, COUNT(*) as total")
-        ->groupBy('jantina')
-        ->pluck('total','jantina');
+        // TOTAL
+        $total = $base->count();
 
-    // BANGSA
-    $bangsa = (clone $query)
-        ->selectRaw("bangsa, COUNT(*) as total")
-        ->groupBy('bangsa')
-        ->pluck('total','bangsa');
+        // STATUS CULAAN
+        $status = (clone $query)
+            ->selectRaw("COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') as status, COUNT(*) as total")
+            ->groupByRaw("COALESCE(NULLIF(LEFT(status_culaan,1),''),'O')")
+            ->pluck('total', 'status');
 
-    // UMUR GROUP
-    $umur = (clone $query)
-        ->selectRaw("
+        // SALURAN
+        $saluran = (clone $query)
+            ->selectRaw("saluran, COUNT(*) as total")
+            ->groupBy('saluran')
+            ->orderBy('saluran')
+            ->get();
+
+        // JANTINA
+        $jantina = (clone $query)
+            ->selectRaw("
+                CASE 
+                    WHEN jantina = 'P' THEN 'Perempuan'
+                    WHEN jantina = 'L' THEN 'Lelaki'
+                    ELSE 'Tidak Diketahui'
+                END as jantina,
+                COUNT(*) as total
+            ")
+            ->groupByRaw("
+                CASE 
+                    WHEN jantina = 'P' THEN 'Perempuan'
+                    WHEN jantina = 'L' THEN 'Lelaki'
+                    ELSE 'Tidak Diketahui'
+                END
+            ")
+            ->pluck('total', 'jantina');
+
+        // BANGSA
+        $bangsa = (clone $query)
+            ->selectRaw("
+                CASE 
+                    WHEN bangsa = 'M' THEN 'Melayu'
+                    WHEN bangsa = 'C' THEN 'Cina'
+                    WHEN bangsa = 'I' THEN 'India'
+                    WHEN bangsa = 'L' THEN 'Lain-lain'
+                    ELSE 'Tidak Diketahui'
+                END as bangsa,
+                COUNT(*) as total
+            ")
+            ->groupByRaw("
+                CASE 
+                    WHEN bangsa = 'M' THEN 'Melayu'
+                    WHEN bangsa = 'C' THEN 'Cina'
+                    WHEN bangsa = 'I' THEN 'India'
+                    WHEN bangsa = 'L' THEN 'Lain-lain'
+                    ELSE 'Tidak Diketahui'
+                END
+            ")
+            ->pluck('total', 'bangsa');
+
+        // UMUR GROUP
+        $umur = (clone $query)
+            ->selectRaw("
             CASE
                 WHEN umur < 30 THEN '18-29'
                 WHEN umur BETWEEN 30 AND 39 THEN '30-39'
@@ -296,66 +341,66 @@ public function analytics(Request $request, Culaan $culaan)
             END as umur_group,
             COUNT(*) as total
         ")
-        ->groupBy('umur_group')
-        ->pluck('total','umur_group');
+            ->groupBy('umur_group')
+            ->pluck('total', 'umur_group');
 
-    // TOP LOKALITI
-    $lokaliti = (clone $query)
-        ->selectRaw("lokaliti, COUNT(*) as total")
-        ->groupBy('lokaliti')
-        ->orderByDesc('total')
-        ->limit(10)
-        ->get();
+        // TOP LOKALITI
+        $lokaliti = (clone $query)
+            ->selectRaw("lokaliti, COUNT(*) as total")
+            ->groupBy('lokaliti')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
 
-    // TOP PM
-    $pm = (clone $query)
-        ->selectRaw("pm, COUNT(*) as total")
-        ->groupBy('pm')
-        ->orderByDesc('total')
-        ->limit(10)
-        ->get();
+        // TOP PM
+        $pm = (clone $query)
+            ->selectRaw("pm, COUNT(*) as total")
+            ->groupBy('pm')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
 
-    return response()->json([
+        return response()->json([
 
-        'total' => $total,
+            'total' => $total,
 
-        'status_chart' => [
-            'labels' => $status->keys(),
-            'series' => $status->values(),
-        ],
+            'status_chart' => [
+                'labels' => $status->keys(),
+                'series' => $status->values(),
+            ],
 
-        'saluran_chart' => [
-            'labels' => $saluran->pluck('saluran'),
-            'series' => $saluran->pluck('total'),
-        ],
+            'saluran_chart' => [
+                'labels' => $saluran->pluck('saluran'),
+                'series' => $saluran->pluck('total'),
+            ],
 
-        'jantina_chart' => [
-            'labels' => $jantina->keys(),
-            'series' => $jantina->values(),
-        ],
+            'jantina_chart' => [
+                'labels' => $jantina->keys(),
+                'series' => $jantina->values(),
+            ],
 
-        'bangsa_chart' => [
-            'labels' => $bangsa->keys(),
-            'series' => $bangsa->values(),
-        ],
+            'bangsa_chart' => [
+                'labels' => $bangsa->keys(),
+                'series' => $bangsa->values(),
+            ],
 
-        'umur_chart' => [
-            'labels' => $umur->keys(),
-            'series' => $umur->values(),
-        ],
+            'umur_chart' => [
+                'labels' => $umur->keys(),
+                'series' => $umur->values(),
+            ],
 
-        'lokaliti_chart' => [
-            'labels' => $lokaliti->pluck('lokaliti'),
-            'series' => $lokaliti->pluck('total'),
-        ],
+            'lokaliti_chart' => [
+                'labels' => $lokaliti->pluck('lokaliti'),
+                'series' => $lokaliti->pluck('total'),
+            ],
 
-        'pm_chart' => [
-            'labels' => $pm->pluck('pm'),
-            'series' => $pm->pluck('total'),
-        ],
+            'pm_chart' => [
+                'labels' => $pm->pluck('pm'),
+                'series' => $pm->pluck('total'),
+            ],
 
-    ]);
-}
+        ]);
+    }
 
     public function storePengundi(Request $request, Culaan $culaan)
     {
@@ -408,5 +453,19 @@ public function analytics(Request $request, Culaan $culaan)
         return response()->json([
             'success' => true
         ]);
+    }
+
+
+
+    public function generatePdf(Request $request, Culaan $culaan)
+    {
+        $charts = $request->input('charts');
+
+        return Pdf::loadView('culaan.analytics_pdf', [
+            'charts' => $charts,
+            'culaan' => $culaan
+        ])
+            ->setPaper('a4', 'portrait')
+            ->stream('culaan-analytics.pdf');
     }
 }

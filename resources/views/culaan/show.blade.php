@@ -28,7 +28,7 @@ $crumbs = [
                     <div class="d-flex flex-wrap justify-content-md-end gap-2">
 
 
-                        <a href="{{ route('culaan.pengundi.analytics', $culaan) }}" class="btn btn-primary ">
+                        <a href="{{ route('culaan.analytics', $culaan) }}" class="btn btn-primary ">
                             <i class="fas fa-chart-line me-1"></i> Analytics
                         </a>
                     </div>

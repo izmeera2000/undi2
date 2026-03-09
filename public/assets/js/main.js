@@ -582,7 +582,7 @@ async function renderStackedBar(
         chart: {
             type: "bar",
             stacked: true,
-      stackType: isPercent ? '100%' : 'normal',
+            stackType: isPercent ? "100%" : "normal",
 
             height: isHorizontal ? 800 : 600,
             animations: {
@@ -730,27 +730,26 @@ async function renderStackedBar(
         ],
     };
 
-  try {
-    // console.log('Chart element:', el);
-    console.log('Chart options:', options);
-    console.log('Existing chart instance:', chartRef.chart);
+    try {
+        // console.log('Chart element:', el);
+        console.log("Chart options:", options);
+        console.log("Existing chart instance:", chartRef.chart);
 
-    if (chartRef.chart) {
-        // console.log('Updating existing chart...');
-        chartRef.chart.updateOptions(options);
-        console.log('Options updated, rendering chart...');
-        chartRef.chart.render();
-        // console.log('Chart render completed.');
-    } else {
-        // console.log('Creating new chart...');
-        chartRef.chart = new ApexCharts(el, options);
-        await chartRef.chart.render();
-        console.log('New chart rendered.');
+        if (chartRef.chart) {
+            // console.log('Updating existing chart...');
+            chartRef.chart.updateOptions(options);
+            console.log("Options updated, rendering chart...");
+            chartRef.chart.render();
+            // console.log('Chart render completed.');
+        } else {
+            // console.log('Creating new chart...');
+            chartRef.chart = new ApexCharts(el, options);
+            await chartRef.chart.render();
+            console.log("New chart rendered.");
+        }
+    } catch (error) {
+        console.error("Error in chart rendering:", error);
     }
-} catch (error) {
-    console.error('Error in chart rendering:', error);
-}
-
 }
 
 async function renderTreemap(el, chartRef, series) {

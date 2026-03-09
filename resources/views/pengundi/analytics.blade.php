@@ -393,7 +393,7 @@
       renderUmurChart(payload);
 
       renderJantinaChart(payload);
-      
+
       renderNegeriChart(payload);
 
 
@@ -462,9 +462,9 @@
           const className = isPositive ? 'positive' : 'negative';
 
           return `<div class="widget-stat-change ${className}">
-                            <i class="bi ${icon}"></i>
-                            ${Math.abs(change).toFixed(1)}% vs previous
-                        </div>`;
+                              <i class="bi ${icon}"></i>
+                              ${Math.abs(change).toFixed(1)}% vs previous
+                          </div>`;
         };
 
         elPengundib.innerHTML = buildHTML(current.total_pengundi, pChange);
