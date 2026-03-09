@@ -404,7 +404,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         // Route::post('/{culaan}/import', [CulaanController::class, 'import'])->name('import');
 
 
-        Route::get('/{culaan}/analytics/data', [CulaanController::class, 'analytics_data'])->name('analytics_data');
+        Route::post('/{culaan}/analytics/data', [CulaanController::class, 'analytics_data'])->name('analytics_data');
 
         Route::get('/{culaan}/analytics', [CulaanController::class, 'analytics'])
             ->name('analytics');

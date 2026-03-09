@@ -218,19 +218,19 @@
                             }
 
                             const html = items.map(i => `
-                                                    <div class="tooltip-row d-flex align-items-center mb-1">
-                                                        <span style="
-                                                            background:${i.color};
-                                                            width:12px;
-                                                            height:12px;
-                                                            display:inline-block;
-                                                            margin-right:6px;
-                                                            border-radius:3px;
-                                                        "></span>
-                                                        <span>${i.name}</span>
-                                                        <strong class="ms-auto">${i.value}</strong>
-                                                    </div>
-                                                `).join('');
+                                                            <div class="tooltip-row d-flex align-items-center mb-1">
+                                                                <span style="
+                                                                    background:${i.color};
+                                                                    width:12px;
+                                                                    height:12px;
+                                                                    display:inline-block;
+                                                                    margin-right:6px;
+                                                                    border-radius:3px;
+                                                                "></span>
+                                                                <span>${i.name}</span>
+                                                                <strong class="ms-auto">${i.value}</strong>
+                                                            </div>
+                                                        `).join('');
 
                             document.getElementById("tooltipModalLabel").innerText = modalTitle || "All Data";
                             document.getElementById("tooltipModalBody").innerHTML = html;
@@ -315,41 +315,45 @@
             $('#chartModal').modal('show');
         }
         function loadAnalytics() {
-
             let data = {
                 // search_name: $('#search_name').val(),
                 lokaliti: $('#lokaliti').val(),
                 status_culaan: $('#status_culaan').val(),
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             };
 
-            $.get("{{ route('culaan.analytics_data', $culaan->id) }}", data, function (res) {
+            $.ajax({
+                url: "{{ route('culaan.analytics_data', $culaan->id) }}",
+                type: "POST",
+                data: data,
+                success: function (res) {
 
-                $('#total').text(res.total);
+                    $('#total').text(res.total);
 
-                renderChart(
-                    'statusChart',
-                    ['D', 'A', 'C', 'E', 'O'], // short chart labels
-                    res.status_chart.series,
-                    'bar',
-                    'Status Culaan',
-                    ['#001F7A', '#FF6600', '#009933', '#CCCCCC', '#999999'],
-                    'Status Culaan Detail', // modal title
-                    statusMap // modal label mapping
-                );
+                    renderChart(
+                        'statusChart',
+                        ['D', 'A', 'C', 'E', 'O'], // short chart labels
+                        res.status_chart.series,
+                        'bar',
+                        'Status Culaan',
+                        ['#001F7A', '#FF6600', '#009933', '#CCCCCC', '#999999'],
+                        'Status Culaan Detail', // modal title
+                        statusMap // modal label mapping
+                    );
 
+                    renderChart('saluranChart', res.saluran_chart.labels, res.saluran_chart.series, 'bar', 'Saluran');
 
-                renderChart('saluranChart', res.saluran_chart.labels, res.saluran_chart.series, 'bar', 'Saluran');
+                    renderChart('jantinaChart', res.jantina_chart.labels, res.jantina_chart.series, 'pie', 'Jantina', ['#FF66C4', '#36A2EB']);
 
-                renderChart('jantinaChart', res.jantina_chart.labels, res.jantina_chart.series, 'pie', 'Jantina', ['#FF66C4', '#36A2EB']);
+                    renderChart('bangsaChart', res.bangsa_chart.labels, res.bangsa_chart.series, 'bar', 'Bangsa');
 
-                renderChart('bangsaChart', res.bangsa_chart.labels, res.bangsa_chart.series, 'bar', 'Bangsa');
+                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'Umur');
 
-                renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'Umur');
-
-                renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
-
-
-
+                    renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
+                },
+                error: function (err) {
+                    console.error("Error loading analytics:", err);
+                }
             });
         }
 
