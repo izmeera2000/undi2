@@ -276,8 +276,10 @@ class CulaanController extends Controller
 
         // STATUS CULAAN
         $status = (clone $query)
-            ->selectRaw("COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') as status, COUNT(*) as total")
-            ->groupByRaw("COALESCE(NULLIF(LEFT(status_culaan,1),''),'O')")
+            ->selectRaw("COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') as status, COUNT(*) as total")
+            ->groupByRaw("status")
+            ->orderByRaw("FIELD(status, 'D', 'A', 'C', 'E', 'O')")
+            ->get()
             ->pluck('total', 'status');
 
         // SALURAN

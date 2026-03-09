@@ -218,19 +218,19 @@
                             }
 
                             const html = items.map(i => `
-                                                <div class="tooltip-row d-flex align-items-center mb-1">
-                                                    <span style="
-                                                        background:${i.color};
-                                                        width:12px;
-                                                        height:12px;
-                                                        display:inline-block;
-                                                        margin-right:6px;
-                                                        border-radius:3px;
-                                                    "></span>
-                                                    <span>${i.name}</span>
-                                                    <strong class="ms-auto">${i.value}</strong>
-                                                </div>
-                                            `).join('');
+                                                    <div class="tooltip-row d-flex align-items-center mb-1">
+                                                        <span style="
+                                                            background:${i.color};
+                                                            width:12px;
+                                                            height:12px;
+                                                            display:inline-block;
+                                                            margin-right:6px;
+                                                            border-radius:3px;
+                                                        "></span>
+                                                        <span>${i.name}</span>
+                                                        <strong class="ms-auto">${i.value}</strong>
+                                                    </div>
+                                                `).join('');
 
                             document.getElementById("tooltipModalLabel").innerText = modalTitle || "All Data";
                             document.getElementById("tooltipModalBody").innerHTML = html;
@@ -250,7 +250,7 @@
                 },
 
                 tooltip: {
-                    enabled:false,
+                    enabled: false,
                     shared: true,
                     intersect: false,
                     fixed: {
