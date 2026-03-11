@@ -35,10 +35,10 @@
                     <div class="col-md-3">
                         <select id="status_culaan" class="form-control">
                             <option value="">All Status</option>
-                            <option value="D">Dacing (Ahli & Penyokong BN)</option>
-                            <option value="A">Ahli AMANAH</option>
-                            <option value="C">Condong Perikatan Nasional (PAS)</option>
-                            <option value="E">Empty (Tidak Pasti)</option>
+                            <option value="D">BN</option>
+                            <option value="A">PH</option>
+                            <option value="C">Perikatan Nasional (PAS)</option>
+                            <option value="E">Tidak Pasti</option>
                             <option value="O">Belum Cula</option>
                         </select>
                     </div>
@@ -121,7 +121,9 @@
                 <div class="card">
                     <div class="card-header">Top Lokaliti</div>
                     <div class="card-body">
-                        <div id="lokalitiChart"></div>
+                        <div class="overflow-auto" style="max-width: 100%; white-space: nowrap;">
+                            <div id="lokalitiChart" style="min-width: 600px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -160,8 +162,19 @@
         const DashboardState = {
             charts: {}
         };
-        function renderChart(id, labels, series, type = 'bar', title = '', colors = [], modalTitle = 'All Data', modalLabelsMap = {}) {
 
+        function renderChart(
+            id,
+            labels,
+            series,
+            type = 'bar',
+            title = '',
+            colors = [],
+            modalTitle = 'All Data',
+            modalLabelsMap = {},
+            stacked = false // new param for stacked bars
+        ) {
+            // Destroy existing chart if present
             if (charts[id]) charts[id].destroy();
 
             const isMobile = window.innerWidth <= 768;
@@ -170,76 +183,108 @@
                 chart: {
                     type: type,
                     height: 400,
+                    stacked: stacked,
                     toolbar: { show: false },
                     events: {
                         dataPointSelection: function (event, chartContext, config) {
-
-                            // if (!isMobile) return;
-
                             const w = config.w;
                             let items = [];
+                            const dataPointIndex = config.dataPointIndex; // clicked category
 
-                            const getColor = (dataPointIndex) => {
-                                return w.globals.colors?.[dataPointIndex] || '#000';
+
+                            const getColor = (seriesIndex, dataPointIndex) => {
+                                const chartColors = w.globals.colors || w.config.colors || []; // use rendered chart colors
+
+                                const seriesLength = w.config.series.length;
+
+                                if (type === 'pie' || seriesLength === 1) {
+                                    return chartColors?.[dataPointIndex] || '#000';
+                                }
+
+                                return chartColors?.[seriesIndex] || '#000';
                             };
 
-                            if (w.config.chart.type === 'pie') {
-
-                                items = w.config.series.map((v, i) => {
-
-                                    const code = w.config.labels[i];
-
+                            if (type === 'pie') {
+                                items = series.map((v, i) => {
+                                    const code = labels[i];
                                     return {
                                         name: modalLabelsMap[code] || code || `Slice ${i + 1}`,
                                         value: v,
-                                        color: getColor(i)
+                                        color: getColor(0, i)
                                     };
-
                                 });
+
+                                document.getElementById("tooltipModalLabel").innerText = modalTitle || "All Data";
 
                             } else {
 
-                                w.config.series.forEach((s) => {
+                                const isMultiSeries = w.config.series.length > 1;
+                                const isStacked = w.config.chart.stacked;
 
-                                    s.data.forEach((v, index) => {
+                                if (isMultiSeries && isStacked) {
+                                    // Bar chart: show all series for clicked category
+                                    const category = w.config.xaxis.categories[dataPointIndex];
 
-                                        const code = w.config.xaxis.categories[index];
-
+                                    w.config.series.forEach((s, seriesIndex) => {
                                         items.push({
-                                            name: modalLabelsMap[code] || code || `Category ${index + 1}`,
-                                            value: v,
-                                            color: getColor(index)
+                                            name: s.name + ' - ' + (modalLabelsMap[category] || category || `Category ${dataPointIndex + 1}`),
+                                            value: s.data[dataPointIndex],
+                                            color: getColor(seriesIndex)
                                         });
-
                                     });
 
-                                });
+                                    document.getElementById("tooltipModalLabel").innerText = modalTitle + ' ' + category || "All Data";
+
+
+                                }
+                                else {
+
+                                    w.config.series.forEach((s, sIndex) => {
+                                        s.data.forEach((v, index) => {
+                                            const code = w.config.xaxis.categories[index];
+                                            items.push({
+                                                name: s.name + ' - ' + (modalLabelsMap[code] || code || `Category ${index + 1}`),
+                                                value: v,
+                                                color: getColor(sIndex, index)
+                                            });
+                                        });
+                                    });
+                                    document.getElementById("tooltipModalLabel").innerText = modalTitle || "All Data";
+
+
+                                }
+
+
 
                             }
 
                             const html = items.map(i => `
-                                                            <div class="tooltip-row d-flex align-items-center mb-1">
-                                                                <span style="
-                                                                    background:${i.color};
-                                                                    width:12px;
-                                                                    height:12px;
-                                                                    display:inline-block;
-                                                                    margin-right:6px;
-                                                                    border-radius:3px;
-                                                                "></span>
-                                                                <span>${i.name}</span>
-                                                                <strong class="ms-auto">${i.value}</strong>
-                                                            </div>
-                                                        `).join('');
+                                                                            <div class="tooltip-row d-flex align-items-center mb-1">
+                                                                                <span style="
+                                                                                    background:${i.color};
+                                                                                    width:12px;
+                                                                                    height:12px;
+                                                                                    display:inline-block;
+                                                                                    margin-right:6px;
+                                                                                    border-radius:3px;
+                                                                                "></span>
+                                                                                <span>${i.name}</span>
+                                                                                <strong class="ms-auto">${i.value}</strong>
+                                                                            </div>
+                                                                        `).join('');
 
-                            document.getElementById("tooltipModalLabel").innerText = modalTitle || "All Data";
                             document.getElementById("tooltipModalBody").innerHTML = html;
-
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();
                         }
                     }
                 },
+                colors: colors,
 
+                plotOptions: {
+                    bar: {
+                        distributed: true
+                    }
+                },
                 title: {
                     text: title,
                     align: 'center',
@@ -259,45 +304,40 @@
                         offsetX: 0,
                         offsetY: 0
                     },
-
-
-
                 },
 
                 legend: {
                     show: true,
-                    position: 'bottom',
+                    position: isMobile ? 'bottom' : 'right',
                     horizontalAlign: 'center',
-                    height: 60,
                     floating: false
                 }
             };
 
+            // Pie chart
             if (type === 'pie') {
-
                 options.series = series;
                 options.labels = labels;
-
                 if (colors.length) options.colors = colors;
-
             } else {
+                // Bar chart (single or multi-series)
+                // Detect if series is an array of objects (multi-series) or flat array (single series)
+                const isMultiSeries = Array.isArray(series) && series.length && series[0].hasOwnProperty('data');
 
-                options.series = [{
-                    name: 'Total',
-                    data: series
-                }];
+                options.series = isMultiSeries
+                    ? series
+                    : [{ name: 'Total', data: series }];
 
                 options.xaxis = { categories: labels };
 
                 options.plotOptions = {
                     bar: {
-                        distributed: true,
-                        horizontal: isMobile
+                        horizontal: isMobile,
+                        distributed: !stacked // only distributed for non-stacked bars
                     }
                 };
 
                 if (colors.length) options.colors = colors;
-
             }
 
             charts[id] = new ApexCharts(document.querySelector("#" + id), options);
@@ -332,7 +372,7 @@
 
                     renderChart(
                         'statusChart',
-                        ['D', 'A', 'C', 'E', 'O'], // short chart labels
+                        ['BN', 'PH', 'PN', 'TP', 'BC'], // short chart labels
                         res.status_chart.series,
                         'bar',
                         'Status Culaan',
@@ -341,7 +381,15 @@
                         statusMap // modal label mapping
                     );
 
-                    renderChart('saluranChart', res.saluran_chart.labels, res.saluran_chart.series, 'bar', 'Saluran');
+                    renderChart('saluranChart',
+                        res.saluran_chart.labels,
+                        res.saluran_chart.series,
+                        'bar',
+                        'Saluran',
+                        ['#0033A0', '#E31C23', '#009B3A', '#CCCCCC', '#999999'],
+                        'Saluran',
+                        {},
+                        true);
 
                     renderChart('jantinaChart', res.jantina_chart.labels, res.jantina_chart.series, 'pie', 'Jantina', ['#FF66C4', '#36A2EB']);
 

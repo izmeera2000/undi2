@@ -276,15 +276,33 @@ class CulaanController extends Controller
 
         // STATUS CULAAN
         $status = (clone $query)
-            ->selectRaw("COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') as status, COUNT(*) as total")
+            ->selectRaw("
+        CASE 
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 'BN'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 'PH'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 'PAS'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 'tidak pasti'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 'belum cula'
+        END as status,
+        COUNT(*) as total
+    ")
             ->groupByRaw("status")
-            ->orderByRaw("FIELD(status, 'D', 'A', 'C', 'E', 'O')")
+            ->orderByRaw("FIELD(status, 'BN', 'PH', 'PAS', 'tidak pasti', 'belum cula')")
             ->get()
             ->pluck('total', 'status');
 
+
+
         // SALURAN
         $saluran = (clone $query)
-            ->selectRaw("saluran, COUNT(*) as total")
+            ->selectRaw("
+        saluran,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 1 ELSE 0 END) as BN,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 1 ELSE 0 END) as PH,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 1 ELSE 0 END) as PAS,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 1 ELSE 0 END) as 'tidak_pasti',
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 1 ELSE 0 END) as 'belum_cula'
+    ")
             ->groupBy('saluran')
             ->orderBy('saluran')
             ->get();
@@ -332,19 +350,20 @@ class CulaanController extends Controller
             ->pluck('total', 'bangsa');
 
         // UMUR GROUP
-        $umur = (clone $query)
-            ->selectRaw("
-            CASE
-                WHEN umur < 30 THEN '18-29'
-                WHEN umur BETWEEN 30 AND 39 THEN '30-39'
-                WHEN umur BETWEEN 40 AND 49 THEN '40-49'
-                WHEN umur BETWEEN 50 AND 59 THEN '50-59'
-                ELSE '60+'
-            END as umur_group,
-            COUNT(*) as total
-        ")
-            ->groupBy('umur_group')
-            ->pluck('total', 'umur_group');
+$umur = (clone $query)
+    ->selectRaw("
+        CASE
+            WHEN umur < 30 THEN '18-29'
+            WHEN umur BETWEEN 30 AND 39 THEN '30-39'
+            WHEN umur BETWEEN 40 AND 49 THEN '40-49'
+            WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+            ELSE '60+'
+        END as umur_group,
+        COUNT(*) as total
+    ")
+    ->groupBy('umur_group')
+    ->orderByRaw("FIELD(umur_group, '18-29', '30-39', '40-49', '50-59', '60+')")
+    ->pluck('total', 'umur_group');
 
         // TOP LOKALITI
         $lokaliti = (clone $query)
@@ -373,7 +392,28 @@ class CulaanController extends Controller
 
             'saluran_chart' => [
                 'labels' => $saluran->pluck('saluran'),
-                'series' => $saluran->pluck('total'),
+                'series' => [
+                    [
+                        'name' => 'BN',
+                        'data' => $saluran->pluck('BN'),
+                    ],
+                    [
+                        'name' => 'PH',
+                        'data' => $saluran->pluck('PH'),
+                    ],
+                    [
+                        'name' => 'PAS',
+                        'data' => $saluran->pluck('PAS'),
+                    ],
+                    [
+                        'name' => 'Tidak Pasti',
+                        'data' => $saluran->pluck('tidak_pasti'),
+                    ],
+                    [
+                        'name' => 'Belum Cula',
+                        'data' => $saluran->pluck('belum_cula'),
+                    ],
+                ],
             ],
 
             'jantina_chart' => [
