@@ -110,7 +110,7 @@
 
             <div class="col-md-12 mt-4">
                 <div class="card">
-                    <div class="card-header">Umur</div>
+                    <div class="card-header">First TIme Voter</div>
                     <div class="card-body">
                         <div id="umurChart"></div>
                     </div>
@@ -352,7 +352,7 @@
 
 
 
-        
+
         function showModal(label, value) {
             const modalBody = document.querySelector('#chartModal .modal-body');
             modalBody.innerHTML = `<p><strong>${label}:</strong> ${value}</p>`;
@@ -399,7 +399,7 @@
 
                     renderChart('bangsaChart', res.bangsa_chart.labels, res.bangsa_chart.series, 'bar', 'Bangsa');
 
-                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'Umur',[],'Umur',{},true);
+                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'First TIme Voter',[],'First TIme Voter',{},true);
 
                     renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
                 },
