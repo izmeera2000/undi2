@@ -350,20 +350,32 @@ class CulaanController extends Controller
             ->pluck('total', 'bangsa');
 
         // UMUR GROUP
-$umur = (clone $query)
-    ->selectRaw("
+        $umur = (clone $base)
+            ->leftJoin('pengundi', 'pengundi.nokp_baru', '=', 'culaan_pengundis.no_kp')
+            ->selectRaw("
         CASE
-            WHEN umur < 30 THEN '18-29'
-            WHEN umur BETWEEN 30 AND 39 THEN '30-39'
-            WHEN umur BETWEEN 40 AND 49 THEN '40-49'
-            WHEN umur BETWEEN 50 AND 59 THEN '50-59'
+            WHEN culaan_pengundis.umur < 30 THEN '18-29'
+            WHEN culaan_pengundis.umur BETWEEN 30 AND 39 THEN '30-39'
+            WHEN culaan_pengundis.umur BETWEEN 40 AND 49 THEN '40-49'
+            WHEN culaan_pengundis.umur BETWEEN 50 AND 59 THEN '50-59'
             ELSE '60+'
         END as umur_group,
-        COUNT(*) as total
+        SUM(
+            CASE 
+                WHEN pengundi.nokp_baru IS NULL THEN 1 
+                ELSE 0
+            END
+        ) as first_time,
+        SUM(
+            CASE 
+                WHEN pengundi.nokp_baru IS NOT NULL THEN 1 
+                ELSE 0
+            END
+        ) as not_first_time
     ")
-    ->groupBy('umur_group')
-    ->orderByRaw("FIELD(umur_group, '18-29', '30-39', '40-49', '50-59', '60+')")
-    ->pluck('total', 'umur_group');
+            ->groupBy('umur_group')
+            ->orderByRaw("FIELD(umur_group,'18-29','30-39','40-49','50-59','60+')")
+            ->get();
 
         // TOP LOKALITI
         $lokaliti = (clone $query)
@@ -427,8 +439,17 @@ $umur = (clone $query)
             ],
 
             'umur_chart' => [
-                'labels' => $umur->keys(),
-                'series' => $umur->values(),
+                'labels' => $umur->pluck('umur_group'),
+                'series' => [
+                    [
+                        'name' => 'First Time',
+                        'data' => $umur->pluck('first_time')->map(fn($v) => (int) $v)->values(),
+                    ],
+                    [
+                        'name' => 'Bukan First Time',
+                        'data' => $umur->pluck('not_first_time')->map(fn($v) => (int) $v)->values(),
+                    ],
+                ],
             ],
 
             'lokaliti_chart' => [

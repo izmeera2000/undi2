@@ -395,7 +395,7 @@
 
                     renderChart('bangsaChart', res.bangsa_chart.labels, res.bangsa_chart.series, 'bar', 'Bangsa');
 
-                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'Umur');
+                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'Umur',[],'Umur',{},true);
 
                     renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
                 },
