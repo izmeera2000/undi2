@@ -326,28 +326,22 @@ class CulaanController extends Controller
             ")
             ->pluck('total', 'jantina');
 
-        // BANGSA
-        $bangsa = (clone $query)
-            ->selectRaw("
-                CASE 
-                    WHEN bangsa = 'M' THEN 'Melayu'
-                    WHEN bangsa = 'C' THEN 'Cina'
-                    WHEN bangsa = 'I' THEN 'India'
-                    WHEN bangsa = 'L' THEN 'Lain-lain'
-                    ELSE 'Tidak Diketahui'
-                END as bangsa,
-                COUNT(*) as total
-            ")
-            ->groupByRaw("
-                CASE 
-                    WHEN bangsa = 'M' THEN 'Melayu'
-                    WHEN bangsa = 'C' THEN 'Cina'
-                    WHEN bangsa = 'I' THEN 'India'
-                    WHEN bangsa = 'L' THEN 'Lain-lain'
-                    ELSE 'Tidak Diketahui'
-                END
-            ")
-            ->pluck('total', 'bangsa');
+$bangsa = (clone $query)
+    ->selectRaw("
+        CASE 
+            WHEN bangsa = 'M' THEN 'Melayu'
+            WHEN bangsa = 'C' THEN 'Cina'
+            WHEN bangsa = 'I' THEN 'India'
+            WHEN bangsa = 'L' THEN 'Lain-lain'
+            ELSE 'Tidak Diketahui'
+        END as bangsa_label,
+        COUNT(*) as total
+    ")
+    ->groupBy('bangsa_label')
+    ->orderByRaw("
+        FIELD(bangsa_label, 'Melayu', 'Cina', 'India', 'Tidak Diketahui', 'Lain-lain')
+    ")
+    ->pluck('total', 'bangsa_label');
 
         // UMUR GROUP
         $umur = (clone $base)

@@ -349,6 +349,10 @@
             };
         }
 
+
+
+
+        
         function showModal(label, value) {
             const modalBody = document.querySelector('#chartModal .modal-body');
             modalBody.innerHTML = `<p><strong>${label}:</strong> ${value}</p>`;
