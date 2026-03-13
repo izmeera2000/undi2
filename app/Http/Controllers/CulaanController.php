@@ -10,6 +10,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Validator;
 use App\Jobs\GenerateCulaanBatchJob;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Activitylog\Models\Activity;
 
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 
@@ -475,7 +476,7 @@ class CulaanController extends Controller
             'no_kp' => 'nullable'
         ]);
 
-        CulaanPengundi::create([
+        $pengundi = CulaanPengundi::create([
             'culaan_id' => $culaan->id,
             'nama' => $request->nama,
             'no_kp' => $request->no_kp,
@@ -485,9 +486,17 @@ class CulaanController extends Controller
             'updated_by' => auth()->id()
         ]);
 
+        activity()
+            ->performedOn($pengundi)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'nama' => $pengundi->nama,
+                'no_kp' => $pengundi->no_kp
+            ])
+            ->log('created pengundi');
+
         return response()->json(['success' => true]);
     }
-
 
 
 
@@ -499,12 +508,39 @@ class CulaanController extends Controller
 
     public function updateStatus(Request $request)
     {
-        CulaanPengundi::where('id', $request->id)
-            ->update([
-                'status_culaan' => $request->status
-            ]);
+        $statusMap = [
+            'D' => ['label' => 'BN', 'color' => '#0033A0'],
+            'A' => ['label' => 'PH', 'color' => '#E31C23'],
+            'C' => ['label' => 'PAS', 'color' => '#009B3A'],
+            'E' => ['label' => 'TP', 'color' => '#800080'],
+            'O' => ['label' => 'BC', 'color' => '#999999'],
+        ];
 
-        return response()->json(['success' => true]);
+        $pengundi = CulaanPengundi::findOrFail($request->id);
+
+        $oldStatus = $pengundi->status_culaan;
+
+        $statusCode = strtoupper($request->status);
+
+        if (!isset($statusMap[$statusCode])) {
+            return response()->json(['error' => 'Invalid status'], 422);
+        }
+
+        $pengundi->update([
+            'status_culaan' => $statusCode
+        ]);
+
+        activity()
+            ->performedOn($pengundi)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'old_status' => $statusMap[$oldStatus]['label'],
+                'new_status' => $statusMap[$statusCode]['label'],
+             ])
+            ->log('updated status_culaan');
+
+    return response()->json(['success' => true]);
+
     }
 
 
@@ -513,6 +549,16 @@ class CulaanController extends Controller
         $pengundi = CulaanPengundi::find($request->id);
 
         if ($pengundi) {
+
+            activity()
+                ->performedOn($pengundi)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'nama' => $pengundi->nama,
+                    'no_kp' => $pengundi->no_kp
+                ])
+                ->log('deleted pengundi');
+
             $pengundi->delete();
         }
 
@@ -538,73 +584,134 @@ class CulaanController extends Controller
 
 
 
-public function exportPdf(Request $request, Culaan $culaan)
-{
-    $validator = Validator::make($request->all(), [
-        'lokaliti' => 'nullable|string',
-        'status_culaan' => 'nullable|string',
-        'search_name' => 'nullable|string',
-        'force' => 'nullable|boolean',
-    ]);
+    public function exportPdf(Request $request, Culaan $culaan)
+    {
+        $validator = Validator::make($request->all(), [
+            'lokaliti' => 'nullable|string',
+            'status_culaan' => 'nullable|string',
+            'search_name' => 'nullable|string',
+            'force' => 'nullable|boolean',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid filters',
-        ], 400);
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid filters',
+            ], 400);
+        }
 
-    $filters = $request->only([
-        'lokaliti',
-        'status_culaan',
-        'search_name',
-    ]);
+        $filters = $request->only([
+            'lokaliti',
+            'status_culaan',
+            'search_name',
+        ]);
 
-    $force = $request->boolean('force');
+        $force = $request->boolean('force');
 
-    // sanitize filters for filename
-    $lokaliti = $filters['lokaliti']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
-        : 'all';
+        // sanitize filters for filename
+        $lokaliti = $filters['lokaliti']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+            : 'all';
 
-    $status = $filters['status_culaan'] ?: 'all';
+        $status = $filters['status_culaan'] ?: 'all';
 
-    $search = $filters['search_name']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['search_name'])
-        : 'all';
+        $search = $filters['search_name']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['search_name'])
+            : 'all';
 
-    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+        $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
 
-    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+        $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
 
-    if (!$force && Storage::disk('public')->exists($path)) {
+        if (!$force && Storage::disk('public')->exists($path)) {
+
+            return response()->json([
+                'success' => true,
+                'exists' => true,
+                'url' => asset('storage/' . $path),
+                'message' => 'PDF already exists',
+            ]);
+
+        }
+
+        // Optional: delete old file if force
+        if ($force && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
+
+        GenerateCulaanBatchJob::dispatch(
+            $culaan->id,
+            $filters,
+            auth()->id()
+        );
 
         return response()->json([
             'success' => true,
-            'exists' => true,
-            'url' => asset('storage/' . $path),
-            'message' => 'PDF already exists',
+            'exists' => false,
+            'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
         ]);
-
     }
 
-    // Optional: delete old file if force
-    if ($force && Storage::disk('public')->exists($path)) {
-        Storage::disk('public')->delete($path);
+
+
+    public function activity($culaanId)
+    {
+        $query = Activity::where(function ($q) use ($culaanId) {
+
+            $q->where(function ($sub) use ($culaanId) {
+                $sub->where('subject_type', Culaan::class)
+                    ->where('subject_id', $culaanId);
+            })
+
+                ->orWhere(function ($sub) use ($culaanId) {
+                    $sub->where('subject_type', CulaanPengundi::class)
+                        ->whereIn('subject_id', function ($q2) use ($culaanId) {
+                            $q2->select('id')
+                                ->from('culaan_pengundis')
+                                ->where('culaan_id', $culaanId);
+                        });
+                });
+
+        })->latest();
+
+        return DataTables::of($query)
+
+            ->addColumn('user', function ($row) {
+                return $row->causer->name ?? 'System';
+            })
+
+            ->addColumn('action', function ($row) {
+
+                if ($row->description === 'updated status_culaan') {
+
+                    $old = $row->properties['old_status'] ?? '-';
+                    $new = $row->properties['new_status'] ?? '-';
+
+                    return "Updated status of ID {$row->subject_id} from {$old} → {$new}";
+                }
+
+                if ($row->description === 'deleted pengundi') {
+
+                    $nama = $row->properties['nama'] ?? '-';
+
+                    return "Deleted pengundi ID {$row->subject_id} ({$nama})";
+                }
+
+                if ($row->description === 'created pengundi') {
+
+                    $nama = $row->properties['nama'] ?? '-';
+
+                    return "Created pengundi ID {$row->subject_id} ({$nama})";
+                }
+
+                return ucfirst($row->description);
+            })
+
+            ->editColumn('created_at', function ($row) {
+                return $row->created_at->format('d M Y H:i');
+            })
+
+            ->make(true);
     }
-
-    GenerateCulaanBatchJob::dispatch(
-        $culaan->id,
-        $filters,
-        auth()->id()
-    );
-
-    return response()->json([
-        'success' => true,
-        'exists' => false,
-        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
-    ]);
-}
-
 
 }

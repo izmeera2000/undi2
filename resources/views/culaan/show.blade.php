@@ -27,7 +27,9 @@
 
                     <div class="d-flex flex-wrap justify-content-md-end gap-2">
 
-
+                        <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
+                            <i class="bi bi-clock-history"></i> History Culaan
+                        </button>
                         <a href="{{ route('culaan.analytics', $culaan) }}" class="btn btn-primary ">
                             <i class="fas fa-chart-line me-1"></i> Analytics
                         </a>
@@ -71,7 +73,7 @@
                                 <i class="bi bi-plus me-1"></i> Add Pengundi
                             </button> --}}
 
-                                      <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
+                            <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
                                 <i class="bi bi-upload me-1"></i> Bulk Import
                             </a>
 
@@ -90,18 +92,18 @@
 
                                 <!-- Dropdown Menu -->
                                 <ul class="dropdown-menu">
-                                   <li>
+                                    <li>
                                         <a class="dropdown-item" href="#" id="forceUpdatePdf">
                                             Force Export PDF
                                         </a>
                                     </li>
 
-                                
+
 
                                 </ul>
                             </div>
 
-                  
+
                         </div>
                     </div>
                 </div>
@@ -297,6 +299,33 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="activityModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Culaan Activity Log</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <table id="activityTable" class="table table-bordered w-100">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Action</th>
+                             </tr>
+                        </thead>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
 @endsection
 
 
@@ -312,40 +341,40 @@
         function format(row) {
 
             return `
-                                                            <div class="p-3">
+                                                                <div class="p-3">
 
-                                                                <div class="row">
+                                                                    <div class="row">
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>No Siri</strong><br>
-                                                                        ${row.no_siri ?? '-'}
-                                                                    </div>
+                                                                        <div class="col-md-3">
+                                                                            <strong>No Siri</strong><br>
+                                                                            ${row.no_siri ?? '-'}
+                                                                        </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Saluran</strong><br>
-                                                                        ${row.saluran ?? '-'}
-                                                                    </div>
+                                                                        <div class="col-md-3">
+                                                                            <strong>Saluran</strong><br>
+                                                                            ${row.saluran ?? '-'}
+                                                                        </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Bangsa</strong><br>
-                                                                        ${row.bangsa ?? '-'}
-                                                                    </div>
+                                                                        <div class="col-md-3">
+                                                                            <strong>Bangsa</strong><br>
+                                                                            ${row.bangsa ?? '-'}
+                                                                        </div>
 
-                                                                    <div class="col-md-3">
-                                                                        <strong>Umur</strong><br>
-                                                                        ${row.umur ?? '-'}
-                                                                    </div>
+                                                                        <div class="col-md-3">
+                                                                            <strong>Umur</strong><br>
+                                                                            ${row.umur ?? '-'}
+                                                                        </div>
 
 
-                                                                    <div class="col-md-3 mt-3">
-                                                                        <strong>Cawangan</strong><br>
-                                                                        ${row.nama_cwgn ?? '-'}
+                                                                        <div class="col-md-3 mt-3">
+                                                                            <strong>Cawangan</strong><br>
+                                                                            ${row.nama_cwgn ?? '-'}
+                                                                        </div>
+
                                                                     </div>
 
                                                                 </div>
-
-                                                            </div>
-                                                        `;
+                                                            `;
         }
 
         $(function () {
@@ -547,6 +576,34 @@
         document.getElementById('forceUpdatePdf').addEventListener('click', function (e) {
             e.preventDefault();
             exportPdf(true); // Use existing if available
+        });
+
+    </script>
+
+    <script>
+
+        let activityTable;
+
+        $('#activityModal').on('shown.bs.modal', function () {
+
+            if (!activityTable) {
+
+                activityTable = $('#activityTable').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: "{{ route('culaan.activity', $culaan->id) }}",
+
+columns: [
+        {data:'created_at', name:'created_at'},
+        {data:'user', name:'user'},
+         {data:'action', name:'action'}
+]
+                });
+
+            } else {
+                activityTable.ajax.reload();
+            }
+
         });
 
     </script>

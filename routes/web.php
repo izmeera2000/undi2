@@ -417,6 +417,9 @@ Route::middleware(['auth', 'active'])->group(function () {
             ->name('analytics_pdf');
 
 
+Route::get('/{culaan}/activity', [CulaanController::class, 'activity'])
+    ->name('activity');
+
         // Nested group for Pengundi routes
         Route::prefix('{culaan}/pengundi')->name('pengundi.')->group(function () {
             // AJAX data table
