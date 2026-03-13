@@ -536,10 +536,10 @@ class CulaanController extends Controller
             ->withProperties([
                 'old_status' => $statusMap[$oldStatus]['label'],
                 'new_status' => $statusMap[$statusCode]['label'],
-             ])
+            ])
             ->log('updated status_culaan');
 
-    return response()->json(['success' => true]);
+        return response()->json(['success' => true]);
 
     }
 
@@ -708,7 +708,9 @@ class CulaanController extends Controller
             })
 
             ->editColumn('created_at', function ($row) {
-                return $row->created_at->format('d M Y H:i');
+                return $row->created_at
+                    ->timezone('Asia/Kuala_Lumpur')
+                    ->format('d M Y H:i');
             })
 
             ->make(true);
