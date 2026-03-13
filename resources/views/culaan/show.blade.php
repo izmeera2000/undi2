@@ -71,7 +71,9 @@
                                 <i class="bi bi-plus me-1"></i> Add Pengundi
                             </button> --}}
 
-                            
+                                      <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
+                                <i class="bi bi-upload me-1"></i> Bulk Import
+                            </a>
 
                             <div class="btn-group" id="pdfButtonGroup" style=" ">
 
@@ -99,9 +101,7 @@
                                 </ul>
                             </div>
 
-                            <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
-                                <i class="bi bi-upload me-1"></i> Bulk Import
-                            </a>
+                  
                         </div>
                     </div>
                 </div>
