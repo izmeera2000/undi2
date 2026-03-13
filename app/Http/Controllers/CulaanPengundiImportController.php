@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\CulaanPengundiImportJob;
+use App\Models\Culaan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 class CulaanPengundiImportController extends Controller
 {
@@ -20,12 +22,25 @@ class CulaanPengundiImportController extends Controller
                 'culaan_id' => 'required|exists:culaans,id',
             ]);
 
-            // Save uploaded file to temporary location
             $file = $request->file('file');
+
+            // Save uploaded file to temporary location
             $path = $file->store('culaan_import');
 
             // Dispatch job to queue
             CulaanPengundiImportJob::dispatch($request->culaan_id, $path);
+
+            // Activity log
+            $culaan = Culaan::find($request->culaan_id);
+
+            activity()
+                ->performedOn($culaan)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'file_name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                ])
+                ->log('queued pengundi import');
 
             return response()->json([
                 'success' => 'File queued for import. It may take a few minutes for large files.'

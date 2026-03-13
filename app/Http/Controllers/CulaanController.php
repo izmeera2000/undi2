@@ -704,6 +704,13 @@ class CulaanController extends Controller
                     return "Created pengundi ID {$row->subject_id} ({$nama})";
                 }
 
+                                if ($row->description === 'queued pengundi import') {
+
+                    $file_name = $row->properties['file_name'] ?? '-';
+
+                    return "Importing File  ({$file_name})";
+                }
+
                 return ucfirst($row->description);
             })
 
