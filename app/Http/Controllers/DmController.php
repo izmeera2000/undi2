@@ -6,7 +6,8 @@ use App\Models\Dm;
 use App\Models\Dun;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 class DmController extends Controller
 {
     public function __construct()
@@ -53,30 +54,54 @@ class DmController extends Controller
     // }
 
     // Store new DM
+
+
     public function store(Request $request)
     {
         // 1️⃣ Validate input
         $request->validate([
-            'kod_dun' => 'required|exists:dun,kod_dun',   // selected DUN must exist
-            'koddm' => 'required|digits:2',               // user enters 3-digit DM code
+            'kod_dun' => 'required|exists:dun,kod_dun',
+            'koddm' => 'required|digits:2',
             'namadm' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // 2️⃣ Generate full koddm (DUN code + DM code)
-        $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
+        DB::transaction(function () use ($request) {
 
-        // 3️⃣ Create DM record
-        Dm::create([
-            'koddm' => $fullKoddm,
-            'namadm' => $request->namadm,
-            'kod_dun' => $request->kod_dun,
-            'effective_from' => $request->effective_from,
-            'effective_to' => $request->effective_to,
-        ]);
+            // 2️⃣ Generate full koddm
+            $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
 
-        return redirect()->route('dm.index')->with('success', 'DM added successfully.');
+            $effectiveFrom = $request->effective_from
+                ? Carbon::parse($request->effective_from)
+                : now();
+
+            // 3️⃣ Check existing active record
+            $existing = Dm::where('koddm', $fullKoddm)
+                ->whereNull('effective_to')
+                ->latest('effective_from')
+                ->first();
+
+            // 4️⃣ Close previous record
+            if ($existing) {
+                $existing->update([
+                    'effective_to' => $effectiveFrom->copy()->subDay()
+                ]);
+            }
+
+            // 5️⃣ Insert new record
+            Dm::create([
+                'koddm' => $fullKoddm,
+                'namadm' => $request->namadm,
+                'kod_dun' => $request->kod_dun,
+                'effective_from' => $effectiveFrom,
+                'effective_to' => $request->effective_to,
+            ]);
+        });
+
+        return redirect()
+            ->route('dm.index')
+            ->with('success', 'DM added successfully.');
     }
 
     // Show edit form
@@ -130,7 +155,9 @@ class DmController extends Controller
     // Get list of DM for Datatables (AJAX)
     public function getList(Request $request)
     {
-        $query = Dm::with('dun'); // eager load dun
+        $query = Dm::with('dun')
+               ->orderByDesc('effective_from')
+            ->orderByDesc('effective_to');
 
         return datatables($query)
             ->addColumn('koddm', fn($row) => $row->koddm)
@@ -162,16 +189,41 @@ class DmController extends Controller
     {
         $rows = $request->data;
 
-        foreach ($rows as $row) {
+        DB::transaction(function () use ($rows) {
 
-            DM::create([
-                'kod_dun' => $row[0],
-                'koddm' => $row[0] . $row[1],
-                'namadm' => $row[2],
-                'effective_from' => $row[3] ?? null,
-                'effective_to' => $row[4] ?? null,
-            ]);
-        }
+            foreach ($rows as $row) {
+
+                $kodDun = $row[0];
+                $dmCode = str_pad($row[1], 2, '0', STR_PAD_LEFT);
+                $fullKoddm = $kodDun . $dmCode;
+
+                $effectiveFrom = !empty($row[3])
+                    ? Carbon::parse($row[3])
+                    : now();
+
+                // Check existing active record
+                $existing = Dm::where('koddm', $fullKoddm)
+                    ->whereNull('effective_to')
+                    ->latest('effective_from')
+                    ->first();
+
+                // Close previous record
+                if ($existing) {
+                    $existing->update([
+                        'effective_to' => $effectiveFrom->copy()->subDay()
+                    ]);
+                }
+
+                // Insert new record
+                Dm::create([
+                    'kod_dun' => $kodDun,
+                    'koddm' => $fullKoddm,
+                    'namadm' => $row[2],
+                    'effective_from' => $effectiveFrom,
+                    'effective_to' => $row[4] ?? null,
+                ]);
+            }
+        });
 
         return response()->json(['success' => true]);
     }

@@ -259,7 +259,7 @@
                     }
                 },
                 columns: [
-                    { data: 'dun_name', name: 'dun' , searchable: false},
+                    { data: 'dun_name', name: 'dun_name' , searchable: false},
                     { data: 'koddm', name: 'koddm' },
                     { data: 'namadm', name: 'namadm' },
                     { data: 'effective_from', name: 'effective_from' , searchable: false},

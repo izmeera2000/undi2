@@ -4,10 +4,10 @@
 
 @section('breadcrumb')
     @php
-$crumbs = [
-    ['label' => 'Culaan', 'url' => route('culaan.index')],
-    ['label' => $culaan->name]
-];
+        $crumbs = [
+            ['label' => 'Culaan', 'url' => route('culaan.index')],
+            ['label' => $culaan->name]
+        ];
     @endphp
 @endsection
 
@@ -71,6 +71,34 @@ $crumbs = [
                                 <i class="bi bi-plus me-1"></i> Add Pengundi
                             </button> --}}
 
+                            
+
+                            <div class="btn-group" id="pdfButtonGroup" style=" ">
+
+                                <!-- Main Action -->
+                                <button id="generatePdf" type="button" class="btn btn-primary">
+                                    Generate PDF
+                                </button>
+
+                                <!-- Split Dropdown Toggle -->
+                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="visually-hidden">Toggle Dropdown</span>
+                                </button>
+
+                                <!-- Dropdown Menu -->
+                                <ul class="dropdown-menu">
+                                   <li>
+                                        <a class="dropdown-item" href="#" id="forceUpdatePdf">
+                                            Force Export PDF
+                                        </a>
+                                    </li>
+
+                                
+
+                                </ul>
+                            </div>
+
                             <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
                                 <i class="bi bi-upload me-1"></i> Bulk Import
                             </a>
@@ -95,16 +123,18 @@ $crumbs = [
 
                     <div class="col-md-3">
                         <label>Status Culaan</label>
+
+
                         <select id="filter_status" class="form-select">
-
                             <option value="">All</option>
-                            <option value="D">D</option>
-                            <option value="C">C</option>
-                            <option value="A">A</option>
-                            <option value="E">E</option>
-                            <option value="O">O</option>
-
+                            <option value="D">BN</option>
+                            <option value="C">PAS</option>
+                            <option value="A">PH</option>
+                            <option value="E">TP</option>
+                            <option value="O">BC</option>
                         </select>
+
+
                     </div>
 
                     <div class="col-md-3 d-flex align-items-end">
@@ -282,40 +312,40 @@ $crumbs = [
         function format(row) {
 
             return `
-                    <div class="p-3">
+                                                            <div class="p-3">
 
-                        <div class="row">
+                                                                <div class="row">
 
-                            <div class="col-md-3">
-                                <strong>No Siri</strong><br>
-                                ${row.no_siri ?? '-'}
-                            </div>
+                                                                    <div class="col-md-3">
+                                                                        <strong>No Siri</strong><br>
+                                                                        ${row.no_siri ?? '-'}
+                                                                    </div>
 
-                            <div class="col-md-3">
-                                <strong>Saluran</strong><br>
-                                ${row.saluran ?? '-'}
-                            </div>
+                                                                    <div class="col-md-3">
+                                                                        <strong>Saluran</strong><br>
+                                                                        ${row.saluran ?? '-'}
+                                                                    </div>
 
-                            <div class="col-md-3">
-                                <strong>Bangsa</strong><br>
-                                ${row.bangsa ?? '-'}
-                            </div>
+                                                                    <div class="col-md-3">
+                                                                        <strong>Bangsa</strong><br>
+                                                                        ${row.bangsa ?? '-'}
+                                                                    </div>
 
-                            <div class="col-md-3">
-                                <strong>Umur</strong><br>
-                                ${row.umur ?? '-'}
-                            </div>
+                                                                    <div class="col-md-3">
+                                                                        <strong>Umur</strong><br>
+                                                                        ${row.umur ?? '-'}
+                                                                    </div>
 
-                    
-                            <div class="col-md-3 mt-3">
-                                <strong>Cawangan</strong><br>
-                                ${row.nama_cwgn ?? '-'}
-                            </div>
 
-                        </div>
+                                                                    <div class="col-md-3 mt-3">
+                                                                        <strong>Cawangan</strong><br>
+                                                                        ${row.nama_cwgn ?? '-'}
+                                                                    </div>
 
-                    </div>
-                `;
+                                                                </div>
+
+                                                            </div>
+                                                        `;
         }
 
         $(function () {
@@ -400,6 +430,9 @@ $crumbs = [
         });
 
 
+
+
+
         /* CHANGE STATUS */
 
         $(document).on('click', '.change-status', function () {
@@ -473,6 +506,47 @@ $crumbs = [
 
             table.ajax.reload();
 
+        });
+        async function exportPdf(force = false) {
+
+            const filters = {
+                lokaliti: document.getElementById('filter_lokaliti').value,
+                status_culaan: document.getElementById('filter_status').value,
+                search_name: document.getElementById('filter_search').value,
+                force: force
+            };
+
+            const response = await fetch("{{ route('culaan.exportpdf', $culaan) }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(filters)
+            });
+
+            const data = await response.json();
+
+            if (data.exists) {
+
+                window.open(data.url, "_blank");
+                toastr.success("Opening existing PDF");
+
+            } else {
+
+                toastr.info("Generating PDF in background");
+
+            }
+        }
+
+        document.getElementById('generatePdf').addEventListener('click', function (e) {
+            e.preventDefault();
+            exportPdf(false); // FORCE regenerate
+        });
+
+        document.getElementById('forceUpdatePdf').addEventListener('click', function (e) {
+            e.preventDefault();
+            exportPdf(true); // Use existing if available
         });
 
     </script>

@@ -6,7 +6,7 @@ use App\Models\Dun;
 use Illuminate\Http\Request;
 use App\Models\Parlimen;
 use Illuminate\Routing\Controller;
-
+ 
 class DunController extends Controller
 {
     public function __construct()
@@ -37,22 +37,21 @@ class DunController extends Controller
     }
 
     // List all
-    public function index()
-    {
-        $duns = Dun::orderBy('namadun')->get();
-        return view('dun.index', compact('duns'));
-    }
+public function index()
+{
+    $duns = Dun::orderBy('namadun')->get();
+    $parlimens = Parlimen::orderBy('namapar')->get();
 
-    // Show create form
-    public function create()
-    {
-        return view('dun.create');
-    }
+    return view('dun.index', compact('duns', 'parlimens'));
+}
+
+    
 
     // Store new
     public function store(Request $request)
     {
         $request->validate([
+            'parlimen_id' => 'required',
             'kod_dun' => 'required|unique:dun,kod_dun',
             'namadun' => 'required',
             'status' => 'required|string', // Add validation for status

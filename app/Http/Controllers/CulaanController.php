@@ -7,6 +7,11 @@ use App\Models\CulaanPengundi;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Validator;
+use App\Jobs\GenerateCulaanBatchJob;
+use Illuminate\Support\Facades\Storage;
+
+use Devrabiul\ToastMagic\Facades\ToastMagic;
 
 class CulaanController extends Controller
 {
@@ -101,7 +106,9 @@ class CulaanController extends Controller
     public function pengundiData(Request $request, Culaan $culaan)
     {
 
-        $query = CulaanPengundi::where('culaan_id', $culaan->id);
+        $query = CulaanPengundi::where('culaan_id', $culaan->id)
+            ->orderBy('id', 'asc');
+
 
         if ($request->lokaliti) {
             $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
@@ -184,35 +191,37 @@ class CulaanController extends Controller
             })
 
             ->addColumn('status_culaan', function ($row) {
-
                 $statuses = [
-                    'D' => ['label' => 'D', 'class' => 'success'],
-                    'C' => ['label' => 'C', 'class' => 'danger'],
-                    'A' => ['label' => 'A', 'class' => 'warning'],
-                    'E' => ['label' => 'E', 'class' => 'secondary'],
-                    'O' => ['label' => 'O', 'class' => 'primary'],
+                    'D' => ['label' => 'BN', 'color' => '#0033A0'],
+                    'A' => ['label' => 'PH', 'color' => '#E31C23'],
+                    'C' => ['label' => 'PAS', 'color' => '#009B3A'],
+                    'E' => ['label' => 'TP', 'color' => '#800080'],
+                    'O' => ['label' => 'BC', 'color' => '#999999'],
                 ];
 
                 $current = $row->status_culaan
                     ? strtoupper(substr(trim($row->status_culaan), 0, 1))
                     : 'O';
 
-
                 $buttons = '<div class="btn-group btn-group-sm">';
 
                 foreach ($statuses as $code => $status) {
-
-                    $active = $current == $code
-                        ? 'btn-' . $status['class']
-                        : 'btn-outline-' . $status['class'];
+                    if ($current == $code) {
+                        // Active: solid color
+                        $btnStyle = "background-color: {$status['color']}; color: white; border: none;";
+                    } else {
+                        // Inactive: lighter outline style
+                        $btnStyle = "background-color: white; color: {$status['color']}; border: 1px solid {$status['color']};";
+                    }
 
                     $buttons .= '
-                <button
-                    class="btn ' . $active . ' change-status"
-                    data-id="' . $row->id . '"
-                    data-status="' . $code . '">
-                    ' . $status['label'] . '
-                </button>';
+            <button
+                class="btn btn-sm change-status"
+                style="' . $btnStyle . '"
+                data-id="' . $row->id . '"
+                data-status="' . $code . '">
+                ' . $status['label'] . '
+            </button>';
                 }
 
                 $buttons .= '</div>';
@@ -326,8 +335,8 @@ class CulaanController extends Controller
             ")
             ->pluck('total', 'jantina');
 
-$bangsa = (clone $query)
-    ->selectRaw("
+        $bangsa = (clone $query)
+            ->selectRaw("
         CASE 
             WHEN bangsa = 'M' THEN 'Melayu'
             WHEN bangsa = 'C' THEN 'Cina'
@@ -337,11 +346,11 @@ $bangsa = (clone $query)
         END as bangsa_label,
         COUNT(*) as total
     ")
-    ->groupBy('bangsa_label')
-    ->orderByRaw("
+            ->groupBy('bangsa_label')
+            ->orderByRaw("
         FIELD(bangsa_label, 'Melayu', 'Cina', 'India', 'Tidak Diketahui', 'Lain-lain')
     ")
-    ->pluck('total', 'bangsa_label');
+            ->pluck('total', 'bangsa_label');
 
         // UMUR GROUP
         $umur = (clone $base)
@@ -525,4 +534,77 @@ $bangsa = (clone $query)
             ->setPaper('a4', 'portrait')
             ->stream('culaan-analytics.pdf');
     }
+
+
+
+
+public function exportPdf(Request $request, Culaan $culaan)
+{
+    $validator = Validator::make($request->all(), [
+        'lokaliti' => 'nullable|string',
+        'status_culaan' => 'nullable|string',
+        'search_name' => 'nullable|string',
+        'force' => 'nullable|boolean',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid filters',
+        ], 400);
+    }
+
+    $filters = $request->only([
+        'lokaliti',
+        'status_culaan',
+        'search_name',
+    ]);
+
+    $force = $request->boolean('force');
+
+    // sanitize filters for filename
+    $lokaliti = $filters['lokaliti']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+        : 'all';
+
+    $status = $filters['status_culaan'] ?: 'all';
+
+    $search = $filters['search_name']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['search_name'])
+        : 'all';
+
+    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+
+    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+
+    if (!$force && Storage::disk('public')->exists($path)) {
+
+        return response()->json([
+            'success' => true,
+            'exists' => true,
+            'url' => asset('storage/' . $path),
+            'message' => 'PDF already exists',
+        ]);
+
+    }
+
+    // Optional: delete old file if force
+    if ($force && Storage::disk('public')->exists($path)) {
+        Storage::disk('public')->delete($path);
+    }
+
+    GenerateCulaanBatchJob::dispatch(
+        $culaan->id,
+        $filters,
+        auth()->id()
+    );
+
+    return response()->json([
+        'success' => true,
+        'exists' => false,
+        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
+    ]);
+}
+
+
 }

@@ -380,7 +380,7 @@
                         res.status_chart.series,
                         'bar',
                         'Status Culaan',
-                        ['#001F7A', '#FF6600', '#009933', '#CCCCCC', '#999999'],
+                        ['#0033A0', '#E31C23', '#009B3A', '#800080', '#999999'],
                         'Status Culaan Detail', // modal title
                         statusMap // modal label mapping
                     );
@@ -390,7 +390,7 @@
                         res.saluran_chart.series,
                         'bar',
                         'Saluran',
-                        ['#0033A0', '#E31C23', '#009B3A', '#CCCCCC', '#999999'],
+                        ['#0033A0', '#E31C23', '#009B3A', '#800080', '#999999'],
                         'Saluran',
                         {},
                         true);
@@ -457,12 +457,7 @@
                 },
                 body: JSON.stringify({ charts: images })
             })
-                .then(res => res.blob())
-                .then(blob => {
-                    window.open(URL.createObjectURL(blob));
-                    toastr.success("PDF Ready!");
-                });
-
+                
         });
 
     </script>

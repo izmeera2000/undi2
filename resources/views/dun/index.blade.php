@@ -49,7 +49,7 @@
                                 <th>Parlimen Name</th>
                                 <th>Kod DUN</th>
                                 <th>Nama DUN</th>
-                                 <th>Effective From</th>
+                                <th>Effective From</th>
                                 <th>Effective To</th>
                                 <th>Actions</th>
                             </tr>
@@ -72,9 +72,18 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label">Nama Parlimen</label>
-                            <input type="text" name="parlimen_name" class="form-control" required>
+
+                            <label class="form-label">Parlimen</label>
+                        <select name="parlimen_id" class="form-control">
+                            <option value="">-- Select Parlimen --</option>
+                            @foreach($parlimens as $parlimen)
+                                <option value="{{ $parlimen->id }}">
+                                    {{ $parlimen->namapar }}
+                                </option>
+                            @endforeach
+                        </select>
                         </div>
+
                         <div class="mb-3">
                             <label class="form-label">Kod DUN</label>
                             <input type="text" name="kod_dun" class="form-control" required>
@@ -114,13 +123,13 @@
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
             const table = $('#dunTable').DataTable({
                 processing: true,
                 serverSide: true,
-                           layout: {
+                layout: {
                     topEnd: null // Hides the search input from the top right
                 },
                 ajax: {
@@ -142,13 +151,13 @@
                     { data: 'parlimen_name', name: 'parlimen.namapar' },
                     { data: 'kod_dun', name: 'kod_dun' },
                     { data: 'namadun', name: 'namadun' },
-                     { data: 'effective_from', name: 'effective_from', searchable: false  },
+                    { data: 'effective_from', name: 'effective_from', searchable: false },
                     { data: 'effective_to', name: 'effective_to', searchable: false },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
             });
 
-           
+
 
             $('#dunSearch').on('keyup', function (e) {
                 if (e.key === 'Enter') {
@@ -201,7 +210,7 @@
                             toastr.sucess('DUN deleted successfully.');
                         },
                         error: function (xhr) {
-                               toastr.error('Error deleting DUN!');
+                            toastr.error('Error deleting DUN!');
                             // console.error(xhr.responseText);
                         }
                     });
