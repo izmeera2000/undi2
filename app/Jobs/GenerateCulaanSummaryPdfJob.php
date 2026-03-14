@@ -29,8 +29,15 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
 
     public function handle()
     {
-        $folderPath = "pdfs/culaan/{$this->culaanId}";
+        ini_set('memory_limit', '256M');
+        $startMemory = memory_get_usage(true);
 
+        Log::info('CulaanSummaryPdfJob started', [
+            'culaan_id' => $this->culaanId,
+            'memory_start_mb' => round($startMemory / 1024 / 1024, 2)
+        ]);
+
+        $folderPath = "pdfs/culaan/{$this->culaanId}";
 
         $statuses = [
             'D' => 'BN',
@@ -38,12 +45,10 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
             'C' => 'PAS',
             'E' => 'TP',
             'O' => 'BC',
-            'all' => 'all',
-
         ];
 
         // -------------------------
-        // Fetch Culaan and related election info
+        // Fetch Culaan + Election
         // -------------------------
         $culaan = DB::table('culaans')
             ->leftJoin('elections', 'culaans.election_id', '=', 'elections.id')
@@ -62,58 +67,84 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
         }
 
         // -------------------------
-        // Count filtered pengundi
+        // Count query
         // -------------------------
-        $query = DB::table('culaan_pengundis')->where('culaan_id', $this->culaanId);
+        $totalFilteredPengundi = DB::table('culaan_pengundis')
+            ->where('culaan_id', $this->culaanId)
 
-        if (!empty($this->filters['lokaliti'])) {
-            $query->where('lokaliti', 'like', "%{$this->filters['lokaliti']}%");
-        }
+            ->when(!empty($this->filters['lokaliti']), function ($q) {
+                $q->where('lokaliti', 'like', '%' . $this->filters['lokaliti'] . '%');
+            })
 
-        if (!empty($this->filters['status_culaan'])) {
-            $query->where('status_culaan', 'like', "{$this->filters['status_culaan']}%");
-        }
+            ->when(!empty($this->filters['status_culaan']), function ($q) {
+                $q->where('status_culaan', $this->filters['status_culaan']);
+            })
 
-        if (!empty($this->filters['search_name'])) {
-            $search = $this->filters['search_name'];
-            $query->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('no_kp', 'like', "%{$search}%");
-            });
-        }
+            ->when(!empty($this->filters['search_name']), function ($q) {
+                $search = $this->filters['search_name'];
 
-        $totalFilteredPengundi = $query->count();
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('nama', 'like', "%{$search}%")
+                        ->orWhere('no_kp', 'like', "%{$search}%");
+                });
+            })
+
+            ->count();
+
+        Log::info('Count query completed', [
+            'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
+        ]);
+
+        $logo = base64_encode(file_get_contents(public_path('assets/img/UMNO_logo.png')));
 
         // -------------------------
-        // Generate Summary PDF
+        // Generate PDF
         // -------------------------
         $pdf = Pdf::loadView('culaan.culaan_summary_pdf', [
             'culaan' => $culaan,
             'filters' => $this->filters,
             'totalPengundi' => $totalFilteredPengundi,
+            'logo' => $logo,
+
+            'generatedAt' => now('Asia/Kuala_Lumpur')->format('d M Y H:i'),
         ])->setPaper('a4', 'portrait');
 
+        Log::info('PDF rendered', [
+            'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
+        ]);
+
         // -------------------------
-        // Build filename
+        // Filename
         // -------------------------
-        $lokaliti = !empty($this->filters['lokaliti'])
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['lokaliti'])
-            : 'all';
+        $sanitize = fn($value) =>
+            $value ? preg_replace('/[^A-Za-z0-9]/', '_', $value) : 'all';
 
-        $status = !empty($this->filters['status_culaan'])
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['status_culaan'])
-            : 'all';
+        $lokaliti = $sanitize($this->filters['lokaliti'] ?? null);
+        $search = $sanitize($this->filters['search_name'] ?? null);
 
-        $search = !empty($this->filters['search_name'])
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['search_name'])
-            : 'all';
+        $statusLabel = $statuses[$this->filters['status_culaan'] ?? ''] ?? 'all';
 
-        $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statuses[$status]}_search_{$search}_summary.pdf";
+        $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statusLabel}_search_{$search}_summary.pdf";
 
         $summaryPath = "{$folderPath}/{$fileName}";
 
+        Storage::disk('public')->makeDirectory($folderPath);
+
         Storage::disk('public')->put($summaryPath, $pdf->output());
 
-        Log::info("Summary PDF generated: {$summaryPath}");
+        $endMemory = memory_get_usage(true);
+        $peakMemory = memory_get_peak_usage(true);
+
+        unset($pdf);
+        gc_collect_cycles();
+
+        Log::info('Summary PDF generated', [
+            'culaan_id' => $this->culaanId,
+            'path' => $summaryPath,
+            'user_id' => $this->userId,
+            'memory_end_mb' => round($endMemory / 1024 / 1024, 2),
+            'memory_peak_mb' => round($peakMemory / 1024 / 1024, 2),
+            'memory_used_mb' => round(($endMemory - $startMemory) / 1024 / 1024, 2)
+        ]);
     }
 }

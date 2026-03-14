@@ -146,6 +146,21 @@ class CulaanController extends Controller
             </div>';
             })
 
+            
+            ->addColumn('pengundi_details2', function ($row) {
+
+                return '
+            <div class="d-flex align-items-center gap-3">
+
+
+                <div>
+                    <span class="fw-semibold">' . $row->kategori_pengundi . '</span>
+                    <div class="text-muted small">' . $row->stastus_pengundi . '</div>
+                </div>
+
+            </div>';
+            })
+
             ->addColumn('lokaliti_details', function ($row) {
 
                 return '
@@ -240,7 +255,7 @@ class CulaanController extends Controller
             })
 
 
-            ->rawColumns(['pengundi_details', 'lokaliti_details', 'status_culaan', 'actions'])
+            ->rawColumns(['pengundi_details','pengundi_details2', 'lokaliti_details', 'status_culaan', 'actions'])
 
             ->make(true);
     }

@@ -41,6 +41,8 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 'bangsa',
                 'pm',
                 'lokaliti',
+                'kategori_pengundi',
+                'status_pengundi',
                 'status_culaan'
             ])
             ->where('culaan_id', $this->culaanId);
@@ -58,7 +60,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
 
             $query->where(function ($q) use ($search) {
                 $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('no_kp', 'like', "%{$search}%");
+                    ->orWhere('no_kp', 'like', "%{$search}%");
             });
         }
 
@@ -89,6 +91,8 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 'nama' => $row->nama,
                 'no_kp' => $row->no_kp,
                 'lokaliti_details' => $row->pm,
+                'pengundi_details' => $row->kategori_pengundi
+                    . ($row->status_pengundi ? " ({$row->status_pengundi})" : ''),
                 'status_culaan' => $statuses[$statusCode] ?? $statusCode,
             ];
         }
@@ -126,5 +130,8 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
         Storage::disk('public')->put($filePath, $pdf->output());
 
         Log::info("Generated PDF: {$filePath}");
+
+        unset($pdf);
+        gc_collect_cycles();
     }
 }

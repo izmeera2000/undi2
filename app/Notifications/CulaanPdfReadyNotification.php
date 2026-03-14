@@ -41,12 +41,14 @@ class CulaanPdfReadyNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
+                        'id' => $this->id,
             'title'   => 'Culaan PDF Ready',
             'message' => 'Your Culaan report has been generated.',
             'url'     => $this->pdfUrl,
             'type'    => 'success',
             'icon'    => 'bi-file-earmark-pdf',
             'culaan_id' => $this->culaanId,
+
         ]);
     }
 }

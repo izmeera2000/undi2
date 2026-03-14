@@ -1,116 +1,62 @@
-<style>
-    body {
-        font-family: DejaVu Sans, sans-serif;
-        font-size: 12px;
-        color: #333;
-    }
-
-    .header-table {
-        width: 100%;
-        border-bottom: 2px solid #444;
-        margin-bottom: 15px;
-    }
-
-    .logo {
-        width: 80px;
-    }
-
-    .title {
-        font-size: 20px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    .subtitle {
-        font-size: 13px;
-        text-align: center;
-    }
-
-    .info-table {
-        width: 100%;
-        margin-top: 10px;
-        border-collapse: collapse;
-    }
-
-    .info-table td {
-        padding: 4px 6px;
-        vertical-align: top;
-    }
-
-    .filters {
-        margin-top: 10px;
-        border: 1px solid #ccc;
-    }
-
-    .filters th {
-        background: #f2f2f2;
-        text-align: left;
-        padding: 6px;
-    }
-
-    .filters td {
-        padding: 6px;
-    }
-</style>
-
-
-<table class="header-table">
+<table width="100%" cellspacing="0" cellpadding="5" border="0">
     <tr>
-        <td width="90">
-            <img src="{{ public_path('assets/img/UMNO_logo.png') }}" width="80">
+        <td width="90" align="center">
+            <img src="data:image/png;base64,{{ $logo }}" width="70">
         </td>
 
-        <td>
-            <div class="title">
-                {{ $culaan->name }}
-            </div>
+        <td align="center">
+            <font size="5"><b>{{ $culaan->name }}</b></font><br>
 
-            <div class="subtitle">
+            <font size="3">
                 Election :
                 {{ $culaan->election_type }}
                 {{ $culaan->election_number }}
                 ({{ $culaan->election_year }})
-            </div>
+            </font>
         </td>
 
-        <td width="120" style="text-align:right; font-size:11px;">
-            Generated<br>
-            {{ \Carbon\Carbon::now('Asia/Kuala_Lumpur')->format('d M Y H:i') }}
+        <td width="140" align="right">
+            <font size="2">
+                Generated<br>
+                {{ $generatedAt }}
+            </font>
         </td>
     </tr>
 </table>
 
+<hr>
 
-<table class="info-table">
+<table width="100%" cellspacing="0" cellpadding="6" border="0">
     <tr>
-        <td width="120"><strong>Date</strong></td>
+        <td width="140"><b>Date</b></td>
         <td>: {{ $culaan->date }}</td>
     </tr>
 </table>
 
+<br>
 
-<table class="filters" width="100%" cellspacing="0">
-    <tr>
-        <th colspan="2">Filters Applied</th>
+<table width="100%" cellspacing="0" cellpadding="6" border="1">
+    <tr bgcolor="#eeeeee">
+        <td colspan="2"><b>Filters Applied</b></td>
     </tr>
 
     <tr>
-        <td width="150"><strong>Lokaliti</strong></td>
+        <td width="180"><b>Lokaliti</b></td>
         <td>{{ $filters['lokaliti'] ?? 'All' }}</td>
     </tr>
 
     <tr>
-        <td><strong>Status Culaan</strong></td>
+        <td><b>Status Culaan</b></td>
         <td>{{ $filters['status_culaan'] ?? 'All' }}</td>
     </tr>
 
     <tr>
-        <td><strong>Search Name / IC</strong></td>
+        <td><b>Search Name / IC</b></td>
         <td>{{ $filters['search_name'] ?? 'All' }}</td>
     </tr>
-    <tr>
-        <td><strong>Total Pengundi Filtered</strong></td>
-        <td>{{ number_format($totalPengundi) }}</td>
-    </tr>
 
+    <tr>
+        <td><b>Total Pengundi Filtered</b></td>
+        <td><b>{{ number_format($totalPengundi) }}</b></td>
+    </tr>
 </table>

@@ -1,6 +1,5 @@
 <!-- Vendor JS Files -->
 <script src="{{ asset('assets/vendors/jquery/jquery-3.7.1.js') }}"></script>
-
 <script src="{{ asset('assets/vendors/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/apexcharts/apexcharts.min.js') }}"></script>
 <script src="{{ asset('assets/vendors/chart.js/chart.umd.js') }}"></script>
@@ -15,96 +14,114 @@
 <!-- Template Main JS Files -->
 <script src="{{ asset('assets/js/theme.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
-
-<!-- App Sidebar Toggle (for app pages with sidebars) -->
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
+
 @livewireScripts
 
 @php
-
     use Devrabiul\ToastMagic\Facades\ToastMagic;
 @endphp
 {!! ToastMagic::scripts() !!}
 @include('sweetalert2::index')
 
-
 <script>
-
     const toastr = new ToastMagic();
 
-    $(document).ready(function () {
+    // Setup CSRF for AJAX
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        }
+    });
 
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            }
-        });
+    const notificationList = document.getElementById('notification-list');
+    const badge = document.getElementById('notification-badge');
+    const countSpan = document.getElementById('notification-count');
 
+    // Click to mark notification as read
+    if (notificationList) {
+        notificationList.addEventListener('click', async function (e) {
+            const item = e.target.closest('.notification-item');
+            if (!item) return;
 
-        const notificationList = document.getElementById('notification-list');
+            e.preventDefault();
+            const id = item.dataset.id;
+            const url = item.getAttribute('href');
 
-        if (notificationList) { // <-- check if element exists
-            notificationList.addEventListener('click', function (e) {
-
-                const item = e.target.closest('.notification-item');
-                if (!item) return;
-
-                e.preventDefault();
-
-                const id = item.dataset.id;
-                const url = item.getAttribute('href');
-
-                fetch(`/notifications/${id}/read`, {
+            try {
+                const res = await fetch(`/notifications/${id}/read`, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
                     }
-                })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
-                        return response.json();
-                    }).then(data => {
-                        if (data.success) {
-                            item.classList.remove('bg-light', 'unread');
+                });
 
-                            const badge = document.getElementById('notification-badge');
-                            const countSpan = document.getElementById('notification-count');
+                const data = await res.json();
+                if (data.success) {
+                    item.classList.remove('bg-light', 'unread');
 
-                            if (badge) {
-                                let count = Math.max((parseInt(badge.innerText, 10) || 0) - 1, 0);
-                                if (count <= 0) {
-                                    badge.style.display = 'none';
-                                    countSpan.innerText = '0 new';
-                                } else {
-                                    badge.innerText = count;
-                                    countSpan.innerText = count + ' new';
-                                }
-                            }
+                    // Update badge
+                    let count = Math.max((parseInt(badge.innerText, 10) || 0) - 1, 0);
+                    if (count <= 0) {
+                        badge.style.display = 'none';
+                        countSpan.innerText = '0 new';
+                    } else {
+                        badge.innerText = count;
+                        countSpan.innerText = count + ' new';
+                    }
 
-                            if (url && url !== '#') {
-                                window.location.href = url;
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Notification error:', error);
-                        if (url && url !== '#') {
-                            window.location.href = url;
-                        }
-                    });
+                    if (url && url !== '#') window.location.href = url;
+                }
+            } catch (err) {
+                console.error('Notification error:', err);
+                if (url && url !== '#') window.location.href = url;
+            }
+        });
+    }
 
+    // Real-time notifications with Laravel Echo
+    const userId = "{{ auth()->id() }}";
+
+    if (window.Echo) {
+        window.Echo.private(`App.Models.User.${userId}`)
+            .notification((notification) => {
+                // Show toast
+                toastr.success(notification.message, notification.title);
+
+                // Add notification to list
+                if (notificationList) {
+                    const item = document.createElement('a');
+                    item.href = notification.url || '#';
+                    item.className = 'notification-item d-flex gap-3 p-3 border-bottom unread bg-light';
+                    item.dataset.id = notification.id;
+
+                    item.innerHTML = `
+                        <div class="notification-avatar ${notification.type} rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi ${notification.icon}"></i>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <div class="notification-title fw-semibold">${notification.title}</div>
+                            <div class="notification-text small text-muted">${notification.message}</div>
+                            <div class="notification-time small text-muted mt-1">
+                                <i class="bi bi-clock me-1"></i>${notification.created_at || ''}
+                            </div>
+                        </div>
+                    `;
+                    notificationList.prepend(item);
+                }
+
+                // Update badge count
+                let count = parseInt(badge.innerText || '0', 10) + 1;
+                badge.innerText = count;
+                badge.style.display = 'inline-block';
+                countSpan.innerText = count + ' new';
             });
-        }
+    }
 
-    });
-</script>
-
-
-<script>
+    // Logout helper
     async function submitLogout(formId) {
         const form = document.getElementById(formId);
-
         try {
             const res = await fetch(form.action, {
                 method: 'POST',
@@ -118,12 +135,12 @@
             if (res.ok) {
                 window.location = '/';
             } else if (res.status === 419) {
-                // CSRF expired → fetch new token
+                // Refresh CSRF token
                 const tokenRes = await fetch("{{ route('csrf.refresh') }}");
                 const data = await tokenRes.json();
                 form.querySelector('input[name=_token]').value = data.csrf_token;
 
-                // Retry logout automatically
+                // Retry logout
                 await submitLogout(formId);
             }
         } catch (e) {

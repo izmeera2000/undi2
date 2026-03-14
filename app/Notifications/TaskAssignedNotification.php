@@ -29,7 +29,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
         return [
             'title'   => 'New Task Assigned',
             'message' => 'You have been assigned a new task: ' . $this->task->title,
-            'url'     => route('tasks.show', $this->task->id),
+            'url'     => route('task.show', $this->task->id),
             'type'    => 'info',
             'icon'    => 'bi-list-check',
             'task_id' => $this->task->id,
@@ -41,7 +41,7 @@ class TaskAssignedNotification extends Notification implements ShouldQueue
         return new BroadcastMessage([
             'title'   => 'New Task Assigned',
             'message' => 'You have been assigned a new task: ' . $this->task->title,
-            'url'     => route('tasks.show', $this->task->id),
+            'url'     => route('task.show', $this->task->id),
             'type'    => 'info',
             'icon'    => 'bi-list-check',
             'task_id' => $this->task->id,
