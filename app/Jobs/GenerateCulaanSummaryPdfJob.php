@@ -38,6 +38,8 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
             'C' => 'PAS',
             'E' => 'TP',
             'O' => 'BC',
+            'all' => 'all',
+
         ];
 
         // -------------------------

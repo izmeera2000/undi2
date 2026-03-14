@@ -75,6 +75,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
             'C' => 'PAS',
             'E' => 'TP',
             'O' => 'BC',
+            'all' => 'all',
         ];
 
         foreach ($rows as $row) {
