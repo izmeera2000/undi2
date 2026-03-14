@@ -73,7 +73,7 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
             ->where('culaan_id', $this->culaanId)
 
             ->when(!empty($this->filters['lokaliti']), function ($q) {
-                $q->where('lokaliti', 'like', '%' . $this->filters['lokaliti'] . '%');
+                $q->where('kod_lokaliti', 'like', '%' . $this->filters['lokaliti'] . '%');
             })
 
             ->when(!empty($this->filters['status_culaan']), function ($q) {

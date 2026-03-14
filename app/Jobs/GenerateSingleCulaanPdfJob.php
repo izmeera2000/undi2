@@ -49,7 +49,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
             ->where('culaan_id', $this->culaanId);
 
         if (!empty($this->filters['lokaliti'])) {
-            $query->where('lokaliti', 'like', "%{$this->filters['lokaliti']}%");
+            $query->where('kod_lokaliti', 'like', "%{$this->filters['lokaliti']}%");
         }
 
         if (!empty($this->filters['status_culaan'])) {

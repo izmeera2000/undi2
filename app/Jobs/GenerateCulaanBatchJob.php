@@ -46,7 +46,7 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
         // Build filtered query
         // -------------------------
         $query = CulaanPengundi::where('culaan_id', $culaanId)
-            ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('lokaliti', 'like', "%$lok%"))
+            ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('kod_lokaliti', 'like', "%$lok%"))
             ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "$status%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
                 $q->where(function ($qq) use ($search) {
@@ -68,7 +68,7 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
         // -------------------------
         // Create paginated jobs
         // -------------------------
-        $perPage = 200;
+        $perPage = 19;
         $totalPages = ceil($totalRows / $perPage);
 
         $jobs = [];
