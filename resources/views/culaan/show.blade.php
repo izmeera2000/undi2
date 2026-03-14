@@ -406,7 +406,7 @@
                     {
                         orderable: false,
                         data: null,
-                        defaultContent: '<span class="toggle-child"><i class="bi bi-plus-circle text-primary"></i></span>'
+                        defaultContent: '<span class="toggle-child"><i class="bi bi-plus-circle-fill text-primary"></i></span>'
                     },
 
                     { data: 'id' },
@@ -448,14 +448,14 @@
                     tr.removeClass('shown');
 
                     icon.removeClass('bi-dash-circle text-danger')
-                        .addClass('bi-plus-circle text-primary');
+                        .addClass('bi-plus-circle-fill text-primary');
 
                 } else {
 
                     row.child(format(row.data())).show();
                     tr.addClass('shown');
 
-                    icon.removeClass('bi-plus-circle text-primary')
+                    icon.removeClass('bi-plus-circle-fill text-primary')
                         .addClass('bi-dash-circle text-danger');
 
                 }
