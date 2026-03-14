@@ -308,6 +308,7 @@
 
                 legend: {
                     show: true,
+                    showForSingleSeries: true,
                     position: isMobile ? 'bottom' : 'right',
                     horizontalAlign: 'center',
                     floating: false
@@ -376,11 +377,11 @@
 
                     renderChart(
                         'statusChart',
-                        ['BN', 'PH', 'PN', 'TP', 'BC'], // short chart labels
+                        res.status_chart.labels,
                         res.status_chart.series,
                         'bar',
                         'Status Culaan',
-                        ['#0033A0', '#E31C23', '#009B3A', '#800080', '#999999'],
+                        res.status_chart.colors,
                         'Status Culaan Detail', // modal title
                         statusMap // modal label mapping
                     );
@@ -390,7 +391,7 @@
                         res.saluran_chart.series,
                         'bar',
                         'Saluran',
-                        ['#0033A0', '#E31C23', '#009B3A', '#800080', '#999999'],
+                        res.status_chart.colors,
                         'Saluran',
                         {},
                         true);

@@ -146,7 +146,7 @@ class CulaanController extends Controller
             </div>';
             })
 
-            
+
             ->addColumn('pengundi_details2', function ($row) {
 
                 return '
@@ -255,7 +255,7 @@ class CulaanController extends Controller
             })
 
 
-            ->rawColumns(['pengundi_details','pengundi_details2', 'lokaliti_details', 'status_culaan', 'actions'])
+            ->rawColumns(['pengundi_details', 'pengundi_details2', 'lokaliti_details', 'status_culaan', 'actions'])
 
             ->make(true);
     }
@@ -294,6 +294,14 @@ class CulaanController extends Controller
         //     });
         // }
 
+        $colorsLabel = [
+            'BN' => '#0033A0',
+            'PH' => '#E31C23',
+            'PAS' => '#009B3A',
+            'Tidak Pasti' => '#800080',
+            'Belum Cula' => '#999999'
+        ];
+
         $base = clone $query;
 
         // TOTAL
@@ -306,31 +314,83 @@ class CulaanController extends Controller
             WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 'BN'
             WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 'PH'
             WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 'PAS'
-            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 'tidak pasti'
-            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 'belum cula'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 'Tidak Pasti'
+            WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 'Belum Cula'
         END as status,
         COUNT(*) as total
     ")
             ->groupByRaw("status")
-            ->orderByRaw("FIELD(status, 'BN', 'PH', 'PAS', 'tidak pasti', 'belum cula')")
+            ->orderByRaw("FIELD(status, 'BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula')")
             ->get()
             ->pluck('total', 'status');
 
+        $statusData = $status->map(function ($total, $status) {
+            return [
+                'status' => $status,
+                'total' => $total
+            ];
+        });
+
+        // Labels and series for chart
+        $labels = $statusData->pluck('status')->toArray();
+        $series = $statusData->pluck('total')->toArray();
+
+        // Map colors dynamically based on labels
+
+        $colors = collect($labels)->map(fn($label) => $colorsLabel[$label] ?? '#000')->toArray();
+
+        // Build chart payload
+        $statusChart = [
+            'labels' => $labels,
+            'series' => $series,
+            'colors' => $colors
+        ];
 
 
-        // SALURAN
+        // 1️⃣ Get aggregated data by 'saluran'
         $saluran = (clone $query)
             ->selectRaw("
         saluran,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 1 ELSE 0 END) as BN,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 1 ELSE 0 END) as PH,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 1 ELSE 0 END) as PAS,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 1 ELSE 0 END) as 'tidak_pasti',
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 1 ELSE 0 END) as 'belum_cula'
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 1 ELSE 0 END) AS BN,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 1 ELSE 0 END) AS PH,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 1 ELSE 0 END) AS PAS,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 1 ELSE 0 END) AS `Tidak Pasti`,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 1 ELSE 0 END) AS `Belum Cula`
     ")
             ->groupBy('saluran')
             ->orderBy('saluran')
             ->get();
+
+        // 2️⃣ Extract labels (saluran names)
+        $labels = $saluran->pluck('saluran')->filter()->toArray();
+
+        // 3️⃣ Only build chart if labels exist
+        $saluranChart = null;
+
+        if (!empty($labels)) {
+            $statusList = ['BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula'];
+
+            $series = collect($statusList)->map(function ($status) use ($saluran) {
+                $data = $saluran->pluck($status)->map(fn($v) => (int) $v)->toArray(); // convert to integers
+
+                // Only include series if there's at least one non-zero value
+                return !empty(array_filter($data)) ? [
+                    'name' => $status,
+                    'data' => $data
+                ] : null;
+            })->filter()->values()->toArray(); // remove nulls
+
+            $seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
+
+            $saluranChart = [
+                'labels' => $labels,
+                'series' => $series,
+                'colors' => $seriesColors
+            ];
+        }
+
+
+
 
         // JANTINA
         $jantina = (clone $query)
@@ -416,36 +476,9 @@ class CulaanController extends Controller
 
             'total' => $total,
 
-            'status_chart' => [
-                'labels' => $status->keys(),
-                'series' => $status->values(),
-            ],
+            'status_chart' => $statusChart,
 
-            'saluran_chart' => [
-                'labels' => $saluran->pluck('saluran'),
-                'series' => [
-                    [
-                        'name' => 'BN',
-                        'data' => $saluran->pluck('BN'),
-                    ],
-                    [
-                        'name' => 'PH',
-                        'data' => $saluran->pluck('PH'),
-                    ],
-                    [
-                        'name' => 'PAS',
-                        'data' => $saluran->pluck('PAS'),
-                    ],
-                    [
-                        'name' => 'Tidak Pasti',
-                        'data' => $saluran->pluck('tidak_pasti'),
-                    ],
-                    [
-                        'name' => 'Belum Cula',
-                        'data' => $saluran->pluck('belum_cula'),
-                    ],
-                ],
-            ],
+            'saluran_chart' => $saluranChart,
 
             'jantina_chart' => [
                 'labels' => $jantina->keys(),
@@ -719,7 +752,7 @@ class CulaanController extends Controller
                     return "Created pengundi ID {$row->subject_id} ({$nama})";
                 }
 
-                                if ($row->description === 'queued pengundi import') {
+                if ($row->description === 'queued pengundi import') {
 
                     $file_name = $row->properties['file_name'] ?? '-';
 

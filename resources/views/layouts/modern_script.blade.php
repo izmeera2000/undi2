@@ -15,8 +15,7 @@
 <script src="{{ asset('assets/js/theme.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
-
-@livewireScripts
+ @livewireScripts
 
 @php
     use Devrabiul\ToastMagic\Facades\ToastMagic;
@@ -80,44 +79,6 @@
         });
     }
 
-    // Real-time notifications with Laravel Echo
-    const userId = "{{ auth()->id() }}";
-
-    if (window.Echo) {
-        window.Echo.private(`App.Models.User.${userId}`)
-            .notification((notification) => {
-                // Show toast
-                toastr.success(notification.message, notification.title);
-
-                // Add notification to list
-                if (notificationList) {
-                    const item = document.createElement('a');
-                    item.href = notification.url || '#';
-                    item.className = 'notification-item d-flex gap-3 p-3 border-bottom unread bg-light';
-                    item.dataset.id = notification.id;
-
-                    item.innerHTML = `
-                        <div class="notification-avatar ${notification.type} rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi ${notification.icon}"></i>
-                        </div>
-                        <div class="notification-content flex-grow-1">
-                            <div class="notification-title fw-semibold">${notification.title}</div>
-                            <div class="notification-text small text-muted">${notification.message}</div>
-                            <div class="notification-time small text-muted mt-1">
-                                <i class="bi bi-clock me-1"></i>${notification.created_at || ''}
-                            </div>
-                        </div>
-                    `;
-                    notificationList.prepend(item);
-                }
-
-                // Update badge count
-                let count = parseInt(badge.innerText || '0', 10) + 1;
-                badge.innerText = count;
-                badge.style.display = 'inline-block';
-                countSpan.innerText = count + ' new';
-            });
-    }
 
     // Logout helper
     async function submitLogout(formId) {
@@ -146,5 +107,53 @@
         } catch (e) {
             console.error('Logout failed', e);
         }
+    }
+</script>
+
+<script>
+
+ 
+    const userId = "{{ auth()->id() }}";
+
+    if (window.Echo) {
+        console.log('Echo is loaded, listening for notifications for user', userId);
+
+        window.Echo.private(`App.Models.User.${userId}`)
+            .notification((notification) => {
+                console.log('Real-time notification received:', notification); // <-- log the notification
+
+                // Show toast
+                toastr.success(notification.message, notification.title);
+
+                // Prepend notification to list
+                if (notificationList) {
+                    const item = document.createElement('a');
+                    item.href = notification.url || '#';
+                    item.className = 'notification-item d-flex gap-3 p-3 border-bottom unread bg-light';
+                    item.dataset.id = notification.id;
+
+                    item.innerHTML = `
+                        <div class="notification-avatar ${notification.type} rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi ${notification.icon}"></i>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <div class="notification-title fw-semibold">${notification.title}</div>
+                            <div class="notification-text small text-muted">${notification.message}</div>
+                            <div class="notification-time small text-muted mt-1">
+                                <i class="bi bi-clock me-1"></i>${notification.created_at || ''}
+                            </div>
+                        </div>
+                    `;
+                    notificationList.prepend(item);
+                }
+
+                // Update badge count
+                let count = parseInt(badge.innerText || '0', 10) + 1;
+                badge.innerText = count;
+                badge.style.display = 'inline-block';
+                countSpan.innerText = count + ' new';
+            });
+    } else {
+        console.log('Echo is not loaded');
     }
 </script>
