@@ -84,12 +84,12 @@ class MergeCulaanPdfJob implements ShouldQueue
             Storage::disk('public')->delete($file);
         }
 
-        // $user = User::find($this->userId);
+        $user = User::find($this->userId);
 
-        // if ($user) {
-        //     $url = asset('storage/' . $mergedPath);
-        //     $user->notify(new CulaanPdfReadyNotification($url, $this->culaanId));
-        // }
+        if ($user) {
+            $url = asset('storage/' . $mergedPath);
+            $user->notify(new CulaanPdfReadyNotification($url, $this->culaanId));
+        }
 
         Log::info("All lokaliti PDFs merged into: {$mergedPath} and originals deleted");
     }
