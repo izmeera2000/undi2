@@ -1,3 +1,28 @@
+<style>
+    /* Prevent a single row from being split across two pages */
+    tr {
+        page-break-inside: avoid !important;
+    }
+
+    /* Keep the header on every new page */
+    thead {
+        display: table-header-group;
+    }
+
+    /* Force the table to behave consistently */
+    table {
+        page-break-inside: auto;
+        width: 100%;
+        table-layout: fixed; /* Helps DomPDF calculate heights faster */
+        word-wrap: break-word; /* Prevents long names from pushing column widths */
+    }
+    
+    /* Ensure the name doesn't create infinite height */
+    td {
+        vertical-align: top;
+    }
+</style>
+
 <table width="100%" border="1" cellspacing="0" cellpadding="4">
 
     <colgroup>
