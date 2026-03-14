@@ -16,6 +16,7 @@ use App\Jobs\TestQueueJob;
 
 use App\Http\Controllers\CulaanController;
 use App\Http\Controllers\CulaanPengundiImportController;
+use App\Notifications\TestNotification;
 
 use App\Http\Controllers\PengundiImportController;
 use App\Http\Controllers\PengundiAnalyticsController;
@@ -505,8 +506,16 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
 
+    Route::post('/send-test-notification', function () {
+        $user = User::find(auth()->id()); // send to current logged-in user
+        $user->notify(new TestNotification(
+            "Hello!",
+            "This is a real-time test notification.",
+            url('/notification-test') // link to some page
+        ));
 
-
+        return response()->json(['status' => 'Test notification sent']);
+    })->name('send.test.notification');
 
 
     Route::get('/test-queue', function () {

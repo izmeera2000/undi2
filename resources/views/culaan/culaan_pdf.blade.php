@@ -2,8 +2,8 @@
 
     <colgroup>
         <col width="6%">
-        <col width="30%">
-        <col width="30%">
+        <col width="35%">
+        <col width="25%">
         <col width="20%">
         <col width="14%">
     </colgroup>
