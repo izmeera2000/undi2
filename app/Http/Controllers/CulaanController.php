@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Culaan;
 use App\Models\CulaanPengundi;
@@ -95,12 +96,26 @@ class CulaanController extends Controller
     {
         $culaan->delete();
 
+
         return response()->json(['success' => true]);
     }
 
     public function show(Culaan $culaan)
     {
-        return view('culaan.show', compact('culaan'));
+
+        $year = $culaan->election?->year;
+
+        $lokalitiList =
+            DB::table('lokaliti')
+                ->whereYear('effective_from', '<=', $year)
+                ->where(function ($q) use ($year) {
+                    $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
+                })
+                ->get();
+
+
+
+        return view('culaan.show', compact('culaan', 'lokalitiList'));
     }
 
 
@@ -112,7 +127,7 @@ class CulaanController extends Controller
 
 
         if ($request->lokaliti) {
-            $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
+            $query->where('culaan_pengundis.kod_lokaliti', $request->lokaliti);
         }
 
         if ($request->status_culaan) {
@@ -168,9 +183,8 @@ class CulaanController extends Controller
 
 
                 <div>
-                    <span class="fw-semibold">' . $row->pm . '</span>
-                    <div class="text-muted small">' . $row->lokaliti . ' (' . $row->kod_lokaliti . ')</div>
-                </div>
+                    <span class="fw-semibold">' . $row->lokaliti . ' (' . $row->kod_lokaliti . ')</span>
+                 </div>
 
             </div>';
             })
@@ -264,7 +278,20 @@ class CulaanController extends Controller
 
     public function analytics(Request $request, Culaan $culaan)
     {
-        return view('culaan.analytics', compact('culaan'));
+
+
+        $year = $culaan->election?->year;
+
+        $lokalitiList =
+            DB::table('lokaliti')
+                ->whereYear('effective_from', '<=', $year)
+                ->where(function ($q) use ($year) {
+                    $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
+                })
+                ->get();
+
+
+        return view('culaan.analytics', compact('culaan', 'lokalitiList'));
     }
 
 
@@ -273,8 +300,9 @@ class CulaanController extends Controller
         $query = CulaanPengundi::where('culaan_id', $culaan->id);
 
         if ($request->lokaliti) {
-            $query->where('lokaliti', 'like', '%' . $request->lokaliti . '%');
+            $query->where('culaan_pengundis.kod_lokaliti', $request->lokaliti);
         }
+
 
         if ($request->status_culaan) {
             if ($request->status_culaan == 'O') {
@@ -364,30 +392,28 @@ class CulaanController extends Controller
         // 2️⃣ Extract labels (saluran names)
         $labels = $saluran->pluck('saluran')->filter()->toArray();
 
-        // 3️⃣ Only build chart if labels exist
-        $saluranChart = null;
 
-        if (!empty($labels)) {
-            $statusList = ['BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula'];
 
-            $series = collect($statusList)->map(function ($status) use ($saluran) {
-                $data = $saluran->pluck($status)->map(fn($v) => (int) $v)->toArray(); // convert to integers
+        $statusList = ['BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula'];
 
-                // Only include series if there's at least one non-zero value
-                return !empty(array_filter($data)) ? [
-                    'name' => $status,
-                    'data' => $data
-                ] : null;
-            })->filter()->values()->toArray(); // remove nulls
+        $series = collect($statusList)->map(function ($status) use ($saluran) {
+            $data = $saluran->pluck($status)->map(fn($v) => (int) $v)->toArray(); // convert to integers
 
-            $seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
+            // Only include series if there's at least one non-zero value
+            return !empty(array_filter($data)) ? [
+                'name' => $status,
+                'data' => $data
+            ] : null;
+        })->filter()->values()->toArray(); // remove nulls
 
-            $saluranChart = [
-                'labels' => $labels,
-                'series' => $series,
-                'colors' => $seriesColors
-            ];
-        }
+        $seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
+
+        $saluranChart = [
+            'labels' => $labels,
+            'series' => $series,
+            'colors' => $seriesColors
+        ];
+
 
 
 

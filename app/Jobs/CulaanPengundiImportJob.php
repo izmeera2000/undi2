@@ -86,13 +86,17 @@ class CulaanPengundiImportJob implements ShouldQueue
                 $row[$db] = $idx !== false ? trim($data[$idx]) : null;
             }
 
+            // ✅ Ensure kod_lokaliti starts with '022'
+            if (!str_starts_with($row['kod_lokaliti'], '0')) {
+                $row['kod_lokaliti'] = '0' . ltrim($row['kod_lokaliti'], '0');
+                // optional: ltrim leading zeros to avoid double zeros
+            }
+
             $rows[] = $row;
             $count++;
 
             if (count($rows) >= $this->batchSize) {
-
                 $this->insertWithoutDuplicates($rows);
-
                 $rows = [];
 
                 Cache::put($cacheKey, [
@@ -101,7 +105,6 @@ class CulaanPengundiImportJob implements ShouldQueue
                 ], 3600);
             }
         }
-
         if (!empty($rows)) {
             $this->insertWithoutDuplicates($rows);
         }

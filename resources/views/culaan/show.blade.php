@@ -119,8 +119,13 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label>Lokaliti</label>
-                        <input type="text" id="filter_lokaliti" class="form-control" placeholder="Search lokaliti">
+                        <label for="filter_lokaliti">Lokaliti</label>
+                        <select id="filter_lokaliti" class="form-control">
+                            <option value="">All Lokaliti</option>
+                            @foreach($lokalitiList as $lokaliti)
+                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->kod_lokaliti }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="col-md-3">
@@ -156,8 +161,8 @@
                                 <th>ID</th>
                                 <th>Pengundi</th>
                                 <th>Lokaliti</th>
-                                <th>Status Culaan</th>
                                 <th>Kategori/ Status Pengundi</th>
+                                <th>Status Culaan</th>
                                 <th width="100">Action</th>
                             </tr>
                         </thead>
@@ -342,40 +347,40 @@
         function format(row) {
 
             return `
-                                                                    <div class="p-3">
+                                                                            <div class="p-3">
 
-                                                                        <div class="row">
+                                                                                <div class="row">
 
-                                                                            <div class="col-md-3">
-                                                                                <strong>No Siri</strong><br>
-                                                                                ${row.no_siri ?? '-'}
+                                                                                    <div class="col-md-3">
+                                                                                        <strong>No Siri</strong><br>
+                                                                                        ${row.no_siri ?? '-'}
+                                                                                    </div>
+
+                                                                                    <div class="col-md-3">
+                                                                                        <strong>Saluran</strong><br>
+                                                                                        ${row.saluran ?? '-'}
+                                                                                    </div>
+
+                                                                                    <div class="col-md-3">
+                                                                                        <strong>Bangsa</strong><br>
+                                                                                        ${row.bangsa ?? '-'}
+                                                                                    </div>
+
+                                                                                    <div class="col-md-3">
+                                                                                        <strong>Umur</strong><br>
+                                                                                        ${row.umur ?? '-'}
+                                                                                    </div>
+
+
+                                                                                    <div class="col-md-3 mt-3">
+                                                                                        <strong>Cawangan</strong><br>
+                                                                                        ${row.nama_cwgn ?? '-'}
+                                                                                    </div>
+
+                                                                                </div>
+
                                                                             </div>
-
-                                                                            <div class="col-md-3">
-                                                                                <strong>Saluran</strong><br>
-                                                                                ${row.saluran ?? '-'}
-                                                                            </div>
-
-                                                                            <div class="col-md-3">
-                                                                                <strong>Bangsa</strong><br>
-                                                                                ${row.bangsa ?? '-'}
-                                                                            </div>
-
-                                                                            <div class="col-md-3">
-                                                                                <strong>Umur</strong><br>
-                                                                                ${row.umur ?? '-'}
-                                                                            </div>
-
-
-                                                                            <div class="col-md-3 mt-3">
-                                                                                <strong>Cawangan</strong><br>
-                                                                                ${row.nama_cwgn ?? '-'}
-                                                                            </div>
-
-                                                                        </div>
-
-                                                                    </div>
-                                                                `;
+                                                                        `;
         }
 
         $(function () {
@@ -415,13 +420,13 @@
                         data: 'pengundi_details',
 
                     },
-                           
+
 
                     {
                         data: 'lokaliti_details',
 
                     },
-                                 {
+                    {
                         data: 'pengundi_details2',
 
                     },

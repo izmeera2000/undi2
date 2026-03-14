@@ -7,7 +7,7 @@
     @php
         $crumbs = [
             ['label' => 'Culaan', 'url' => route('culaan.index')],
-            ['label' => $culaan->name],
+            ['label' => $culaan->name ?? 'Culaan', 'url' => route('culaan.show', $culaan->id ?? 0)],
             ['label' => 'Analytics', 'url' => route('culaan.index')],
 
         ];
@@ -27,10 +27,15 @@
                 <div class="row">
 
 
-
                     <div class="col-md-3">
-                        <input type="text" id="lokaliti" class="form-control" placeholder="Lokaliti">
+                        <select id="lokaliti" class="form-control">
+                            <option value="">All Lokaliti</option>
+                            @foreach($lokalitiList as $lokaliti)
+                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->kod_lokaliti }}</option>
+                            @endforeach
+                        </select>
                     </div>
+
 
                     <div class="col-md-3">
                         <select id="status_culaan" class="form-control">
@@ -259,19 +264,19 @@
                             }
 
                             const html = items.map(i => `
-                                                                            <div class="tooltip-row d-flex align-items-center mb-1">
-                                                                                <span style="
-                                                                                    background:${i.color};
-                                                                                    width:12px;
-                                                                                    height:12px;
-                                                                                    display:inline-block;
-                                                                                    margin-right:6px;
-                                                                                    border-radius:3px;
-                                                                                "></span>
-                                                                                <span>${i.name}</span>
-                                                                                <strong class="ms-auto">${i.value}</strong>
-                                                                            </div>
-                                                                        `).join('');
+                                                                                <div class="tooltip-row d-flex align-items-center mb-1">
+                                                                                    <span style="
+                                                                                        background:${i.color};
+                                                                                        width:12px;
+                                                                                        height:12px;
+                                                                                        display:inline-block;
+                                                                                        margin-right:6px;
+                                                                                        border-radius:3px;
+                                                                                    "></span>
+                                                                                    <span>${i.name}</span>
+                                                                                    <strong class="ms-auto">${i.value}</strong>
+                                                                                </div>
+                                                                            `).join('');
 
                             document.getElementById("tooltipModalBody").innerHTML = html;
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();
@@ -400,7 +405,7 @@
 
                     renderChart('bangsaChart', res.bangsa_chart.labels, res.bangsa_chart.series, 'bar', 'Bangsa');
 
-                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'First TIme Voter',[],'First TIme Voter',{},true);
+                    renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'First TIme Voter', [], 'First TIme Voter', {}, true);
 
                     renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
                 },
@@ -458,7 +463,7 @@
                 },
                 body: JSON.stringify({ charts: images })
             })
-                
+
         });
 
     </script>

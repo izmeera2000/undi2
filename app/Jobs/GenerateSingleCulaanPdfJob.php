@@ -41,6 +41,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 'bangsa',
                 'pm',
                 'lokaliti',
+                'kod_lokaliti',
                 'kategori_pengundi',
                 'status_pengundi',
                 'status_culaan'
@@ -90,7 +91,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 'id' => $row->id,
                 'nama' => $row->nama,
                 'no_kp' => $row->no_kp,
-                'lokaliti_details' => $row->pm,
+                'lokaliti_details' => $row->lokaliti . ' (' . $row->kod_lokaliti . ')',
                 'pengundi_details' => $row->kategori_pengundi
                     . ($row->status_pengundi ? " ({$row->status_pengundi})" : ''),
                 'status_culaan' => $statuses[$statusCode] ?? $statusCode,
