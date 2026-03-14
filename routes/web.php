@@ -405,7 +405,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
         Route::post('/culaan/{culaan}/pdf', [CulaanController::class, 'exportPdf'])
-    ->name('exportpdf');
+            ->name('exportpdf');
 
 
         Route::post('/{culaan}/analytics/data', [CulaanController::class, 'analytics_data'])->name('analytics_data');
@@ -413,12 +413,12 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('/{culaan}/analytics', [CulaanController::class, 'analytics'])
             ->name('analytics');
 
-                    Route::post('/{culaan}/analytics_pdf', [CulaanController::class, 'generatePdf'])
+        Route::post('/{culaan}/analytics_pdf', [CulaanController::class, 'generatePdf'])
             ->name('analytics_pdf');
 
 
-Route::get('/{culaan}/activity', [CulaanController::class, 'activity'])
-    ->name('activity');
+        Route::get('/{culaan}/activity', [CulaanController::class, 'activity'])
+            ->name('activity');
 
         // Nested group for Pengundi routes
         Route::prefix('{culaan}/pengundi')->name('pengundi.')->group(function () {

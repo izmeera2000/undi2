@@ -40,8 +40,27 @@ class MergeCulaanPdfJob implements ShouldQueue
         $filesToMerge = array_filter(
             $files,
             fn($f) =>
-            str_ends_with($f, '.pdf') && str_contains($f, 'temp_')
+            str_ends_with($f, '.pdf') &&
+            str_contains($f, 'temp_') &&
+            str_contains($f, "culaan_{$this->culaanId}_") &&
+            (
+                str_contains($f, '_summary') ||
+                str_contains($f, '_page')
+            )
         );
+
+        usort($filesToMerge, function ($a, $b) {
+
+            $aIsSummary = str_contains($a, '_summary');
+            $bIsSummary = str_contains($b, '_summary');
+
+            if ($aIsSummary && !$bIsSummary)
+                return -1;
+            if (!$aIsSummary && $bIsSummary)
+                return 1;
+
+            return strnatcmp($a, $b); // natural page sorting
+        });
 
         if (empty($filesToMerge)) {
             Log::warning("No PDF files to merge for Culaan {$this->culaanId}");
@@ -84,12 +103,12 @@ class MergeCulaanPdfJob implements ShouldQueue
             Storage::disk('public')->delete($file);
         }
 
-        $user = User::find($this->userId);
+        // $user = User::find($this->userId);
 
-        if ($user) {
-            $url = asset('storage/' . $mergedPath);
-            $user->notify(new CulaanPdfReadyNotification($url, $this->culaanId));
-        }
+        // if ($user) {
+        //     $url = asset('storage/' . $mergedPath);
+        //     $user->notify(new CulaanPdfReadyNotification($url, $this->culaanId));
+        // }
 
         Log::info("All lokaliti PDFs merged into: {$mergedPath} and originals deleted");
     }

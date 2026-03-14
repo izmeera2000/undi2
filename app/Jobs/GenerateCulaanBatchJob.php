@@ -12,9 +12,10 @@ use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use App\Models\CulaanPengundi;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 
-class GenerateCulaanBatchJob implements ShouldQueue
+class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -28,6 +29,10 @@ class GenerateCulaanBatchJob implements ShouldQueue
         $this->filters = $filters;
         $this->userId = $userId;
     }
+    public function uniqueId()
+    {
+        return $this->culaanId . '-' . md5(json_encode($this->filters));
+    }
 
     public function handle()
     {
@@ -38,53 +43,47 @@ class GenerateCulaanBatchJob implements ShouldQueue
         Log::info('Starting GenerateCulaanBatchJob', compact('culaanId', 'filters', 'userId'));
 
         // -------------------------
-        // Fetch all relevant lokaliti
+        // Build filtered query
         // -------------------------
-        $lokalitiList = CulaanPengundi::where('culaan_id', $culaanId)
+        $query = CulaanPengundi::where('culaan_id', $culaanId)
             ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('lokaliti', 'like', "%$lok%"))
             ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "$status%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
-                $q->where('nama', 'like', "%$search%")
-                    ->orWhere('no_kp', 'like', "%$search%");
-            })
-            ->pluck('kod_lokaliti')
-            ->unique()
-            ->toArray();
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('nama', 'like', "%$search%")
+                        ->orWhere('no_kp', 'like', "%$search%");
+                });
+            });
 
-        if (empty($lokalitiList)) {
-            Log::warning('No lokaliti found for batch job', compact('culaanId', 'filters'));
+        // -------------------------
+        // Count filtered rows
+        // -------------------------
+        $totalRows = $query->count();
+
+        if ($totalRows === 0) {
+            Log::warning('No culaan pengundi found for batch job', compact('culaanId', 'filters'));
             return;
         }
 
         // -------------------------
-        // Create per-lokaliti PDF jobs
+        // Create paginated jobs
         // -------------------------
         $perPage = 200;
+        $totalPages = ceil($totalRows / $perPage);
+
         $jobs = [];
 
-        foreach ($lokalitiList as $kodLokaliti) {
-            $totalRows = CulaanPengundi::where('culaan_id', $culaanId)
-                ->where('kod_lokaliti', $kodLokaliti)
-                ->count();
-
-            if ($totalRows === 0)
-                continue;
-
-            $totalPages = ceil($totalRows / $perPage);
-
-            for ($page = 1; $page <= $totalPages; $page++) {
-                $jobs[] = new GenerateSingleCulaanPdfJob(
-                    $culaanId,
-                    $filters,
-                    $kodLokaliti,
-                    $page,
-                    $perPage
-                );
-            }
+        for ($page = 1; $page <= $totalPages; $page++) {
+            $jobs[] = new GenerateSingleCulaanPdfJob(
+                $culaanId,
+                $filters,
+                $page,
+                $perPage
+            );
         }
 
         if (empty($jobs)) {
-            Log::warning('No per-lokaliti jobs created', compact('culaanId', 'filters'));
+            Log::warning('No PDF jobs created', compact('culaanId', 'filters'));
             return;
         }
 
@@ -92,8 +91,9 @@ class GenerateCulaanBatchJob implements ShouldQueue
         // Dispatch batch with merge callback
         // -------------------------
         Bus::batch($jobs)
-            ->then(function (Batch $batch) use ($lokalitiList, $culaanId, $filters, $userId) {
+            ->then(function (Batch $batch) use ($culaanId, $filters, $userId) {
                 Log::info('All per-lokaliti jobs finished, now merging PDFs');
+                GenerateCulaanSummaryPdfJob::dispatch($culaanId, $filters, $userId);
 
                 MergeCulaanPdfJob::dispatch($culaanId, $filters, $userId);
             })
