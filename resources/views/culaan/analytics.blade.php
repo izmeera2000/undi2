@@ -31,7 +31,7 @@
                         <select id="lokaliti" class="form-control">
                             <option value="">All Lokaliti</option>
                             @foreach($lokalitiList as $lokaliti)
-                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->kod_lokaliti }}</option>
+                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->nama_lokaliti }} ({{  $lokaliti->kod_lokaliti}})</option>
                             @endforeach
                         </select>
                     </div>

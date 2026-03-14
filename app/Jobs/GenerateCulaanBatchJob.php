@@ -68,7 +68,7 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
         // -------------------------
         // Create paginated jobs
         // -------------------------
-        $maxRowsPerPage = 19;
+        $maxRowsPerPage = 18;
 
         // 1. Calculate how many pages we need based on the max limit
         $totalPages = (int) ceil($totalRows / $maxRowsPerPage);
