@@ -94,7 +94,7 @@
                                 <ul class="dropdown-menu">
                                     <li>
                                         <a class="dropdown-item" href="#" id="forceUpdatePdf">
-                                            Force Export PDF
+                                            Force Generate
                                         </a>
                                     </li>
 
