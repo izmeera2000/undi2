@@ -68,8 +68,14 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
         // -------------------------
         // Create paginated jobs
         // -------------------------
-        $perPage = 19;
-        $totalPages = ceil($totalRows / $perPage);
+        $maxRowsPerPage = 19;
+
+        // 1. Calculate how many pages we need based on the max limit
+        $totalPages = (int) ceil($totalRows / $maxRowsPerPage);
+
+        // 2. Recalculate perPage so rows are distributed evenly
+// Example: 201 rows becomes two pages of 101 and 100, instead of 200 and 1.
+        $dynamicPerPage = (int) ceil($totalRows / $totalPages);
 
         $jobs = [];
 
@@ -78,7 +84,7 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
                 $culaanId,
                 $filters,
                 $page,
-                $perPage
+                $dynamicPerPage // Use the dynamic value here
             );
         }
 
