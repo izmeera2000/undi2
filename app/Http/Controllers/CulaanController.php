@@ -114,8 +114,12 @@ class CulaanController extends Controller
                 ->get();
 
 
+        $groupsList = DB::table('groups')
+            ->whereYear('created_at', '<=', $year)
+            ->get();
 
-        return view('culaan.show', compact('culaan', 'lokalitiList'));
+
+        return view('culaan.show', compact('culaan', 'lokalitiList', 'groupsList'));
     }
 
 
@@ -545,32 +549,122 @@ class CulaanController extends Controller
 
     public function storePengundi(Request $request, Culaan $culaan)
     {
+        // Validation rules
         $request->validate([
             'nama' => 'required',
-            'no_kp' => 'nullable'
+            'no_kp' => 'nullable',
+            'lokaliti' => 'required',
+            'saluran' => 'nullable',
         ]);
 
-        $pengundi = CulaanPengundi::create([
-            'culaan_id' => $culaan->id,
-            'nama' => $request->nama,
-            'no_kp' => $request->no_kp,
-            'lokaliti' => $request->lokaliti,
-            'saluran' => $request->saluran,
-            'status_culaan' => 'O',
-            'updated_by' => auth()->id()
-        ]);
+        // Split the 'lokaliti' field into name and code
+        $lokalitiData = explode(',', $request->lokaliti); // This will give an array like ['Lokaliti Name', '022001']
+        $namaLokaliti = $lokalitiData[0];
+        $kodLokaliti = $lokalitiData[1];
 
+        // Create a new Pengundi model instance
+        $pengundi = new CulaanPengundi();
+        $pengundi->culaan_id = $culaan->id; // Associate this pengundi with the culaan
+        $pengundi->nama = $request->nama;
+        $pengundi->no_kp = $request->no_kp;
+        $pengundi->pm = $request->pm;
+        $pengundi->no_siri = $request->no_siri;
+        $pengundi->saluran = $request->saluran;
+        $pengundi->jantina = $request->jantina;
+        $pengundi->umur = $request->umur;
+        $pengundi->bangsa = $request->bangsa;
+        $pengundi->kategori_pengundi = $request->kategori_pengundi;
+        $pengundi->status_pengundi = $request->status_pengundi;
+        $pengundi->cawangan = $request->cawangan;
+        $pengundi->no_ahli = $request->no_ahli;
+        $pengundi->alamat = $request->alamat;
+        $pengundi->status_ahli = $request->status_ahli;
+        $pengundi->kategori_ahli = $request->kategori_ahli;
+        $pengundi->lokaliti = $namaLokaliti; // Store name or use the kod_lokaliti as needed
+        $pengundi->kod_lokaliti = $kodLokaliti; // Store code separately
+        $pengundi->status_culaan = $request->status_culaan ?? 'O'; // default value as 'O' if not set
+        $pengundi->updated_by = auth()->id();
+
+        // Save the pengundi instance
+        $pengundi->save();
+
+        // Log activity on the Culaan model (parent model)
         activity()
-            ->performedOn($pengundi)
+            ->performedOn($culaan)  // Log the activity on the Culaan model instance
             ->causedBy(auth()->user())
             ->withProperties([
                 'nama' => $pengundi->nama,
-                'no_kp' => $pengundi->no_kp
+                'no_kp' => $pengundi->no_kp,
+                'culaan_id' => $culaan->id,
+            ])
+            ->log('created pengundi for culaan');
+
+        // Optionally, you can also log the creation of the pengundi itself (on CulaanPengundi model)
+        activity()
+            ->performedOn($pengundi)  // Log the activity on the CulaanPengundi model instance
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'nama' => $pengundi->nama,
+                'no_kp' => $pengundi->no_kp,
             ])
             ->log('created pengundi');
 
+        // Return the response
         return response()->json(['success' => true]);
     }
+
+    protected function insertWithoutDuplicates(array $rows)
+    {
+        if (empty($rows)) {
+            return;
+        }
+
+        // Remove duplicates inside batch
+        $uniqueRows = [];
+        $seen = [];
+
+        foreach ($rows as $r) {
+            // Create unique key based on no_kp and kod_lokaliti
+            $key = $r['no_kp'] . '_' . $r['lokaliti'];
+
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $uniqueRows[] = $r;
+        }
+
+        // Check existing records in DB
+        $existing = DB::table('culaan_pengundis')
+            ->where('culaan_id', $r['culaan_id'])
+            ->whereIn('no_kp', array_column($uniqueRows, 'no_kp'))
+            ->get(['no_kp', 'lokaliti']);
+
+        $existingMap = [];
+        foreach ($existing as $e) {
+            $existingMap[$e->no_kp . '_' . $e->lokaliti] = true;
+        }
+
+        // Prepare the rows to be inserted (skip duplicates found in DB)
+        $insert = [];
+
+        foreach ($uniqueRows as $r) {
+            $key = $r['no_kp'] . '_' . $r['lokaliti'];
+
+            if (isset($existingMap[$key])) {
+                continue;
+            }
+
+            $insert[] = $r;
+        }
+
+        // Insert the valid rows into the database
+        if (!empty($insert)) {
+            DB::table('culaan_pengundis')->insert($insert);
+        }
+    }
+
 
 
 

@@ -353,6 +353,9 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/bulk-store', [DMController::class, 'bulkStore'])
             ->name('bulkStore');
 
+            
+        Route::post('/bulk-store', [DMController::class, 'bulkStore'])
+            ->name('bulkStore');
         Route::get('/{dm}/edit', [DmController::class, 'edit'])->name('edit');
         Route::put('/{dm}', [DmController::class, 'update'])->name('update');
         Route::delete('/{dm}', [DmController::class, 'destroy'])->name('destroy');
