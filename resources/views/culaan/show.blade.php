@@ -117,7 +117,7 @@
                         <select id="filter_dm" class="form-control">
                             <option value="">All DM</option>
                             @foreach($dmList as $dm)
-                                <option value="{{ $dm->koddm }}">{{ $dm->namadm }}
+                                <option value="{{ $dm->koddm }}" data-name="{{$dm->namadm}}">{{ $dm->namadm }}
                                     ({{  $dm->koddm}})</option>
                             @endforeach
                         </select>
@@ -558,11 +558,11 @@
 
             fields.forEach(([label, value]) => {
                 wrap.append(`
-                                                                            <div class="col-md-3">
-                                                                                <strong>${label}</strong><br>
-                                                                                ${value ?? '-'}
-                                                                            </div>
-                                                                        `);
+                                                                                <div class="col-md-3">
+                                                                                    <strong>${label}</strong><br>
+                                                                                    ${value ?? '-'}
+                                                                                </div>
+                                                                            `);
             });
 
             return wrap;
@@ -869,6 +869,8 @@
 
             const filters = {
                 dm: document.getElementById('filter_dm').value,
+                dm_name: document.getElementById('filter_dm')
+                    .selectedOptions[0]?.dataset.name ?? null,
                 lokaliti: document.getElementById('filter_lokaliti').value,
                 lokaliti_name: document.getElementById('filter_lokaliti')
                     .selectedOptions[0]?.dataset.name ?? null,

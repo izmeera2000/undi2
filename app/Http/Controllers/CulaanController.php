@@ -905,12 +905,14 @@ class CulaanController extends Controller
             'lokaliti' => 'nullable|string',
             'lokaliti_name' => 'nullable|string',
             'dm' => 'nullable|string',
+            'dm_name' => 'nullable|string',
+
             'status_culaan' => 'nullable|string',
             'search_name' => 'nullable|string',
             'force' => 'nullable|boolean',
         ]);
 
-        
+
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -923,6 +925,7 @@ class CulaanController extends Controller
             'status_culaan',
             'search_name',
             'dm',
+            'dm_name',
             'lokaliti_name',
         ]);
 

@@ -40,6 +40,19 @@
         <td colspan="2"><b>Filters Applied</b></td>
     </tr>
 
+    
+    <tr>
+        <td ><b>DM</b></td>
+        <td>
+            @if(empty($filters['dm']))
+                All
+            @else
+                {{ $filters['dm_name'] }} ({{ $filters['dm'] }})
+            @endif
+        </td>
+    </tr>
+
+
     <tr>
         <td ><b>Lokaliti</b></td>
         <td>
