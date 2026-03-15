@@ -114,7 +114,7 @@
 
         // Mark all notifications as read
         document.getElementById('markAllBtn').addEventListener('click', function () {
-            fetch(`/notifications/mark-all-as-read`, {
+            fetch(`{{ route('notifications.allread') }}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,

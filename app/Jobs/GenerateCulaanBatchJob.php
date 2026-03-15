@@ -49,25 +49,17 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
             ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('kod_lokaliti', 'like', "%$lok%"))
             ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "$status%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
-                $search = trim($search); // remove extra spaces
-    
-                $q->where(function ($qq) use ($search) {
+                $search = trim($search);
 
+                $q->where(function ($qq) use ($search) {
                     if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
-                        // *something* → contains
-                        $term = substr($search, 1, -1);
-                        $pattern = "%{$term}%";
+                        $pattern = '%' . substr($search, 1, -1) . '%';
                     } elseif (str_starts_with($search, '*')) {
-                        // *something → ends with
-                        $term = substr($search, 1);
-                        $pattern = "%{$term}";
+                        $pattern = '%' . substr($search, 1);
                     } elseif (str_ends_with($search, '*')) {
-                        // something* → starts with
-                        $term = substr($search, 0, -1);
-                        $pattern = "{$term}%";
+                        $pattern = substr($search, 0, -1) . '%';
                     } else {
-                        // default → contains
-                        $pattern = "%{$search}%";
+                        $pattern = '%' . $search . '%';
                     }
 
                     $qq->where('nama', 'like', $pattern)
@@ -76,31 +68,50 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
             });
 
         // -------------------------
-        // Count filtered rows
+        // Get all unique PMs
         // -------------------------
-        $totalRows = $query->count();
+        $pms = $query->select('pm')->distinct()->pluck('pm');
 
-        if ($totalRows === 0) {
+        if ($pms->isEmpty()) {
             Log::warning('No culaan pengundi found for batch job', compact('culaanId', 'filters'));
             return;
         }
 
         // -------------------------
-        // Create paginated jobs
+        // Create jobs per PM
         // -------------------------
-        $perPage = 200;
-        $totalPages = ceil($totalRows / $perPage);
-
         $jobs = [];
+        $perPage = 200;
 
-        for ($page = 1; $page <= $totalPages; $page++) {
-            $jobs[] = new GenerateSingleCulaanPdfJob(
-                $culaanId,
-                $filters,
-                $page,
-                $perPage
-            );
+        $globalPage = 1;
+
+        foreach ($pms as $pm) {
+            $pmQuery = (clone $query)->where('pm', $pm);
+            $totalRows = $pmQuery->count();
+            $totalPages = ceil($totalRows / $perPage);
+
+            for ($page = 1; $page <= $totalPages; $page++) {
+                $jobs[] = new GenerateSingleCulaanPdfJob(
+                    $culaanId,
+                    $filters,
+                    $globalPage, // use global page number
+                    $perPage,
+                    $pm
+                );
+
+                // Add log
+                Log::info("Prepared GenerateSingleCulaanPdfJob", [
+                    'culaan_id' => $culaanId,
+                    'pm' => $pm,
+                    'page' => $globalPage,
+                    'per_page' => $perPage,
+                    'filters' => $filters,
+                ]);
+
+                $globalPage++;
+            }
         }
+
 
         if (empty($jobs)) {
             Log::warning('No PDF jobs created', compact('culaanId', 'filters'));

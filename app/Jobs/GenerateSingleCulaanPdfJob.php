@@ -21,13 +21,15 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
     protected array $filters;
     protected int $page;
     protected int $perPage;
+    protected string $pm;
 
-    public function __construct(int $culaanId, array $filters, int $page = 1, int $perPage = 200)
+    public function __construct(int $culaanId, array $filters, int $page = 1, int $perPage = 200, string $pm)
     {
         $this->culaanId = $culaanId;
         $this->filters = $filters;
         $this->page = $page;
         $this->perPage = $perPage;
+        $this->pm = $pm;
     }
 
     public function handle()
@@ -47,6 +49,8 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 'status_culaan'
             ])
             ->where('culaan_id', $this->culaanId);
+
+            $query->when(!empty($this->pm), fn($q) => $q->where('pm', $this->pm));
 
         if (!empty($this->filters['lokaliti'])) {
             $query->where('kod_lokaliti', 'like', "%{$this->filters['lokaliti']}%");
@@ -121,9 +125,14 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
             return;
         }
 
+            Log::info(" Culaan {$this->culaanId} page {$this->page} pm   {$this->pm}");
+
+
         $pdf = Pdf::loadView('culaan.culaan_pdf', [
             'culaan' => DB::table('culaans')->find($this->culaanId),
             'pengundi' => $pengundi,
+            'pm' => $this->pm,
+            'page' => $this->page,
         ])->setPaper('a4', 'portrait');
 
         // -------------------------
@@ -142,7 +151,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
             ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['search_name'])
             : 'all';
 
-        $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statuses[$status]}_search_{$search}_page{$this->page}.pdf";
+        $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statuses[$status]}_search_{$search}_pm_{$this->pm}_page{$this->page}.pdf";
 
         $filePath = "pdfs/culaan/{$this->culaanId}/{$fileName}";
 
