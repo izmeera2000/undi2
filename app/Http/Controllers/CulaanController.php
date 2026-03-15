@@ -99,28 +99,37 @@ class CulaanController extends Controller
 
         return response()->json(['success' => true]);
     }
+public function show(Culaan $culaan)
+{
+    $year = $culaan->election?->year;
 
-    public function show(Culaan $culaan)
-    {
+    $lokalitiList = DB::table('lokaliti')
+        ->whereYear('effective_from', '<=', $year)
+        ->where(function ($q) use ($year) {
+            $q->whereYear('effective_to', '>=', $year)
+              ->orWhereNull('effective_to');
+        })
+        ->get();
 
-        $year = $culaan->election?->year;
+    $groupsList = DB::table('groups')
+        ->whereYear('created_at', '<=', $year)
+        ->get();
 
-        $lokalitiList =
-            DB::table('lokaliti')
-                ->whereYear('effective_from', '<=', $year)
-                ->where(function ($q) use ($year) {
-                    $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
-                })
-                ->get();
+    $dmList = DB::table('dm')
+        ->whereYear('effective_from', '<=', $year)
+        ->where(function ($q) use ($year) {
+            $q->whereYear('effective_to', '>=', $year)
+              ->orWhereNull('effective_to');
+        })
+        ->get();
 
-
-        $groupsList = DB::table('groups')
-            ->whereYear('created_at', '<=', $year)
-            ->get();
-
-
-        return view('culaan.show', compact('culaan', 'lokalitiList', 'groupsList'));
-    }
+    return view('culaan.show', compact(
+        'culaan',
+        'lokalitiList',
+        'groupsList',
+        'dmList'
+    ));
+}
 
 
     public function pengundiData(Request $request, Culaan $culaan)

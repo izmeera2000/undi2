@@ -111,6 +111,18 @@
                         <input type="text" id="filter_search" class="form-control" placeholder="Search name or IC">
                     </div>
 
+
+                    <div class="col-md-3">
+                        <label for="filter_dm">DM</label>
+                        <select id="filter_dm" class="form-control">
+                            <option value="">All DM</option>
+                            @foreach($dmList as $dm)
+                                <option value="{{ $dm->koddm }}">{{ $dm->namadm }}
+                                    ({{  $dm->koddm}})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="col-md-3">
                         <label for="filter_lokaliti">Lokaliti</label>
                         <select id="filter_lokaliti" class="form-control">
@@ -544,11 +556,11 @@
 
             fields.forEach(([label, value]) => {
                 wrap.append(`
-                                                            <div class="col-md-3">
-                                                                <strong>${label}</strong><br>
-                                                                ${value ?? '-'}
-                                                            </div>
-                                                        `);
+                                                                    <div class="col-md-3">
+                                                                        <strong>${label}</strong><br>
+                                                                        ${value ?? '-'}
+                                                                    </div>
+                                                                `);
             });
 
             return wrap;
@@ -919,6 +931,29 @@
                 activityTable.ajax.reload();
             }
 
+        });
+
+
+
+        $('#filter_dm').on('change', function () {
+            let dm = $(this).val();
+
+            $('#filter_lokaliti option').each(function () {
+                let lokaliti = $(this).val();
+
+                if (!lokaliti) {
+                    $(this).show();
+                    return;
+                }
+
+                if (dm === "" || lokaliti.startsWith(dm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            $('#filter_lokaliti').val('');
         });
 
     </script>
