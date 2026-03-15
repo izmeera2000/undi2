@@ -403,44 +403,47 @@ class CulaanController extends Controller
         ];
 
 
-        // 1️⃣ Get aggregated data by 'saluran'
-        $saluran = (clone $query)
-            ->selectRaw("
+// 1️⃣ Get aggregated data by 'saluran'
+$saluran = (clone $query)
+    ->selectRaw("
         saluran,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'D' THEN 1 ELSE 0 END) AS BN,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'A' THEN 1 ELSE 0 END) AS PH,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'C' THEN 1 ELSE 0 END) AS PAS,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'E' THEN 1 ELSE 0 END) AS `Tidak Pasti`,
-        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan, 1), ''), 'O') = 'O' THEN 1 ELSE 0 END) AS `Belum Cula`
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'D' THEN 1 ELSE 0 END) AS `BN`,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'A' THEN 1 ELSE 0 END) AS `PH`,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'C' THEN 1 ELSE 0 END) AS `PAS`,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'E' THEN 1 ELSE 0 END) AS `Tidak Pasti`,
+        SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'O' THEN 1 ELSE 0 END) AS `Belum Cula`
     ")
-            ->groupBy('saluran')
-            ->orderBy('saluran')
-            ->get();
+    ->groupBy('saluran')
+    ->orderBy('saluran')
+    ->get();
 
-        // 2️⃣ Extract labels (saluran names)
-        $labels = $saluran->pluck('saluran')->filter()->toArray();
+// 2️⃣ Remove rows with null/empty 'saluran' and reindex
+$saluran = $saluran->filter(fn($row) => !empty($row->saluran))->values();
 
+// 3️⃣ Extract labels
+$labels = $saluran->pluck('saluran')->toArray();
 
+// 4️⃣ Define statuses
+$statusList = ['BN','PH','PAS','Tidak Pasti','Belum Cula'];
 
-        $statusList = ['BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula'];
+// 5️⃣ Build series, removing series where all data is zero
+$series = collect($statusList)->map(function($status) use ($saluran) {
+    $data = $saluran->pluck($status)->map(fn($v) => (int)$v)->toArray();
+    // Only include series if at least one value > 0
+    return array_sum($data) > 0
+        ? ['name' => $status, 'data' => $data]
+        : null;
+})->filter()->values()->toArray(); // remove null series
 
-        $series = collect($statusList)->map(function ($status) use ($saluran) {
-            $data = $saluran->pluck($status)->map(fn($v) => (int) $v)->toArray(); // convert to integers
+// 6️⃣ Map colors for remaining series
+$seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
 
-            // Only include series if there's at least one non-zero value
-            return !empty(array_filter($data)) ? [
-                'name' => $status,
-                'data' => $data
-            ] : null;
-        })->filter()->values()->toArray(); // remove nulls
-
-        $seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
-
-        $saluranChart = [
-            'labels' => $labels,
-            'series' => $series,
-            'colors' => $seriesColors
-        ];
+// 7️⃣ Final chart data
+$saluranChart = [
+    'labels' => $labels,
+    'series' => $series,
+    'colors' => $seriesColors
+];
 
 
 
