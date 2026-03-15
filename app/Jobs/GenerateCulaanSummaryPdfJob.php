@@ -69,27 +69,27 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
         // -------------------------
         // Count query
         // -------------------------
-        $totalFilteredPengundi = DB::table('culaan_pengundis')
+        $query = DB::table('culaan_pengundis')
             ->where('culaan_id', $this->culaanId)
-
             ->when(!empty($this->filters['lokaliti']), function ($q) {
-                $q->where('kod_lokaliti', 'like', '%' . $this->filters['lokaliti'] . '%');
+                $q->where('kod_lokaliti', $this->filters['lokaliti'] );
             })
-
             ->when(!empty($this->filters['status_culaan']), function ($q) {
                 $q->where('status_culaan', $this->filters['status_culaan']);
             })
-
             ->when(!empty($this->filters['search_name']), function ($q) {
                 $search = $this->filters['search_name'];
-
                 $q->where(function ($sub) use ($search) {
                     $sub->where('nama', 'like', "%{$search}%")
                         ->orWhere('no_kp', 'like', "%{$search}%");
                 });
-            })
+            });
 
-            ->count();
+        // Log the SQL and bindings
+        // Log::info('Filtered Pengundi SQL: ' . $query->toSql(), $query->getBindings());
+
+        // Then count
+        $totalFilteredPengundi = $query->count();
 
         Log::info('Count query completed', [
             'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)

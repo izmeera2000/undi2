@@ -15,12 +15,13 @@
 <script src="{{ asset('assets/js/theme.js') }}"></script>
 <script src="{{ asset('assets/js/main.js') }}"></script>
 <script src="{{ asset('assets/js/apps-sidebar-toggle.js') }}"></script>
- @livewireScripts
 
-@php
-    use Devrabiul\ToastMagic\Facades\ToastMagic;
-@endphp
-{!! ToastMagic::scripts() !!}
+
+@vite(['resources/js/app.js'])
+@livewireScripts
+
+
+{!! Devrabiul\ToastMagic\Facades\ToastMagic::scripts() !!}
 @include('sweetalert2::index')
 
 <script>
@@ -33,9 +34,9 @@
         }
     });
 
-    const notificationList = document.getElementById('notification-list');
+    const notificationList = document.querySelector('.notification-list');
     const badge = document.getElementById('notification-badge');
-    const countSpan = document.getElementById('notification-count');
+    const countSpan = document.querySelector('.notification-count');
 
     // Click to mark notification as read
     if (notificationList) {
@@ -111,49 +112,83 @@
 </script>
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
 
- 
     const userId = "{{ auth()->id() }}";
 
+ 
+
+
     if (window.Echo) {
-        console.log('Echo is loaded, listening for notifications for user', userId);
+
+        console.log('Echo listening for user', userId);
 
         window.Echo.private(`App.Models.User.${userId}`)
             .notification((notification) => {
-                console.log('Real-time notification received:', notification); // <-- log the notification
 
-                // Show toast
+                console.log('Real-time notification:', notification);
+
+                // Toast
                 toastr.success(notification.message, notification.title);
 
-                // Prepend notification to list
                 if (notificationList) {
+
                     const item = document.createElement('a');
+
                     item.href = notification.url || '#';
-                    item.className = 'notification-item d-flex gap-3 p-3 border-bottom unread bg-light';
                     item.dataset.id = notification.id;
 
+                    item.className =
+                        "notification-item d-flex gap-3 p-3 border-bottom unread bg-light";
+
                     item.innerHTML = `
-                        <div class="notification-avatar ${notification.type} rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi ${notification.icon}"></i>
+                        <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
                         </div>
+
                         <div class="notification-content flex-grow-1">
-                            <div class="notification-title fw-semibold">${notification.title}</div>
-                            <div class="notification-text small text-muted">${notification.message}</div>
+                            <div class="notification-title fw-semibold">
+                                ${notification.title ?? 'Notification'}
+                            </div>
+
+                            <div class="notification-text small text-muted">
+                                ${notification.message ?? ''}
+                            </div>
+
                             <div class="notification-time small text-muted mt-1">
-                                <i class="bi bi-clock me-1"></i>${notification.created_at || ''}
+                                <i class="bi bi-clock me-1"></i>
+                                just now
                             </div>
                         </div>
                     `;
+
+                    // prepend to top
                     notificationList.prepend(item);
+
+                    // limit list to 5 items (same as blade)
+                    const items = notificationList.querySelectorAll('.notification-item');
+                    if (items.length > 5) {
+                        items[items.length - 1].remove();
+                    }
                 }
 
-                // Update badge count
-                let count = parseInt(badge.innerText || '0', 10) + 1;
-                badge.innerText = count;
-                badge.style.display = 'inline-block';
-                countSpan.innerText = count + ' new';
+                // Update badge
+                if (badge) {
+
+                    let count = parseInt(badge.innerText || '0', 10) + 1;
+
+                    badge.innerText = count;
+
+                    if (countSpan) {
+                        countSpan.innerText = count + ' new';
+                    }
+                }
+
             });
+
     } else {
         console.log('Echo is not loaded');
     }
+
+});
 </script>

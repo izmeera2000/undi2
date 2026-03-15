@@ -892,25 +892,24 @@ class CulaanController extends Controller
             : 'all';
 
         $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
-
         $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
 
-        if (!$force && Storage::disk('public')->exists($path)) {
-
-            return response()->json([
-                'success' => true,
-                'exists' => true,
-                'url' => asset('storage/' . $path),
-                'message' => 'PDF already exists',
-            ]);
-
-        }
-
-        // Optional: delete old file if force
+        // Force delete old file if requested
         if ($force && Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
         }
 
+        // Check if file exists and not forcing
+        if (!$force && Storage::disk('public')->exists($path)) {
+            return response()->json([
+                'success' => true,
+                'exists' => true,
+                'url' => asset('storage/' . $path) . '?t=' . time(),
+                'message' => 'PDF already exists',
+            ]);
+        }
+
+        // Dispatch job
         GenerateCulaanBatchJob::dispatch(
             $culaan->id,
             $filters,
