@@ -45,9 +45,18 @@
         <td>{{ $filters['lokaliti'] ?? 'All' }}</td>
     </tr>
 
+    @php
+        $statuses = [
+            'D' => 'BN',
+            'A' => 'PH',
+            'C' => 'PAS',
+            'E' => 'TP',
+            'O' => 'BC',
+        ];
+    @endphp
     <tr>
         <td><b>Status Culaan</b></td>
-        <td>{{ $filters['status_culaan'] ?? 'All' }}</td>
+        <td>{{ $statuses[$filters['status_culaan']] ?? 'All' }}</td>
     </tr>
 
     <tr>
