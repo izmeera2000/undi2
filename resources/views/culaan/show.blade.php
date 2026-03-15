@@ -128,8 +128,10 @@
                         <select id="filter_lokaliti" class="form-control">
                             <option value="">All Lokaliti</option>
                             @foreach($lokalitiList as $lokaliti)
-                                <option value="{{ $lokaliti->kod_lokaliti }}" data-name="{{$lokaliti->nama_lokaliti}}">{{ $lokaliti->nama_lokaliti }}
-                                    ({{  $lokaliti->kod_lokaliti}})</option>
+                                <option value="{{ $lokaliti->kod_lokaliti }}" data-name="{{$lokaliti->nama_lokaliti}}">
+                                    {{ $lokaliti->nama_lokaliti }}
+                                    ({{  $lokaliti->kod_lokaliti}})
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -556,11 +558,11 @@
 
             fields.forEach(([label, value]) => {
                 wrap.append(`
-                                                                    <div class="col-md-3">
-                                                                        <strong>${label}</strong><br>
-                                                                        ${value ?? '-'}
-                                                                    </div>
-                                                                `);
+                                                                            <div class="col-md-3">
+                                                                                <strong>${label}</strong><br>
+                                                                                ${value ?? '-'}
+                                                                            </div>
+                                                                        `);
             });
 
             return wrap;
@@ -868,11 +870,14 @@
             const filters = {
                 dm: document.getElementById('filter_dm').value,
                 lokaliti: document.getElementById('filter_lokaliti').value,
-                lokaliti_name: document.getElementById('filter_lokaliti').data_name,
+                lokaliti_name: document.getElementById('filter_lokaliti')
+                    .selectedOptions[0]?.dataset.name ?? null,
                 status_culaan: document.getElementById('filter_status').value,
                 search_name: document.getElementById('filter_search').value,
                 force: force
             };
+
+
 
             const response = await fetch("{{ route('culaan.exportpdf', $culaan) }}", {
                 method: "POST",
@@ -886,13 +891,13 @@
             const data = await response.json();
 
             if (data.exists) {
-
                 window.open(data.url, "_blank");
                 toastr.success("Opening existing PDF");
 
             } else {
 
                 toastr.info("Generating PDF in background");
+                console.log(filters);
 
             }
         }

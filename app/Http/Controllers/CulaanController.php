@@ -903,11 +903,14 @@ class CulaanController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'lokaliti' => 'nullable|string',
+            'lokaliti_name' => 'nullable|string',
+            'dm' => 'nullable|string',
             'status_culaan' => 'nullable|string',
             'search_name' => 'nullable|string',
             'force' => 'nullable|boolean',
         ]);
 
+        
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -919,6 +922,8 @@ class CulaanController extends Controller
             'lokaliti',
             'status_culaan',
             'search_name',
+            'dm',
+            'lokaliti_name',
         ]);
 
         $force = $request->boolean('force');
