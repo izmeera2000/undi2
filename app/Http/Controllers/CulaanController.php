@@ -686,8 +686,7 @@ class CulaanController extends Controller
 
         $pengundi = CulaanPengundi::findOrFail($request->id);
 
-        $oldStatus = $pengundi->status_culaan;
-
+        $oldStatus = strtoupper($pengundi->status_culaan[0] ?? '');
         $statusCode = strtoupper($request->status);
 
         if (!isset($statusMap[$statusCode])) {
@@ -704,6 +703,8 @@ class CulaanController extends Controller
             ->withProperties([
                 'old_status' => $statusMap[$oldStatus]['label'],
                 'new_status' => $statusMap[$statusCode]['label'],
+                'nama' => $pengundi->nama,
+                'no_kp' => $pengundi->no_kp,
             ])
             ->log('updated status_culaan');
 
@@ -842,6 +843,8 @@ class CulaanController extends Controller
 
         })->latest();
 
+
+
         return DataTables::of($query)
 
             ->addColumn('user', function ($row) {
@@ -850,36 +853,54 @@ class CulaanController extends Controller
 
             ->addColumn('action', function ($row) {
 
-                if ($row->description === 'updated status_culaan') {
+                $statusMap2 = [
+                    'BN' => ['label' => 'BN', 'color' => '#0033A0'],
+                    'PH' => ['label' => 'PH', 'color' => '#E31C23'],
+                    'PAS' => ['label' => 'PAS', 'color' => '#009B3A'],
+                    'TP' => ['label' => 'TP', 'color' => '#800080'],
+                    'BC' => ['label' => 'BC', 'color' => '#999999'],
+                ];
 
-                    $old = $row->properties['old_status'] ?? '-';
-                    $new = $row->properties['new_status'] ?? '-';
 
-                    return "Updated status of ID {$row->subject_id} from {$old} → {$new}";
+                switch ($row->description) {
+
+                    case 'updated status_culaan':
+
+                        $oldFull = $row->properties['old_status'] ?? 'N/A';
+                        $newFull = $row->properties['new_status'] ?? 'N/A';
+
+
+
+                        // Get color from status map
+                        $oldColor = $statusMap2[$oldFull]['color'];
+                        $newColor = $statusMap2[$newFull]['color'];
+
+                        $nama = $row->properties['nama'] ?? 'N/A';
+                        $no_kp = $row->properties['no_kp'] ?? 'N/A';
+
+                        return "<strong>{$nama}</strong> <small>{$no_kp}</small> (voter ID <strong>{$row->subject_id}</strong>) status updated: 
+                            <span style='color: {$oldColor}; font-weight:bold;'>{$oldFull}</span> → 
+                            <span style='color: {$newColor}; font-weight:bold;'>{$newFull}</span>";
+
+
+                    case 'deleted pengundi':
+                        $nama = $row->properties['nama'] ?? 'N/A';
+                        $no_kp = $row->properties['no_kp'] ?? 'N/A';
+                        return "Voter <strong>{$nama}</strong> <small>{$no_kp}</small> (ID {$row->subject_id}) was <span class='text-danger'>deleted</span>";
+
+                    case 'created pengundi':
+                        $nama = $row->properties['nama'] ?? 'N/A';
+                        $no_kp = $row->properties['no_kp'] ?? 'N/A';
+                        return "New voter <strong>{$nama}</strong> <small>{$no_kp}</small>  (ID {$row->subject_id}) was <span class='text-success'>created</span>";
+
+                    case 'queued pengundi import':
+                        $file_name = $row->properties['file_name'] ?? 'unknown file';
+                        return "Import started for file: <strong>{$file_name}</strong>";
+
+                    default:
+                        // Make the description more human-friendly
+                        return ucfirst(str_replace('_', ' ', $row->description));
                 }
-
-                if ($row->description === 'deleted pengundi') {
-
-                    $nama = $row->properties['nama'] ?? '-';
-
-                    return "Deleted pengundi ID {$row->subject_id} ({$nama})";
-                }
-
-                if ($row->description === 'created pengundi') {
-
-                    $nama = $row->properties['nama'] ?? '-';
-
-                    return "Created pengundi ID {$row->subject_id} ({$nama})";
-                }
-
-                if ($row->description === 'queued pengundi import') {
-
-                    $file_name = $row->properties['file_name'] ?? '-';
-
-                    return "Importing File  ({$file_name})";
-                }
-
-                return ucfirst($row->description);
             })
 
             ->editColumn('created_at', function ($row) {

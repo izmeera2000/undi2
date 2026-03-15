@@ -24,15 +24,18 @@
         <div class="card mb-3">
             <div class="card-header">
                 <div class="row g-3 align-items-center w-100">
+                    <div class="d-flex flex-wrap flex-md-row justify-content-md-end gap-2 align-items-center">
 
-                    <div class="d-flex flex-wrap justify-content-md-end gap-2">
-
+                        <!-- History Button -->
                         <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
-                            <i class="bi bi-clock-history"></i> History Culaan
+                            <i class="bi bi-clock-history me-1"></i> History Culaan
                         </button>
-                        <a href="{{ route('culaan.analytics', $culaan) }}" class="btn btn-primary ">
+
+                        <!-- Analytics Button -->
+                        <a href="{{ route('culaan.analytics', $culaan) }}" class="btn btn-primary">
                             <i class="fas fa-chart-line me-1"></i> Analytics
                         </a>
+
                     </div>
                 </div>
             </div>
@@ -58,55 +61,45 @@
         <div class="card g-4 mb-4">
 
 
-            <div class="card-header">
-                <div class="row g-3 align-items-center w-100">
-                    <!-- Title -->
-                    <div class="col-md-4 col-12">
-                        <h5 class="card-title mb-0">Culaan Pengundi</h5>
+            <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2">
+
+                <!-- Title -->
+                <h5 class="card-title mb-0">Culaan Pengundi</h5>
+
+                <!-- Actions -->
+                <div class="d-flex flex-wrap gap-2">
+
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPengundiModal">
+                        <i class="bi bi-plus me-1"></i> Add Pengundi
+                    </button>
+
+                    <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i> Bulk Import
+                    </a>
+
+                    <div class="btn-group" id="pdfButtonGroup">
+
+                        <button id="generatePdf" type="button" class="btn btn-primary">
+                            Generate PDF
+                        </button>
+
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
+                            data-bs-toggle="dropdown">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="#" id="forceUpdatePdf">
+                                    Force Generate
+                                </a>
+                            </li>
+                        </ul>
+
                     </div>
 
-                    <!-- Buttons -->
-                    <div class="col-md-8  col-12">
-                        <div class="d-flex flex-wrap justify-content-md-end gap-2">
-
-                            <button class="btn btn-primary " data-bs-toggle="modal" data-bs-target="#addPengundiModal">
-                                <i class="bi bi-plus me-1"></i> Add Pengundi
-                            </button>
-
-                            <a href="{{ route('culaan.pengundi.bulkimport', $culaan) }}" class="btn btn-success ">
-                                <i class="bi bi-upload me-1"></i> Bulk Import
-                            </a>
-
-                            <div class="btn-group" id="pdfButtonGroup" style=" ">
-
-                                <!-- Main Action -->
-                                <button id="generatePdf" type="button" class="btn btn-primary">
-                                    Generate PDF
-                                </button>
-
-                                <!-- Split Dropdown Toggle -->
-                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="visually-hidden">Toggle Dropdown</span>
-                                </button>
-
-                                <!-- Dropdown Menu -->
-                                <ul class="dropdown-menu">
-                                    <li>
-                                        <a class="dropdown-item" href="#" id="forceUpdatePdf">
-                                            Force Generate
-                                        </a>
-                                    </li>
-
-
-
-                                </ul>
-                            </div>
-
-
-                        </div>
-                    </div>
                 </div>
+
             </div>
 
             <div class="card-body p-2">
@@ -178,9 +171,10 @@
     </section>
 
     <!-- ADD PENGUNDI MODAL -->
-    <div class="modal fade" id="addPengundiModal">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl">
+    <div class="modal fade" id="addPengundiModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
+
 
                 <div class="modal-header">
                     <h5 class="modal-title">Add Pengundi</h5>
@@ -188,8 +182,9 @@
                 </div>
 
                 <!-- Form for adding pengundi -->
-                <form id="addPengundiForm" method="POST">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form id="addPengundiForm" method="POST">
+                        @csrf
                         <div class="row g-3">
 
                             <!-- Lokaliti Info -->
@@ -234,7 +229,7 @@
                             <div class="col-md-4">
                                 <label>Jantina</label>
                                 <select name="jantina" class="form-select">
-                                     <option value="L">Lelaki</option>
+                                    <option value="L">Lelaki</option>
                                     <option value="P">Perempuan</option>
                                 </select>
                             </div>
@@ -317,14 +312,15 @@
                             </div>
 
                         </div>
-                    </div>
+                    </form>
 
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="savePengundiBtn">Save</button>
-                    </div>
+                </div>
 
-                </form>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="savePengundiBtn">Save</button>
+                </div>
+
 
             </div>
         </div>
@@ -342,16 +338,18 @@
                 </div>
 
                 <div class="modal-body">
+                    <div class="table-responsive">
 
-                    <table id="activityTable" class="table table-bordered w-100">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>User</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                    </table>
+                        <table id="activityTable" class="table table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
 
                 </div>
 
@@ -372,41 +370,26 @@
 
         function format(row) {
 
-            return `
-            <div class="p-3">
+            const fields = [
+                ["No Siri", row.no_siri],
+                ["Saluran", row.saluran],
+                ["Bangsa", row.bangsa],
+                ["Umur", row.umur],
+                ["Cawangan", row.nama_cwgn]
+            ];
 
-                <div class="row">
+            const wrap = $('<div class="p-3 row"></div>');
 
-                    <div class="col-md-3">
-                        <strong>No Siri</strong><br>
-                        ${row.no_siri ?? '-'}
-                    </div>
+            fields.forEach(([label, value]) => {
+                wrap.append(`
+                                            <div class="col-md-3">
+                                                <strong>${label}</strong><br>
+                                                ${value ?? '-'}
+                                            </div>
+                                        `);
+            });
 
-                    <div class="col-md-3">
-                        <strong>Saluran</strong><br>
-                        ${row.saluran ?? '-'}
-                    </div>
-
-                    <div class="col-md-3">
-                        <strong>Bangsa</strong><br>
-                        ${row.bangsa ?? '-'}
-                    </div>
-
-                    <div class="col-md-3">
-                        <strong>Umur</strong><br>
-                        ${row.umur ?? '-'}
-                    </div>
-
-
-                    <div class="col-md-3 mt-3">
-                        <strong>Cawangan</strong><br>
-                        ${row.nama_cwgn ?? '-'}
-                    </div>
-
-                </div>
-
-            </div>
-        `;
+            return wrap;
         }
 
         $(function () {
@@ -547,27 +530,52 @@
 
         /* ADD PENGUNDI */
 
-        $('#savePengundiBtn').click(function () {
-            // Get form data
-            var formData = $('#addPengundiForm').serialize(); // Serializes the form data
+        $('#savePengundiBtn').on('click', function () {
 
-            // Make the AJAX POST request
-            $.post("{{ route('culaan.pengundi.store', $culaan) }}", formData, function (response) {
-                // Handle success response
-                if (response.success) {
-                    alert('Pengundi added successfully!');
-                    $('#addPengundiModal').modal('hide'); // Close the modal
-                    $('#addPengundiForm')[0].reset(); // Reset the form
-            table.ajax.reload();
+            let btn = $(this);
+            btn.prop('disabled', true);
 
-                } else {
-                    alert('There was an error adding the pengundi.');
+            $.ajax({
+                url: "{{ route('culaan.pengundi.store', $culaan) }}",
+                type: "POST",
+                data: $('#addPengundiForm').serialize(),
+
+                success: function (response) {
+
+                    if (response.success) {
+
+                        toastr.success("Pengundi added successfully");
+
+                        $('#addPengundiModal').modal('hide');
+                        $('#addPengundiForm')[0].reset();
+
+                        table.ajax.reload(null, false);
+
+                    } else {
+                        toastr.error(response.message ?? "Error saving data");
+                    }
+                },
+
+                error: function (xhr) {
+
+                    if (xhr.status === 422) {
+
+                        let errors = xhr.responseJSON.errors;
+
+                        $.each(errors, function (key, value) {
+                            toastr.error(value[0]);
+                        });
+
+                    } else {
+                        toastr.error("Something went wrong");
+                    }
+                },
+
+                complete: function () {
+                    btn.prop('disabled', false);
                 }
-            })
-                .fail(function (xhr, status, error) {
-                    // Handle error response
-                    alert('Something went wrong. Please try again.');
-                });
+            });
+
         });
 
 
