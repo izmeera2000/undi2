@@ -260,8 +260,12 @@
 
                             <div class="col-md-4">
                                 <label>Status Pengundi</label>
-                                <input type="text" name="status_pengundi" class="form-control"
-                                    placeholder="Status Pengundi">
+                                <select name="status_pengundi" class="form-control">
+                                    <option value="">-- Pilih Status --</option>
+                                    <option value="OKU">OKU</option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Penerima Bantuan">Penerima Bantuan</option>
+                                </select>
                             </div>
 
                             <div class="col-md-4">
@@ -540,11 +544,11 @@
 
             fields.forEach(([label, value]) => {
                 wrap.append(`
-                                                        <div class="col-md-3">
-                                                            <strong>${label}</strong><br>
-                                                            ${value ?? '-'}
-                                                        </div>
-                                                    `);
+                                                            <div class="col-md-3">
+                                                                <strong>${label}</strong><br>
+                                                                ${value ?? '-'}
+                                                            </div>
+                                                        `);
             });
 
             return wrap;
