@@ -54,8 +54,8 @@
                                     @php
                                         $data = $notification->data;
                                     @endphp
-                                    <div class="notif-item {{ $notification->data['type'] ?? 'info' }}">
-                                        <div class="notif-item-avatar {{ $notification->data['type'] ?? 'info' }}">
+                                    <div class="notif-item {{ $notification->data['notify_type'] ?? 'info' }}">
+                                        <div class="notif-item-avatar {{ $notification->data['notify_type'] ?? 'info' }}">
                                             <i class="bi {{ $notification->data['icon'] ?? 'bi-bell' }}"></i>
                                         </div>
                                         <div class="notif-item-content">
