@@ -57,11 +57,29 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
         }
 
         if (!empty($this->filters['search_name'])) {
-            $search = $this->filters['search_name'];
+            $search = trim($this->filters['search_name']); // remove extra spaces
 
             $query->where(function ($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                    ->orWhere('no_kp', 'like', "%{$search}%");
+
+                if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
+                    // *something* → contains
+                    $term = substr($search, 1, -1);
+                    $pattern = "%{$term}%";
+                } elseif (str_starts_with($search, '*')) {
+                    // *something → ends with
+                    $term = substr($search, 1);
+                    $pattern = "%{$term}";
+                } elseif (str_ends_with($search, '*')) {
+                    // something* → starts with
+                    $term = substr($search, 0, -1);
+                    $pattern = "{$term}%";
+                } else {
+                    // default → contains
+                    $pattern = "%{$search}%";
+                }
+
+                $q->where('nama', 'like', $pattern)
+                    ->orWhere('no_kp', 'like', $pattern);
             });
         }
 

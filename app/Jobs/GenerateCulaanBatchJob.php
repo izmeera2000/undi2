@@ -49,9 +49,29 @@ class GenerateCulaanBatchJob implements ShouldQueue, ShouldBeUnique
             ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('kod_lokaliti', 'like', "%$lok%"))
             ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "$status%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
+                $search = trim($search); // remove extra spaces
+    
                 $q->where(function ($qq) use ($search) {
-                    $qq->where('nama', 'like', "%$search%")
-                        ->orWhere('no_kp', 'like', "%$search%");
+
+                    if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
+                        // *something* → contains
+                        $term = substr($search, 1, -1);
+                        $pattern = "%{$term}%";
+                    } elseif (str_starts_with($search, '*')) {
+                        // *something → ends with
+                        $term = substr($search, 1);
+                        $pattern = "%{$term}";
+                    } elseif (str_ends_with($search, '*')) {
+                        // something* → starts with
+                        $term = substr($search, 0, -1);
+                        $pattern = "{$term}%";
+                    } else {
+                        // default → contains
+                        $pattern = "%{$search}%";
+                    }
+
+                    $qq->where('nama', 'like', $pattern)
+                        ->orWhere('no_kp', 'like', $pattern);
                 });
             });
 

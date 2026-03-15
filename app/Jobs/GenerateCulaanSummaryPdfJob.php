@@ -72,16 +72,35 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
         $query = DB::table('culaan_pengundis')
             ->where('culaan_id', $this->culaanId)
             ->when(!empty($this->filters['lokaliti']), function ($q) {
-                $q->where('kod_lokaliti', $this->filters['lokaliti'] );
+                $q->where('kod_lokaliti', $this->filters['lokaliti']);
             })
             ->when(!empty($this->filters['status_culaan']), function ($q) {
                 $q->where('status_culaan', $this->filters['status_culaan']);
             })
             ->when(!empty($this->filters['search_name']), function ($q) {
-                $search = $this->filters['search_name'];
-                $q->where(function ($sub) use ($search) {
-                    $sub->where('nama', 'like', "%{$search}%")
-                        ->orWhere('no_kp', 'like', "%{$search}%");
+                $search = trim($this->filters['search_name']); // trim whitespace
+    
+                $q->where(function ($qq) use ($search) {
+
+                    if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
+                        // *something* → contains
+                        $term = substr($search, 1, -1);
+                        $pattern = "%{$term}%";
+                    } elseif (str_starts_with($search, '*')) {
+                        // *something → ends with
+                        $term = substr($search, 1);
+                        $pattern = "%{$term}";
+                    } elseif (str_ends_with($search, '*')) {
+                        // something* → starts with
+                        $term = substr($search, 0, -1);
+                        $pattern = "{$term}%";
+                    } else {
+                        // default → contains
+                        $pattern = "%{$search}%";
+                    }
+
+                    $qq->where('nama', 'like', $pattern)
+                        ->orWhere('no_kp', 'like', $pattern);
                 });
             });
 

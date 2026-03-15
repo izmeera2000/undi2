@@ -139,11 +139,30 @@ class CulaanController extends Controller
         }
 
         if ($request->search_name) {
-            $query->where(function ($q) use ($request) {
+            $search = trim($request->search_name); // <-- trim whitespace
 
-                $q->where('nama', 'like', "%{$request->search_name}%")
-                    ->orWhere('no_kp', 'like', "%{$request->search_name}%");
-
+            $query->where(function ($q) use ($search) {
+                // Determine search type based on '*' position
+                if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
+                    // *something* → contains
+                    $term = substr($search, 1, -1);
+                    $q->where('nama', 'like', "%{$term}%")
+                        ->orWhere('no_kp', 'like', "%{$term}%");
+                } elseif (str_starts_with($search, '*')) {
+                    // *something → ends with
+                    $term = substr($search, 1);
+                    $q->where('nama', 'like', "%{$term}")
+                        ->orWhere('no_kp', 'like', "%{$term}");
+                } elseif (str_ends_with($search, '*')) {
+                    // something* → starts with
+                    $term = substr($search, 0, -1);
+                    $q->where('nama', 'like', "{$term}%")
+                        ->orWhere('no_kp', 'like', "{$term}%");
+                } else {
+                    // default → contains
+                    $q->where('nama', 'like', "%{$search}%")
+                        ->orWhere('no_kp', 'like', "%{$search}%");
+                }
             });
         }
 
@@ -856,72 +875,73 @@ class CulaanController extends Controller
 
 
 
-    public function exportPdf(Request $request, Culaan $culaan)
-    {
-        $validator = Validator::make($request->all(), [
-            'lokaliti' => 'nullable|string',
-            'status_culaan' => 'nullable|string',
-            'search_name' => 'nullable|string',
-            'force' => 'nullable|boolean',
-        ]);
+ public function exportPdf(Request $request, Culaan $culaan)
+{
+    $validator = Validator::make($request->all(), [
+        'lokaliti' => 'nullable|string',
+        'status_culaan' => 'nullable|string',
+        'search_name' => 'nullable|string',
+        'force' => 'nullable|boolean',
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid filters',
-            ], 400);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid filters',
+        ], 400);
+    }
 
-        $filters = $request->only([
-            'lokaliti',
-            'status_culaan',
-            'search_name',
-        ]);
+    $filters = $request->only([
+        'lokaliti',
+        'status_culaan',
+        'search_name',
+    ]);
 
-        $force = $request->boolean('force');
+    $force = $request->boolean('force');
 
-        // sanitize filters for filename
-        $lokaliti = $filters['lokaliti']
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
-            : 'all';
+    // sanitize filters for filename
+    $lokaliti = $filters['lokaliti']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+        : 'all';
 
-        $status = $filters['status_culaan'] ?: 'all';
+    $status = $filters['status_culaan'] ?: 'all';
 
-        $search = $filters['search_name']
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['search_name'])
-            : 'all';
+    // Trim search_name before sanitizing
+    $search = $filters['search_name']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
+        : 'all';
 
-        $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
-        $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
 
-        // Force delete old file if requested
-        if ($force && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
+    // Force delete old file if requested
+    if ($force && Storage::disk('public')->exists($path)) {
+        Storage::disk('public')->delete($path);
+    }
 
-        // Check if file exists and not forcing
-        if (!$force && Storage::disk('public')->exists($path)) {
-            return response()->json([
-                'success' => true,
-                'exists' => true,
-                'url' => asset('storage/' . $path) . '?t=' . time(),
-                'message' => 'PDF already exists',
-            ]);
-        }
-
-        // Dispatch job
-        GenerateCulaanBatchJob::dispatch(
-            $culaan->id,
-            $filters,
-            auth()->id()
-        );
-
+    // Check if file exists and not forcing
+    if (!$force && Storage::disk('public')->exists($path)) {
         return response()->json([
             'success' => true,
-            'exists' => false,
-            'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
+            'exists' => true,
+            'url' => asset('storage/' . $path) . '?t=' . time(),
+            'message' => 'PDF already exists',
         ]);
     }
+
+    // Dispatch job
+    GenerateCulaanBatchJob::dispatch(
+        $culaan->id,
+        $filters,
+        auth()->id()
+    );
+
+    return response()->json([
+        'success' => true,
+        'exists' => false,
+        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
+    ]);
+}
 
 
 
