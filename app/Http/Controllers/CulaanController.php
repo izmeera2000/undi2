@@ -403,9 +403,9 @@ class CulaanController extends Controller
         ];
 
 
-// 1️⃣ Get aggregated data by 'saluran'
-$saluran = (clone $query)
-    ->selectRaw("
+        // 1️⃣ Get aggregated data by 'saluran'
+        $saluran = (clone $query)
+            ->selectRaw("
         saluran,
         SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'D' THEN 1 ELSE 0 END) AS `BN`,
         SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'A' THEN 1 ELSE 0 END) AS `PH`,
@@ -413,37 +413,37 @@ $saluran = (clone $query)
         SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'E' THEN 1 ELSE 0 END) AS `Tidak Pasti`,
         SUM(CASE WHEN COALESCE(NULLIF(LEFT(status_culaan,1),''),'O') = 'O' THEN 1 ELSE 0 END) AS `Belum Cula`
     ")
-    ->groupBy('saluran')
-    ->orderBy('saluran')
-    ->get();
+            ->groupBy('saluran')
+            ->orderBy('saluran')
+            ->get();
 
-// 2️⃣ Remove rows with null/empty 'saluran' and reindex
-$saluran = $saluran->filter(fn($row) => !empty($row->saluran))->values();
+        // 2️⃣ Remove rows with null/empty 'saluran' and reindex
+        $saluran = $saluran->filter(fn($row) => !empty($row->saluran))->values();
 
-// 3️⃣ Extract labels
-$labels = $saluran->pluck('saluran')->toArray();
+        // 3️⃣ Extract labels
+        $labels = $saluran->pluck('saluran')->toArray();
 
-// 4️⃣ Define statuses
-$statusList = ['BN','PH','PAS','Tidak Pasti','Belum Cula'];
+        // 4️⃣ Define statuses
+        $statusList = ['BN', 'PH', 'PAS', 'Tidak Pasti', 'Belum Cula'];
 
-// 5️⃣ Build series, removing series where all data is zero
-$series = collect($statusList)->map(function($status) use ($saluran) {
-    $data = $saluran->pluck($status)->map(fn($v) => (int)$v)->toArray();
-    // Only include series if at least one value > 0
-    return array_sum($data) > 0
-        ? ['name' => $status, 'data' => $data]
-        : null;
-})->filter()->values()->toArray(); // remove null series
+        // 5️⃣ Build series, removing series where all data is zero
+        $series = collect($statusList)->map(function ($status) use ($saluran) {
+            $data = $saluran->pluck($status)->map(fn($v) => (int) $v)->toArray();
+            // Only include series if at least one value > 0
+            return array_sum($data) > 0
+                ? ['name' => $status, 'data' => $data]
+                : null;
+        })->filter()->values()->toArray(); // remove null series
 
-// 6️⃣ Map colors for remaining series
-$seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
+        // 6️⃣ Map colors for remaining series
+        $seriesColors = collect($series)->map(fn($s) => $colorsLabel[$s['name']] ?? '#000')->toArray();
 
-// 7️⃣ Final chart data
-$saluranChart = [
-    'labels' => $labels,
-    'series' => $series,
-    'colors' => $seriesColors
-];
+        // 7️⃣ Final chart data
+        $saluranChart = [
+            'labels' => $labels,
+            'series' => $series,
+            'colors' => $seriesColors
+        ];
 
 
 
@@ -878,73 +878,73 @@ $saluranChart = [
 
 
 
- public function exportPdf(Request $request, Culaan $culaan)
-{
-    $validator = Validator::make($request->all(), [
-        'lokaliti' => 'nullable|string',
-        'status_culaan' => 'nullable|string',
-        'search_name' => 'nullable|string',
-        'force' => 'nullable|boolean',
-    ]);
+    public function exportPdf(Request $request, Culaan $culaan)
+    {
+        $validator = Validator::make($request->all(), [
+            'lokaliti' => 'nullable|string',
+            'status_culaan' => 'nullable|string',
+            'search_name' => 'nullable|string',
+            'force' => 'nullable|boolean',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid filters',
-        ], 400);
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid filters',
+            ], 400);
+        }
 
-    $filters = $request->only([
-        'lokaliti',
-        'status_culaan',
-        'search_name',
-    ]);
+        $filters = $request->only([
+            'lokaliti',
+            'status_culaan',
+            'search_name',
+        ]);
 
-    $force = $request->boolean('force');
+        $force = $request->boolean('force');
 
-    // sanitize filters for filename
-    $lokaliti = $filters['lokaliti']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
-        : 'all';
+        // sanitize filters for filename
+        $lokaliti = $filters['lokaliti']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+            : 'all';
 
-    $status = $filters['status_culaan'] ?: 'all';
+        $status = $filters['status_culaan'] ?: 'all';
 
-    // Trim search_name before sanitizing
-    $search = $filters['search_name']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
-        : 'all';
+        // Trim search_name before sanitizing
+        $search = $filters['search_name']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
+            : 'all';
 
-    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
-    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+        $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+        $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
 
-    // Force delete old file if requested
-    if ($force && Storage::disk('public')->exists($path)) {
-        Storage::disk('public')->delete($path);
-    }
+        // Force delete old file if requested
+        if ($force && Storage::disk('public')->exists($path)) {
+            Storage::disk('public')->delete($path);
+        }
 
-    // Check if file exists and not forcing
-    if (!$force && Storage::disk('public')->exists($path)) {
+        // Check if file exists and not forcing
+        if (!$force && Storage::disk('public')->exists($path)) {
+            return response()->json([
+                'success' => true,
+                'exists' => true,
+                'url' => asset('storage/' . $path) . '?t=' . time(),
+                'message' => 'PDF already exists',
+            ]);
+        }
+
+        // Dispatch job
+        GenerateCulaanBatchJob::dispatch(
+            $culaan->id,
+            $filters,
+            auth()->id()
+        );
+
         return response()->json([
             'success' => true,
-            'exists' => true,
-            'url' => asset('storage/' . $path) . '?t=' . time(),
-            'message' => 'PDF already exists',
+            'exists' => false,
+            'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
         ]);
     }
-
-    // Dispatch job
-    GenerateCulaanBatchJob::dispatch(
-        $culaan->id,
-        $filters,
-        auth()->id()
-    );
-
-    return response()->json([
-        'success' => true,
-        'exists' => false,
-        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
-    ]);
-}
 
 
 
