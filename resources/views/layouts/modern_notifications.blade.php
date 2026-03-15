@@ -43,7 +43,7 @@
         @forelse ($notifications as $notification)
 
             @php
-                $type = $notification->data['type'] ?? 'primary';
+                $type = $notification->data['notify_type'] ?? 'primary';
                 $icon = $notification->data['icon'] ?? 'bi-bell';
             @endphp
 

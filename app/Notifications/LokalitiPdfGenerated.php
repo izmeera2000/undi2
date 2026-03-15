@@ -29,7 +29,7 @@ class LokalitiPdfGenerated extends Notification implements ShouldQueue
             'title'   => 'PDF Generation Completed',
             'message' => 'Your PDF is ready. Click to view.',
             'url'     => $this->url, // ✅ Changed from file → url
-            'type'    => 'success',
+            'notify_type'    => 'success',
             'icon'    => 'bi-file-earmark-pdf',
         ];
     }
@@ -40,7 +40,7 @@ class LokalitiPdfGenerated extends Notification implements ShouldQueue
             'title'   => 'PDF Generation Completed',
             'message' => 'Your PDF is ready. Click to view.',
             'url'     => $this->url, // ✅ Changed from file → url
-            'type'    => 'success',
+            'notify_type'    => 'success',
             'icon'    => 'bi-file-earmark-pdf',
         ]);
     }

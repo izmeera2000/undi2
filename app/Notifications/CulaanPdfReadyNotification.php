@@ -32,7 +32,7 @@ class CulaanPdfReadyNotification extends Notification implements ShouldQueue
             'title'   => 'Culaan PDF Ready',
             'message' => 'Your Culaan report has been generated.',
             'url'     => $this->pdfUrl,
-            'type'    => 'success',
+            'notify_type'    => 'success',
             'icon'    => 'bi-file-earmark-pdf',
             'culaan_id' => $this->culaanId,
         ];
@@ -45,7 +45,7 @@ class CulaanPdfReadyNotification extends Notification implements ShouldQueue
             'title'   => 'Culaan PDF Ready',
             'message' => 'Your Culaan report has been generated.',
             'url'     => $this->pdfUrl,
-            'type'    => 'success',
+            'notify_type'    => 'success',
             'icon'    => 'bi-file-earmark-pdf',
             'culaan_id' => $this->culaanId,
 

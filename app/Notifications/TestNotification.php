@@ -35,7 +35,7 @@ class TestNotification extends Notification implements ShouldQueue
             'title'   => $this->title,
             'message' => $this->message,
             'url'     => $this->url,
-            'type'    => 'info', // can be success, warning, etc.
+            'notify_type'    => 'info', // can be success, warning, etc.
             'icon'    => 'bi-bell', // bootstrap icon
         ];
     }
@@ -48,7 +48,7 @@ class TestNotification extends Notification implements ShouldQueue
             'title'   => $this->title,
             'message' => $this->message,
             'url'     => $this->url,
-            'type'    => 'info',
+            'notify_type'    => 'info',
             'icon'    => 'bi-bell',
         ]);
     }
