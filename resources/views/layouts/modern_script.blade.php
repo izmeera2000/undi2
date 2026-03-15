@@ -121,12 +121,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (window.Echo) {
 
-        console.log('Echo listening for user', userId);
+        // console.log('Echo listening for user', userId);
 
         window.Echo.private(`App.Models.User.${userId}`)
             .notification((notification) => {
 
-                console.log('Real-time notification:', notification);
+                // console.log('Real-time notification:', notification);
 
                 // Toast
                 toastr.success(notification.message, notification.title);
