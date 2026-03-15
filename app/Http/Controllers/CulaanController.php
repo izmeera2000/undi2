@@ -99,37 +99,37 @@ class CulaanController extends Controller
 
         return response()->json(['success' => true]);
     }
-public function show(Culaan $culaan)
-{
-    $year = $culaan->election?->year;
+    public function show(Culaan $culaan)
+    {
+        $year = $culaan->election?->year;
 
-    $lokalitiList = DB::table('lokaliti')
-        ->whereYear('effective_from', '<=', $year)
-        ->where(function ($q) use ($year) {
-            $q->whereYear('effective_to', '>=', $year)
-              ->orWhereNull('effective_to');
-        })
-        ->get();
+        $lokalitiList = DB::table('lokaliti')
+            ->whereYear('effective_from', '<=', $year)
+            ->where(function ($q) use ($year) {
+                $q->whereYear('effective_to', '>=', $year)
+                    ->orWhereNull('effective_to');
+            })
+            ->get();
 
-    $groupsList = DB::table('groups')
-        ->whereYear('created_at', '<=', $year)
-        ->get();
+        $groupsList = DB::table('groups')
+            ->whereYear('created_at', '<=', $year)
+            ->get();
 
-    $dmList = DB::table('dm')
-        ->whereYear('effective_from', '<=', $year)
-        ->where(function ($q) use ($year) {
-            $q->whereYear('effective_to', '>=', $year)
-              ->orWhereNull('effective_to');
-        })
-        ->get();
+        $dmList = DB::table('dm')
+            ->whereYear('effective_from', '<=', $year)
+            ->where(function ($q) use ($year) {
+                $q->whereYear('effective_to', '>=', $year)
+                    ->orWhereNull('effective_to');
+            })
+            ->get();
 
-    return view('culaan.show', compact(
-        'culaan',
-        'lokalitiList',
-        'groupsList',
-        'dmList'
-    ));
-}
+        return view('culaan.show', compact(
+            'culaan',
+            'lokalitiList',
+            'groupsList',
+            'dmList'
+        ));
+    }
 
 
     public function pengundiData(Request $request, Culaan $culaan)
@@ -325,10 +325,22 @@ public function show(Culaan $culaan)
                 ->where(function ($q) use ($year) {
                     $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
                 })
+                ->orderBy('koddm')
+
                 ->get();
 
 
-        return view('culaan.analytics', compact('culaan', 'lokalitiList'));
+        $dmList = DB::table('dm')
+            ->whereYear('effective_from', '<=', $year)
+            ->where(function ($q) use ($year) {
+                $q->whereYear('effective_to', '>=', $year)
+                    ->orWhereNull('effective_to');
+            })
+            ->orderBy('koddm')
+            ->get();
+
+
+        return view('culaan.analytics', compact('culaan', 'lokalitiList', 'dmList'));
     }
 
 

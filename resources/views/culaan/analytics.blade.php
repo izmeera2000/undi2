@@ -26,6 +26,17 @@
 
                 <div class="row">
 
+                    
+                    <div class="col-md-3">
+                        <select id="dm" class="form-control">
+                            <option value="">All DM</option>
+                            @foreach($dmList as $dm)
+                                <option value="{{ $dm->koddm }}">{{ $dm->namadm }}
+                                    ({{  $dm->koddm}})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
 
                     <div class="col-md-3">
                         <select id="lokaliti" class="form-control">
@@ -471,6 +482,28 @@
                 body: JSON.stringify({ charts: images })
             })
 
+        });
+
+
+                $('#dm').on('change', function () {
+            let dm = $(this).val();
+
+            $('#lokaliti option').each(function () {
+                let lokaliti = $(this).val();
+
+                if (!lokaliti) {
+                    $(this).show();
+                    return;
+                }
+
+                if (dm === "" || lokaliti.startsWith(dm)) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            $('#lokaliti').val('');
         });
 
     </script>
