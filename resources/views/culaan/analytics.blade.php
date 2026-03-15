@@ -31,7 +31,8 @@
                         <select id="lokaliti" class="form-control">
                             <option value="">All Lokaliti</option>
                             @foreach($lokalitiList as $lokaliti)
-                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->nama_lokaliti }} ({{  $lokaliti->kod_lokaliti}})</option>
+                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->nama_lokaliti }}
+                                    ({{  $lokaliti->kod_lokaliti}})</option>
                             @endforeach
                         </select>
                     </div>
@@ -198,14 +199,20 @@
 
 
                             const getColor = (seriesIndex, dataPointIndex) => {
-                                const chartColors = w.globals.colors || w.config.colors || []; // use rendered chart colors
-
+                                const chartColors = w.globals.colors || w.config.colors || [];
                                 const seriesLength = w.config.series.length;
 
-                                if (type === 'pie' || seriesLength === 1) {
+                                if (w.config.chart?.type === 'pie') {
+                                    // pie chart: color per slice
                                     return chartColors?.[dataPointIndex] || '#000';
                                 }
 
+                                if (seriesLength === 1) {
+                                    // single series bar chart: use first color for all bars
+                                    return chartColors?.[0] || '#000';
+                                }
+
+                                // multi-series / stacked bars: use seriesIndex
                                 return chartColors?.[seriesIndex] || '#000';
                             };
 
@@ -264,19 +271,19 @@
                             }
 
                             const html = items.map(i => `
-                                                                                <div class="tooltip-row d-flex align-items-center mb-1">
-                                                                                    <span style="
-                                                                                        background:${i.color};
-                                                                                        width:12px;
-                                                                                        height:12px;
-                                                                                        display:inline-block;
-                                                                                        margin-right:6px;
-                                                                                        border-radius:3px;
-                                                                                    "></span>
-                                                                                    <span>${i.name}</span>
-                                                                                    <strong class="ms-auto">${i.value}</strong>
-                                                                                </div>
-                                                                            `).join('');
+                                                                                        <div class="tooltip-row d-flex align-items-center mb-1">
+                                                                                            <span style="
+                                                                                                background:${i.color};
+                                                                                                width:12px;
+                                                                                                height:12px;
+                                                                                                display:inline-block;
+                                                                                                margin-right:6px;
+                                                                                                border-radius:3px;
+                                                                                            "></span>
+                                                                                            <span>${i.name}</span>
+                                                                                            <strong class="ms-auto">${i.value}</strong>
+                                                                                        </div>
+                                                                                    `).join('');
 
                             document.getElementById("tooltipModalBody").innerHTML = html;
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();
