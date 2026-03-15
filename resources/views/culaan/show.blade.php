@@ -128,7 +128,7 @@
                         <select id="filter_lokaliti" class="form-control">
                             <option value="">All Lokaliti</option>
                             @foreach($lokalitiList as $lokaliti)
-                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->nama_lokaliti }}
+                                <option value="{{ $lokaliti->kod_lokaliti }}" data-name="{{$lokaliti->nama_lokaliti}}">{{ $lokaliti->nama_lokaliti }}
                                     ({{  $lokaliti->kod_lokaliti}})</option>
                             @endforeach
                         </select>
@@ -866,7 +866,9 @@
         async function exportPdf(force = false) {
 
             const filters = {
+                dm: document.getElementById('filter_dm').value,
                 lokaliti: document.getElementById('filter_lokaliti').value,
+                lokaliti_name: document.getElementById('filter_lokaliti').data_name,
                 status_culaan: document.getElementById('filter_status').value,
                 search_name: document.getElementById('filter_search').value,
                 force: force

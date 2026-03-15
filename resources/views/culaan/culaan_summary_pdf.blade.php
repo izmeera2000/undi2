@@ -41,8 +41,12 @@
     </tr>
 
     <tr>
-        <td width="180"><b>Lokaliti</b></td>
-        <td>{{ $filters['lokaliti'] ?? 'All' }}</td>
+
+        @if(empty($filters['lokaliti']))
+            All
+        @else
+            {{ $filters['lokaliti_name'] }} ({{ $filters['lokaliti'] }})
+        @endif
     </tr>
 
     @php
