@@ -45,10 +45,12 @@
             if (!item) return;
 
             e.preventDefault();
+
             const id = item.dataset.id;
             const url = item.getAttribute('href');
 
             try {
+                // Mark as read via AJAX
                 const res = await fetch(`/notifications/${id}/read`, {
                     method: 'POST',
                     headers: {
@@ -58,24 +60,39 @@
                 });
 
                 const data = await res.json();
+
                 if (data.success) {
-                    item.classList.remove('bg-light', 'unread');
+                    // Remove unread styling
+                    item.classList.remove('bg-primary-light', 'unread');
 
-                    // Update badge
+                    // Update badge count
                     let count = Math.max((parseInt(badge.innerText, 10) || 0) - 1, 0);
-                    if (count <= 0) {
-                        badge.style.display = 'none';
-                        countSpan.innerText = '0 new';
-                    } else {
-                        badge.innerText = count;
-                        countSpan.innerText = count + ' new';
-                    }
-
-                    if (url && url !== '#') window.location.href = url;
+                    badge.innerText = count;
+                    countSpan.innerText = count > 0 ? count + ' new' : '0 new';
+                    badge.style.display = count > 0 ? '' : 'none';
                 }
+
+                // Navigate to the notification URL
+                if (url && url !== '#') {
+                    // Open PDFs in new tab
+                    if (url.endsWith('.pdf')) {
+                        window.open(url, '_blank');
+                    } else {
+                        window.location.href = url;
+                    }
+                }
+
             } catch (err) {
                 console.error('Notification error:', err);
-                if (url && url !== '#') window.location.href = url;
+
+                // Fallback navigation
+                if (url && url !== '#') {
+                    if (url.endsWith('.pdf')) {
+                        window.open(url, '_blank');
+                    } else {
+                        window.location.href = url;
+                    }
+                }
             }
         });
     }
@@ -135,11 +152,19 @@
 
                         const item = document.createElement('a');
 
-                        item.href = notification.url || '#';
+                        const url = notification.url || '#';
+                        item.href = url;
                         item.dataset.id = notification.id;
 
+                        // Open PDF links in new tab
+                        if (url.endsWith('.pdf')) {
+                            item.target = '_blank';
+                        }
+
+
+
                         item.className =
-                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-light";
+                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
 
                         const now = new Date().toISOString(); // current timestamp
 

@@ -518,7 +518,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         $user->notify(new TestNotification(
             "Hello!",
             "This is a real-time test notification.",
-            url('/notification-test') // link to some page
+            url('/notification-test.pdf') // link to some page
         ));
 
         return response()->json(['status' => 'Test notification sent']);

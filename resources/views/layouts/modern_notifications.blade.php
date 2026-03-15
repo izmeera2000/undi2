@@ -9,7 +9,7 @@
             $unreadCount = auth()->user()->unreadNotifications()->count();
         @endphp
 
-        <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill"
+        <span class="badge"
             id="notification-badge" style="{{ $unreadCount ? '' : 'display:none;' }}">
             {{ $unreadCount }}
         </span>
@@ -45,11 +45,14 @@
                 @php
                     $type = $notification->data['notify_type'] ?? 'primary';
                     $icon = $notification->data['icon'] ?? 'bi-bell';
+                
+                    $url = $notification->data['url'] ?? '#';
+                    $isPdf = str_ends_with($url, '.pdf'); // Laravel 9+ helper
                 @endphp
 
-                <a href="{{ $notification->data['url'] ?? '#' }}"
-                    class="notification-item d-flex gap-3 p-3 border-bottom {{ is_null($notification->read_at) ? 'unread bg-light' : '' }}"
-                    data-id="{{ $notification->id }}">
+                <a href="{{ $url }}"
+                    class="notification-item d-flex gap-3 p-3 border-bottom {{ is_null($notification->read_at) ? 'unread bg-primary-light' : '' }}"
+                    data-id="{{ $notification->id }}" {{ $isPdf ? 'target=_blank' : '' }}>
 
                     <div
                         class="notification-avatar {{ $type }} rounded-circle d-flex align-items-center justify-content-center">
