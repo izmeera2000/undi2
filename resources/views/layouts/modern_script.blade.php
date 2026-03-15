@@ -112,36 +112,38 @@
 </script>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    const userId = "{{ auth()->id() }}";
-
- 
+        const userId = "{{ auth()->id() }}";
 
 
-    if (window.Echo) {
 
-        // console.log('Echo listening for user', userId);
 
-        window.Echo.private(`App.Models.User.${userId}`)
-            .notification((notification) => {
+        if (window.Echo) {
 
-                // console.log('Real-time notification:', notification);
+            // console.log('Echo listening for user', userId);
 
-                // Toast
-                toastr.success(notification.message, notification.title);
+            window.Echo.private(`App.Models.User.${userId}`)
+                .notification((notification) => {
 
-                if (notificationList) {
+                    // console.log('Real-time notification:', notification);
 
-                    const item = document.createElement('a');
+                    // Toast
+                    toastr.success(notification.message, notification.title);
 
-                    item.href = notification.url || '#';
-                    item.dataset.id = notification.id;
+                    if (notificationList) {
 
-                    item.className =
-                        "notification-item d-flex gap-3 p-3 border-bottom unread bg-light";
+                        const item = document.createElement('a');
 
-                    item.innerHTML = `
+                        item.href = notification.url || '#';
+                        item.dataset.id = notification.id;
+
+                        item.className =
+                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-light";
+
+                        const now = new Date().toISOString(); // current timestamp
+
+                        item.innerHTML = `
                         <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
                             <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
                         </div>
@@ -155,40 +157,88 @@ document.addEventListener("DOMContentLoaded", function () {
                                 ${notification.message ?? ''}
                             </div>
 
-                            <div class="notification-time small text-muted mt-1">
-                                <i class="bi bi-clock me-1"></i>
-                                just now
+                            <div class="notification-time small text-muted mt-1" data-time="${now}">
+                                <i class="bi bi-clock me-1"></i>Just now
                             </div>
                         </div>
                     `;
 
-                    // prepend to top
-                    notificationList.prepend(item);
+                        // prepend to top
+                        notificationList.prepend(item);
 
-                    // limit list to 5 items (same as blade)
-                    const items = notificationList.querySelectorAll('.notification-item');
-                    if (items.length > 5) {
-                        items[items.length - 1].remove();
+                        // limit list to 5 items (same as blade)
+                        const items = notificationList.querySelectorAll('.notification-item');
+                        if (items.length > 5) {
+                            items[items.length - 1].remove();
+                        }
                     }
-                }
 
-                // Update badge
-                if (badge) {
+                    // Update badge
+                    if (badge) {
 
-                    let count = parseInt(badge.innerText || '0', 10) + 1;
+                        let count = parseInt(badge.innerText || '0', 10) + 1;
 
-                    badge.innerText = count;
+                        badge.innerText = count;
 
-                    if (countSpan) {
-                        countSpan.innerText = count + ' new';
+                        if (countSpan) {
+                            countSpan.innerText = count + ' new';
+                        }
                     }
-                }
 
+                });
+
+        } else {
+            console.log('Echo is not loaded');
+        }
+
+    });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const notificationButton = document.querySelector('.notification-dropdown button');
+
+        function formatTimeAgo(dateString) {
+
+            const time = new Date(dateString);
+            const now = new Date();
+
+            const seconds = Math.floor((now - time) / 1000);
+
+            if (seconds < 60) return "just now";
+
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + " min ago";
+
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + " hr ago";
+
+            const days = Math.floor(hours / 24);
+            return days + " day ago";
+        }
+
+        function updateNotificationTimes() {
+
+            document.querySelectorAll('.notification-time').forEach(el => {
+
+                const timestamp = el.dataset.time;
+                if (!timestamp) return;
+
+                const text = formatTimeAgo(timestamp);
+
+                el.innerHTML = `<i class="bi bi-clock me-1"></i>${text}`;
             });
 
-    } else {
-        console.log('Echo is not loaded');
-    }
+        }
 
-});
+        if (notificationButton) {
+
+            notificationButton.addEventListener('shown.bs.dropdown', function () {
+                updateNotificationTimes();
+            });
+
+        }
+
+    });
 </script>
