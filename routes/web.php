@@ -353,7 +353,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::post('/bulk-store', [DMController::class, 'bulkStore'])
             ->name('bulkStore');
 
-            
+
         Route::post('/bulk-store', [DMController::class, 'bulkStore'])
             ->name('bulkStore');
         Route::get('/{dm}/edit', [DmController::class, 'edit'])->name('edit');
@@ -428,6 +428,10 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::prefix('{culaan}/pengundi')->name('pengundi.')->group(function () {
             // AJAX data table
             Route::post('/data', [CulaanController::class, 'pengundiData'])->name('data');
+
+            Route::post('/edit', [CulaanController::class, 'pengundiEdit'])->name('edit');
+            Route::get('/fetch', [CulaanController::class, 'pengundiFetch'])->name('fetch');
+
 
             // Store individual pengundi
             Route::post('/store', [CulaanController::class, 'storePengundi'])->name('store');

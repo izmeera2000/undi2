@@ -264,12 +264,17 @@ class CulaanController extends Controller
             })
 
             ->addColumn('actions', function ($row) {
+                return <<<HTML
+                <div class="d-flex gap-1">
+                    <button class="btn btn-sm btn-primary edit-pengundi" data-id="{$row->id}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
 
-                return '
-            <button class="btn btn-sm btn-danger delete-pengundi"
-                data-id="' . $row->id . '">
-                <i class="bi bi-trash"></i>
-            </button>';
+                    <button class="btn btn-sm btn-danger delete-pengundi" data-id="{$row->id}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                HTML;
             })
 
 
@@ -736,6 +741,104 @@ class CulaanController extends Controller
         ]);
     }
 
+
+    public function pengundiEdit(Request $request, Culaan $culaan)
+    {
+        // Validation
+        $request->validate([
+            'id' => 'required|exists:culaan_pengundis,id',
+            'nama' => 'required',
+            'no_kp' => 'nullable',
+            'lokaliti' => 'required',
+            'saluran' => 'nullable',
+        ]);
+
+        // Find existing pengundi
+        $pengundi = CulaanPengundi::findOrFail($request->id);
+
+        // Store old values for logging
+        $oldStatus = $pengundi->status_culaan;
+        $oldData = $pengundi->toArray();
+
+        // Split lokaliti
+        $lokalitiData = explode(',', $request->lokaliti);
+        $namaLokaliti = $lokalitiData[0] ?? '';
+        $kodLokaliti = $lokalitiData[1] ?? '';
+
+        // Update fields
+        $pengundi->culaan_id = $culaan->id;
+        $pengundi->nama = $request->nama;
+        $pengundi->no_kp = $request->no_kp;
+        $pengundi->pm = $request->pm;
+        $pengundi->no_siri = $request->no_siri;
+        $pengundi->saluran = $request->saluran;
+        $pengundi->jantina = $request->jantina;
+        $pengundi->umur = $request->umur;
+        $pengundi->bangsa = $request->bangsa;
+        $pengundi->kategori_pengundi = $request->kategori_pengundi;
+        $pengundi->status_pengundi = $request->status_pengundi;
+        $pengundi->cawangan = $request->cawangan;
+        $pengundi->no_ahli = $request->no_ahli;
+        $pengundi->alamat = $request->alamat;
+        $pengundi->status_ahli = $request->status_ahli;
+        $pengundi->kategori_ahli = $request->kategori_ahli;
+        $pengundi->lokaliti = $namaLokaliti;
+        $pengundi->kod_lokaliti = $kodLokaliti;
+        $pengundi->status_culaan = $request->status_culaan ?? $oldStatus;
+        $pengundi->updated_by = auth()->id();
+
+        $pengundi->save();
+
+        // Log activity with old vs new values
+        activity()
+            ->performedOn($pengundi)
+            ->causedBy(auth()->user())
+            ->withProperties([
+                'old' => $oldData,
+                'new' => $pengundi->toArray(),
+            ])
+            ->log('updated pengundi');
+
+        return response()->json(['success' => true]);
+    }
+
+    public function pengundiFetch(Request $request, Culaan $culaan)
+    {
+        // Validate that we have a valid ID
+        $request->validate([
+            'id' => 'required|exists:culaan_pengundis,id',
+        ]);
+
+        // Find the pengundi
+        $pengundi = CulaanPengundi::findOrFail($request->id);
+
+        // Optionally, you can transform the data if needed
+        $data = [
+            'id' => $pengundi->id,
+            'nama' => $pengundi->nama,
+            'no_kp' => $pengundi->no_kp,
+            'pm' => $pengundi->pm,
+            'no_siri' => $pengundi->no_siri,
+            'saluran' => $pengundi->saluran,
+            'jantina' => $pengundi->jantina,
+            'umur' => $pengundi->umur,
+            'bangsa' => $pengundi->bangsa,
+            'kategori_pengundi' => $pengundi->kategori_pengundi,
+            'status_pengundi' => $pengundi->status_pengundi,
+            'status_culaan' => $pengundi->status_culaan,
+            'cawangan' => $pengundi->cawangan,
+            'no_ahli' => $pengundi->no_ahli,
+            'alamat' => $pengundi->alamat,
+            'status_ahli' => $pengundi->status_ahli,
+            'kategori_ahli' => $pengundi->kategori_ahli,
+            'lokaliti2' => $pengundi->lokaliti . ',' . $pengundi->kod_lokaliti,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
 
 
     public function generatePdf(Request $request, Culaan $culaan)
