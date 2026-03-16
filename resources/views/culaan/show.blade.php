@@ -51,7 +51,9 @@
                     ({{ $culaan->election?->year }})
                 </p>
 
-                <p>Date : {{ $culaan->date }}</p>
+                <p>Date : {{ \Carbon\Carbon::parse($culaan->date)->timezone('Asia/Kuala_Lumpur')->format('d M Y H:i')}}</p>
+
+
 
             </div>
         </div>
@@ -152,11 +154,11 @@
 
                     </div>
 
-                    <div class="col-md-3 d-flex align-items-end">
+                    {{-- <div class="col-md-3 d-flex align-items-end">
                         <button id="applyFilter" class="btn btn-primary w-100">
                             Filter
                         </button>
-                    </div>
+                    </div> --}}
 
                 </div>
                 <div class="table-responsive">
@@ -545,24 +547,28 @@
         let table;
 
         function format(row) {
-
             const fields = [
                 ["No Siri", row.no_siri],
                 ["Saluran", row.saluran],
                 ["Bangsa", row.bangsa],
                 ["Umur", row.umur],
-                ["Cawangan", row.nama_cwgn]
+                ["PM", row.pm]
             ];
+
+            // Add member info if status_ahli is not null
+            if (row.status_ahli) {
+                fields.push(
+                    ["No Ahli", row.no_ahli],
+                    ["Kategori Ahli", row.kategori_ahli],
+                    ["Cawangan", row.cawangan],
+
+                );
+            }
 
             const wrap = $('<div class="p-3 row"></div>');
 
             fields.forEach(([label, value]) => {
-                wrap.append(`
-                                                                                    <div class="col-md-3">
-                                                                                        <strong>${label}</strong><br>
-                                                                                        ${value ?? '-'}
-                                                                                    </div>
-                                                                                `);
+                wrap.append(`<div class="col-md-3"> <strong>${label}</strong><br> ${value ?? '-'} </div>`);
             });
 
             return wrap;
@@ -868,11 +874,22 @@
         });
 
 
-        $('#applyFilter').click(function () {
+        let searchTimer;
 
+        // 1. Instant reload for dropdowns
+        $('#filter_dm, #filter_lokaliti, #filter_status').on('change', function () {
             table.ajax.reload();
-
         });
+
+        // 2. Delayed reload for search (waits for user to stop typing)
+        $('#filter_search').on('input', function () {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                table.ajax.reload();
+            }, 300); // 300 milliseconds
+        });
+
+
         async function exportPdf(force = false) {
 
             const filters = {

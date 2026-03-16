@@ -29,7 +29,7 @@
 <table width="100%" cellspacing="0" cellpadding="6" border="0">
     <tr>
         <td width="140"><b>Date</b></td>
-        <td>: {{ $culaan->date }}</td>
+        <td>: {{ $culaan_date }}</td>
     </tr>
 </table>
 
@@ -87,4 +87,19 @@
         <td><b>Total Pengundi Filtered</b></td>
         <td><b>{{ number_format($totalPengundi) }}</b></td>
     </tr>
+</table>
+<br>
+
+
+<table width="100%" border="1" cellspacing="0" cellpadding="5">
+    <tr bgcolor="#eeeeee">
+        <td><b>Table of Contents</b></td>
+        <td><b>Page</b></td>
+    </tr>
+    @foreach($toc as $item)
+        <tr>
+            <td>{{ $item['pm'] }}</td>
+            <td align="center">{{ $item['start_page']  }}</td>
+        </tr>
+    @endforeach
 </table>

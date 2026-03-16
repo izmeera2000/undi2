@@ -11,6 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class GenerateCulaanSummaryPdfJob implements ShouldQueue
 {
@@ -20,11 +21,15 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
     protected array $filters;
     protected int $userId;
 
-    public function __construct(int $culaanId, array $filters, int $userId)
+    protected array $toc;
+
+
+    public function __construct(int $culaanId, array $filters, int $userId, array $toc)
     {
         $this->culaanId = $culaanId;
         $this->filters = $filters;
         $this->userId = $userId;
+        $this->toc = $toc;
     }
 
     public function handle()
@@ -116,6 +121,8 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
 
         $logo = base64_encode(file_get_contents(public_path('assets/img/UMNO_logo.png')));
 
+ 
+
         // -------------------------
         // Generate PDF
         // -------------------------
@@ -124,8 +131,10 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
             'filters' => $this->filters,
             'totalPengundi' => $totalFilteredPengundi,
             'logo' => $logo,
+            'culaan_date' => Carbon::parse($culaan->date)->timezone('Asia/Kuala_Lumpur')->format('d M Y H:i') ,
 
             'generatedAt' => now('Asia/Kuala_Lumpur')->format('d M Y H:i'),
+            'toc' => $this->toc, 
         ])->setPaper('a4', 'portrait');
 
         Log::info('PDF rendered', [

@@ -13,6 +13,7 @@ use App\Jobs\GenerateCulaanBatchJob;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 
@@ -31,7 +32,7 @@ class CulaanController extends Controller
         return DataTables::of($query)
 
             ->addColumn('date', function ($row) {
-                return $row->date ? \Carbon\Carbon::parse($row->date)->format('d M Y') : '-';
+                return $row->date ? Carbon::parse($row->date)->format('d M Y') : '-';
             })
 
             ->addColumn('election', function ($row) {

@@ -189,11 +189,11 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
 
         <thead>
         <tr style="background:#e8e8e8">
-            <th width="8%">No</th>
+            <th width="10%">No</th>
             <th width="35%">Pengundi</th>
             <th width="25%">Lokaliti</th>
             <th width="20%">Details</th>
-            <th width="12%">Culaan</th>
+            <th width="10%">Culaan</th>
         </tr>
         </thead>
         <tbody>';
@@ -208,14 +208,14 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
 
             $status = $statuses[$statusCode] ?? $statusCode;
 
-            $lokaliti = $row->lokaliti . ' (' . $row->kod_lokaliti . ')';
+            $lokaliti = '<strong>' .$row->lokaliti . '</strong><br>(' . $row->kod_lokaliti . ')';
 
             $details = $row->kategori_pengundi .
                 ($row->status_pengundi ? "<br>({$row->status_pengundi})" : '');
 
             $html .= "
             <tr>
-                <td>{$counter}<br>(ID:{$row->id})</td>
+                <td>{$counter}</td>
 
                 <td>
                     <strong>{$row->nama}</strong><br>

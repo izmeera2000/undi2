@@ -188,9 +188,9 @@ class GenerateCulaanBatchJob implements ShouldQueue
         // Dispatch batch with merge callback
         // -------------------------
         Bus::batch($jobs)
-            ->then(function (Batch $batch) use ($culaanId, $filters, $userId) {
+            ->then(function (Batch $batch) use ($culaanId, $filters, $userId,$toc) {
                 Log::info('All per-lokaliti jobs finished, now merging PDFs');
-                GenerateCulaanSummaryPdfJob::dispatch($culaanId, $filters, $userId);
+                GenerateCulaanSummaryPdfJob::dispatch($culaanId, $filters, $userId,$toc);
 
                 MergeCulaanPdfJob::dispatch($culaanId, $filters, $userId);
             })
