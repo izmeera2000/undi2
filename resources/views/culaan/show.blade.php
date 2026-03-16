@@ -206,7 +206,7 @@
                             <!-- Lokaliti Info -->
                             <div class="col-md-6">
                                 <label for="lokaliti">Lokaliti</label>
-                                <select name="lokaliti" class="form-control" id="lokaliti">
+                                <select name="lokaliti" class="form-control choices" id="lokalitiadd">
                                     <option value="">Select Lokaliti</option>
                                     @foreach($lokalitiList as $lokaliti)
                                         <option value="{{ $lokaliti->nama_lokaliti }},{{ $lokaliti->kod_lokaliti }}">
@@ -326,7 +326,7 @@
                                 <select name="kategori_ahli" class="form-control" id="kategori_ahli">
                                     <option value="">Select Kategori</option>
                                     @foreach($groupsList as $group)
-                                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                        <option value="{{ $group->name }}">{{ $group->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -368,7 +368,7 @@
                             <!-- Lokaliti Info -->
                             <div class="col-md-6">
                                 <label for="lokaliti">Lokaliti</label>
-                                <select name="lokaliti" class="form-control" id="lokaliti">
+                                <select name="lokaliti" class="form-control choices" id="lokalitiedit">
                                     <option value="">Select Lokaliti</option>
                                     @foreach($lokalitiList as $lokaliti)
                                         <option value="{{ $lokaliti->nama_lokaliti }},{{ $lokaliti->kod_lokaliti }}">
@@ -484,7 +484,7 @@
                                 <select name="kategori_ahli" class="form-control" id="kategori_ahli">
                                     <option value="">Select Kategori</option>
                                     @foreach($groupsList as $group)
-                                        <option value="{{ $group->id }}">{{ $group->name }}</option>
+                                        <option value="{{ $group->name }}">{{ $group->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -991,5 +991,32 @@
         });
 
     </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const lokalitiSelect = document.getElementById('lokalitiedit');
+    if (lokalitiSelect) {
+        new Choices(lokalitiSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholderValue: 'Select Lokaliti',
+        });
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const lokalitiSelect = document.getElementById('lokalitiadd');
+    if (lokalitiSelect) {
+        new Choices(lokalitiSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholderValue: 'Select Lokaliti',
+        });
+    }
+});
+</script>
 
 @endpush

@@ -27,6 +27,8 @@ class CulaanPengundi extends Model
 
         'kategori_pengundi',
         'status_pengundi',
+        'kategori_ahli',
+        'status_ahli',
 
         'cawangan',
         'no_ahli',
