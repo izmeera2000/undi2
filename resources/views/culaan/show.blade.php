@@ -558,11 +558,11 @@
 
             fields.forEach(([label, value]) => {
                 wrap.append(`
-                                                                                <div class="col-md-3">
-                                                                                    <strong>${label}</strong><br>
-                                                                                    ${value ?? '-'}
-                                                                                </div>
-                                                                            `);
+                                                                                    <div class="col-md-3">
+                                                                                        <strong>${label}</strong><br>
+                                                                                        ${value ?? '-'}
+                                                                                    </div>
+                                                                                `);
             });
 
             return wrap;
@@ -583,8 +583,16 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     data: function (d) {
+                        const dmEl = document.getElementById('filter_dm');
+                        const lokEl = document.getElementById('filter_lokaliti');
 
-                        d.lokaliti = $('#filter_lokaliti').val();
+                        // Add filters to the request object (d)
+                        d.dm = dmEl.value;
+                        d.dm_name = dmEl.selectedOptions[0]?.dataset.name ?? null;
+
+                        d.lokaliti = lokEl.value;
+                        d.lokaliti_name = lokEl.selectedOptions[0]?.dataset.name ?? null;
+
                         d.status_culaan = $('#filter_status').val();
                         d.search_name = $('#filter_search').val();
 

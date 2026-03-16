@@ -83,7 +83,14 @@ class CulaanPengundiImportJob implements ShouldQueue
 
             foreach ($headerMap as $csv => $db) {
                 $idx = array_search($csv, $header);
-                $row[$db] = $idx !== false ? trim($data[$idx]) : null;
+                $value = $idx !== false ? trim($data[$idx]) : null;
+
+                // Set default 'O' for status_culaan
+                if ($db === 'status_culaan' && empty($value)) {
+                    $value = 'O';
+                }
+
+                $row[$db] = $value;
             }
 
             // ✅ Ensure kod_lokaliti starts with '022'

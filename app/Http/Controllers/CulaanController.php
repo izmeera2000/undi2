@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Jobs\GenerateCulaanBatchJob;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Log;
 
 use Devrabiul\ToastMagic\Facades\ToastMagic;
 
@@ -109,6 +110,7 @@ class CulaanController extends Controller
                 $q->whereYear('effective_to', '>=', $year)
                     ->orWhereNull('effective_to');
             })
+            ->orderBy('kod_lokaliti')
             ->get();
 
         $groupsList = DB::table('groups')
@@ -121,6 +123,8 @@ class CulaanController extends Controller
                 $q->whereYear('effective_to', '>=', $year)
                     ->orWhereNull('effective_to');
             })
+            ->orderBy('koddm')
+
             ->get();
 
         return view('culaan.show', compact(
@@ -138,6 +142,9 @@ class CulaanController extends Controller
         $query = CulaanPengundi::where('culaan_id', $culaan->id)
             ->orderBy('id', 'asc');
 
+        if ($request->dm) {
+            $query->where('culaan_pengundis.kod_lokaliti', 'like', $request->dm . '%');
+        }
 
         if ($request->lokaliti) {
             $query->where('culaan_pengundis.kod_lokaliti', $request->lokaliti);
@@ -325,7 +332,7 @@ class CulaanController extends Controller
                 ->where(function ($q) use ($year) {
                     $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
                 })
-                ->orderBy('koddm')
+                ->orderBy('kod_lokaliti')
 
                 ->get();
 
@@ -348,10 +355,13 @@ class CulaanController extends Controller
     {
         $query = CulaanPengundi::where('culaan_id', $culaan->id);
 
+        if ($request->dm) {
+            $query->where('culaan_pengundis.kod_lokaliti', 'like', $request->dm . '%');
+        }
+
         if ($request->lokaliti) {
             $query->where('culaan_pengundis.kod_lokaliti', $request->lokaliti);
         }
-
 
         if ($request->status_culaan) {
             if ($request->status_culaan == 'O') {
@@ -899,81 +909,107 @@ class CulaanController extends Controller
 
 
 
-    public function exportPdf(Request $request, Culaan $culaan)
-    {
-        $validator = Validator::make($request->all(), [
-            'lokaliti' => 'nullable|string',
-            'lokaliti_name' => 'nullable|string',
-            'dm' => 'nullable|string',
-            'dm_name' => 'nullable|string',
+public function exportPdf(Request $request, Culaan $culaan)
+{
+    Log::info('Export PDF request received', [
+        'culaan_id' => $culaan->id,
+        'request' => $request->all(),
+        'user_id' => auth()->id()
+    ]);
 
-            'status_culaan' => 'nullable|string',
-            'search_name' => 'nullable|string',
-            'force' => 'nullable|boolean',
+    $validator = Validator::make($request->all(), [
+        'lokaliti' => 'nullable|string',
+        'lokaliti_name' => 'nullable|string',
+        'dm' => 'nullable|string',
+        'dm_name' => 'nullable|string',
+        'status_culaan' => 'nullable|string',
+        'search_name' => 'nullable|string',
+        'force' => 'nullable|boolean',
+    ]);
+
+    if ($validator->fails()) {
+
+        Log::error('Export PDF validation failed', [
+            'errors' => $validator->errors()
         ]);
 
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid filters',
+        ], 400);
+    }
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid filters',
-            ], 400);
-        }
+    $filters = $request->only([
+        'lokaliti',
+        'status_culaan',
+        'search_name',
+        'dm',
+        'dm_name',
+        'lokaliti_name',
+    ]);
 
-        $filters = $request->only([
-            'lokaliti',
-            'status_culaan',
-            'search_name',
-            'dm',
-            'dm_name',
-            'lokaliti_name',
+    Log::info('PDF Filters', $filters);
+
+    $force = $request->boolean('force');
+
+    $lokaliti = $filters['lokaliti']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+        : 'all';
+
+    $status = $filters['status_culaan'] ?: 'all';
+
+    $search = $filters['search_name']
+        ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
+        : 'all';
+
+    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+
+    Log::info('PDF path generated', [
+        'filename' => $fileName,
+        'path' => $path,
+        'force' => $force
+    ]);
+
+    if ($force && Storage::disk('public')->exists($path)) {
+
+        Log::info('Force deleting existing PDF', ['path' => $path]);
+
+        Storage::disk('public')->delete($path);
+    }
+
+    if (!$force && Storage::disk('public')->exists($path)) {
+
+        Log::info('Existing PDF found, returning cached file', [
+            'path' => $path
         ]);
-
-        $force = $request->boolean('force');
-
-        // sanitize filters for filename
-        $lokaliti = $filters['lokaliti']
-            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
-            : 'all';
-
-        $status = $filters['status_culaan'] ?: 'all';
-
-        // Trim search_name before sanitizing
-        $search = $filters['search_name']
-            ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
-            : 'all';
-
-        $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
-        $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
-
-        // Force delete old file if requested
-        if ($force && Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->delete($path);
-        }
-
-        // Check if file exists and not forcing
-        if (!$force && Storage::disk('public')->exists($path)) {
-            return response()->json([
-                'success' => true,
-                'exists' => true,
-                'url' => asset('storage/' . $path) . '?t=' . time(),
-                'message' => 'PDF already exists',
-            ]);
-        }
-
-        // Dispatch job
-        GenerateCulaanBatchJob::dispatch(
-            $culaan->id,
-            $filters,
-            auth()->id()
-        );
 
         return response()->json([
             'success' => true,
-            'exists' => false,
-            'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
+            'exists' => true,
+            'url' => asset('storage/' . $path) . '?t=' . time(),
+            'message' => 'PDF already exists',
         ]);
     }
+
+    Log::info('Dispatching GenerateCulaanBatchJob', [
+        'culaan_id' => $culaan->id,
+        'filters' => $filters,
+        'user_id' => auth()->id()
+    ]);
+
+    GenerateCulaanBatchJob::dispatch(
+        $culaan->id,
+        $filters,
+        auth()->id()
+    );
+
+    return response()->json([
+        'success' => true,
+        'exists' => false,
+        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
+    ]);
+}
 
 
 

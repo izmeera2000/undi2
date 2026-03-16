@@ -26,7 +26,7 @@
 
                 <div class="row">
 
-                    
+
                     <div class="col-md-3">
                         <select id="dm" class="form-control">
                             <option value="">All DM</option>
@@ -282,19 +282,19 @@
                             }
 
                             const html = items.map(i => `
-                                                                                        <div class="tooltip-row d-flex align-items-center mb-1">
-                                                                                            <span style="
-                                                                                                background:${i.color};
-                                                                                                width:12px;
-                                                                                                height:12px;
-                                                                                                display:inline-block;
-                                                                                                margin-right:6px;
-                                                                                                border-radius:3px;
-                                                                                            "></span>
-                                                                                            <span>${i.name}</span>
-                                                                                            <strong class="ms-auto">${i.value}</strong>
-                                                                                        </div>
-                                                                                    `).join('');
+                                                                                            <div class="tooltip-row d-flex align-items-center mb-1">
+                                                                                                <span style="
+                                                                                                    background:${i.color};
+                                                                                                    width:12px;
+                                                                                                    height:12px;
+                                                                                                    display:inline-block;
+                                                                                                    margin-right:6px;
+                                                                                                    border-radius:3px;
+                                                                                                "></span>
+                                                                                                <span>${i.name}</span>
+                                                                                                <strong class="ms-auto">${i.value}</strong>
+                                                                                            </div>
+                                                                                        `).join('');
 
                             document.getElementById("tooltipModalBody").innerHTML = html;
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();
@@ -385,6 +385,7 @@
         function loadAnalytics() {
             let data = {
                 // search_name: $('#search_name').val(),
+                dm: $('#dm').val(), // Added this
                 lokaliti: $('#lokaliti').val(),
                 status_culaan: $('#status_culaan').val(),
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -485,7 +486,7 @@
         });
 
 
-                $('#dm').on('change', function () {
+        $('#dm').on('change', function () {
             let dm = $(this).val();
 
             $('#lokaliti option').each(function () {

@@ -29,11 +29,11 @@ class CulaanPdfReadyNotification extends Notification implements ShouldQueue
     public function toDatabase($notifiable)
     {
         return [
-            'title'   => 'Culaan PDF Ready',
+            'title' => 'Culaan PDF Ready',
             'message' => 'Your Culaan report has been generated.',
-            'url'     => $this->pdfUrl,
-            'notify_type'    => 'success',
-            'icon'    => 'bi-file-earmark-pdf',
+            'url' => $this->pdfUrl,
+            'notify_type' => 'success',
+            'icon' => 'bi-file-earmark-pdf',
             'culaan_id' => $this->culaanId,
         ];
     }
@@ -41,12 +41,12 @@ class CulaanPdfReadyNotification extends Notification implements ShouldQueue
     public function toBroadcast($notifiable)
     {
         return new BroadcastMessage([
-                        'id' => $this->id,
-            'title'   => 'Culaan PDF Ready',
+            'id' => $this->id,
+            'title' => 'Culaan PDF Ready',
             'message' => 'Your Culaan report has been generated.',
-            'url'     => $this->pdfUrl,
-            'notify_type'    => 'success',
-            'icon'    => 'bi-file-earmark-pdf',
+            'url' => $this->pdfUrl,
+            'notify_type' => 'success',
+            'icon' => 'bi-file-earmark-pdf',
             'culaan_id' => $this->culaanId,
 
         ]);
