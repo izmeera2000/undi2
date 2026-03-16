@@ -122,7 +122,7 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
                 }
 
                 $q->where('nama', 'like', $pattern)
-                  ->orWhere('no_kp', 'like', $pattern);
+                    ->orWhere('no_kp', 'like', $pattern);
             });
         }
 
@@ -171,6 +171,14 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
         $mpdf->simpleTables = true;
         $mpdf->packTableData = true;
 
+        // Path to your transparent PNG logo
+        $mpdf->SetWatermarkImage(public_path('assets/img/UMNO_logo.png'));
+        $mpdf->showWatermarkImage = true;
+        $mpdf->watermarkImageAlpha = 0.1;
+
+        // 'P' = Center of Page, 'F' = Full Page, 'D' = Diagonal
+        $mpdf->watermarkImgBehind = true;
+
         $mpdf->SetHTMLHeader("
         <div style='font-weight:bold;font-size:14px;background:#f0f0f0;padding:6px;border:1px solid #ccc'>
             PM: {$this->pm} | Page {$this->globalPage}
@@ -208,10 +216,10 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
 
             $status = $statuses[$statusCode] ?? $statusCode;
 
-            $lokaliti = '<strong>' .$row->lokaliti . '</strong><br>(' . $row->kod_lokaliti . ')';
+            $lokaliti = '<strong>' . $row->lokaliti . '</strong><br>(' . $row->kod_lokaliti . ')';
 
             $details = $row->kategori_pengundi .
-                ($row->status_pengundi ? "<br>({$row->status_pengundi})" : '');
+                ($row->status_pengundi ? "<br>({$row->status_pengundi})" : '<br>');
 
             $html .= "
             <tr>
@@ -233,6 +241,8 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
         }
 
         $html .= '</tbody></table>';
+
+
 
         $mpdf->WriteHTML($html);
 

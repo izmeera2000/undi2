@@ -40,9 +40,9 @@
         <td colspan="2"><b>Filters Applied</b></td>
     </tr>
 
-    
+
     <tr>
-        <td ><b>DM</b></td>
+        <td><b>DM</b></td>
         <td>
             @if(empty($filters['dm']))
                 All
@@ -54,7 +54,7 @@
 
 
     <tr>
-        <td ><b>Lokaliti</b></td>
+        <td><b>Lokaliti</b></td>
         <td>
             @if(empty($filters['lokaliti']))
                 All
