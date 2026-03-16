@@ -1063,8 +1063,8 @@ class CulaanController extends Controller
 
 
                         // Get color from status map
-                        $oldColor = $statusMap2[$oldFull]['color'];
-                        $newColor = $statusMap2[$newFull]['color'];
+                        $oldColor = $statusMap2[$oldFull]['color'] ?? '#000';
+                        $newColor = $statusMap2[$newFull]['color'] ?? '#000';
 
                         $nama = $row->properties['nama'] ?? 'N/A';
                         $no_kp = $row->properties['no_kp'] ?? 'N/A';
@@ -1089,22 +1089,21 @@ class CulaanController extends Controller
                         $nama = $row->properties['new']['nama'] ?? 'N/A';
                         $no_kp = $row->properties['new']['no_kp'] ?? 'N/A';
 
-                        // Compare old vs new to find changes
                         $ignoreKeys = ['updated_by', 'updated_at'];
                         $changes = [];
 
-                        foreach ($row->properties['new'] as $key => $newValue) {
-                            if (in_array($key, $ignoreKeys)) {
-                                continue; // Skip logging these fields
-                            }
+                        $newProps = $row->properties['new'] ?? [];
+                        $oldProps = $row->properties['old'] ?? [];
 
-                            $oldValue = $row->properties['old'][$key] ?? null;
+                        foreach ($newProps as $key => $newValue) {
+                            if (in_array($key, $ignoreKeys))
+                                continue;
 
-                            // Normalize empty strings to null for comparison
+                            $oldValue = $oldProps[$key] ?? null;
+
                             $normalizedOld = $oldValue === '' ? null : $oldValue;
                             $normalizedNew = $newValue === '' ? null : $newValue;
 
-                            // Only include meaningful changes
                             if ($normalizedOld != $normalizedNew) {
                                 $changes[] = "<strong>{$key}</strong>: <em>"
                                     . ($normalizedOld ?? 'null') . " → "
@@ -1115,6 +1114,7 @@ class CulaanController extends Controller
                         $changesText = implode(', ', $changes);
 
                         return "Voter <strong>{$nama}</strong> <small>{$no_kp}</small> (ID {$row->subject_id}) was <span class='text-warning'>updated</span>: {$changesText}";
+
 
                     case 'queued pengundi import':
                         $file_name = $row->properties['file_name'] ?? 'unknown file';
