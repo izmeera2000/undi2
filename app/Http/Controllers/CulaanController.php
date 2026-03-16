@@ -910,107 +910,107 @@ class CulaanController extends Controller
 
 
 
-public function exportPdf(Request $request, Culaan $culaan)
-{
-    Log::info('Export PDF request received', [
-        'culaan_id' => $culaan->id,
-        'request' => $request->all(),
-        'user_id' => auth()->id()
-    ]);
-
-    $validator = Validator::make($request->all(), [
-        'lokaliti' => 'nullable|string',
-        'lokaliti_name' => 'nullable|string',
-        'dm' => 'nullable|string',
-        'dm_name' => 'nullable|string',
-        'status_culaan' => 'nullable|string',
-        'search_name' => 'nullable|string',
-        'force' => 'nullable|boolean',
-    ]);
-
-    if ($validator->fails()) {
-
-        Log::error('Export PDF validation failed', [
-            'errors' => $validator->errors()
+    public function exportPdf(Request $request, Culaan $culaan)
+    {
+        Log::info('Export PDF request received', [
+            'culaan_id' => $culaan->id,
+            'request' => $request->all(),
+            'user_id' => auth()->id()
         ]);
 
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid filters',
-        ], 400);
-    }
-
-    $filters = $request->only([
-        'lokaliti',
-        'status_culaan',
-        'search_name',
-        'dm',
-        'dm_name',
-        'lokaliti_name',
-    ]);
-
-    Log::info('PDF Filters', $filters);
-
-    $force = $request->boolean('force');
-
-    $lokaliti = $filters['lokaliti']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
-        : 'all';
-
-    $status = $filters['status_culaan'] ?: 'all';
-
-    $search = $filters['search_name']
-        ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
-        : 'all';
-
-    $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
-    $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
-
-    Log::info('PDF path generated', [
-        'filename' => $fileName,
-        'path' => $path,
-        'force' => $force
-    ]);
-
-    if ($force && Storage::disk('public')->exists($path)) {
-
-        Log::info('Force deleting existing PDF', ['path' => $path]);
-
-        Storage::disk('public')->delete($path);
-    }
-
-    if (!$force && Storage::disk('public')->exists($path)) {
-
-        Log::info('Existing PDF found, returning cached file', [
-            'path' => $path
+        $validator = Validator::make($request->all(), [
+            'lokaliti' => 'nullable|string',
+            'lokaliti_name' => 'nullable|string',
+            'dm' => 'nullable|string',
+            'dm_name' => 'nullable|string',
+            'status_culaan' => 'nullable|string',
+            'search_name' => 'nullable|string',
+            'force' => 'nullable|boolean',
         ]);
+
+        if ($validator->fails()) {
+
+            Log::error('Export PDF validation failed', [
+                'errors' => $validator->errors()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid filters',
+            ], 400);
+        }
+
+        $filters = $request->only([
+            'lokaliti',
+            'status_culaan',
+            'search_name',
+            'dm',
+            'dm_name',
+            'lokaliti_name',
+        ]);
+
+        Log::info('PDF Filters', $filters);
+
+        $force = $request->boolean('force');
+
+        $lokaliti = $filters['lokaliti']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', $filters['lokaliti'])
+            : 'all';
+
+        $status = $filters['status_culaan'] ?: 'all';
+
+        $search = $filters['search_name']
+            ? preg_replace('/[^A-Za-z0-9]/', '_', trim($filters['search_name']))
+            : 'all';
+
+        $fileName = "culaan_{$culaan->id}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+        $path = "pdfs/culaan/{$culaan->id}/{$fileName}";
+
+        Log::info('PDF path generated', [
+            'filename' => $fileName,
+            'path' => $path,
+            'force' => $force
+        ]);
+
+        if ($force && Storage::disk('public')->exists($path)) {
+
+            Log::info('Force deleting existing PDF', ['path' => $path]);
+
+            Storage::disk('public')->delete($path);
+        }
+
+        if (!$force && Storage::disk('public')->exists($path)) {
+
+            Log::info('Existing PDF found, returning cached file', [
+                'path' => $path
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'exists' => true,
+                'url' => asset('storage/' . $path) . '?t=' . time(),
+                'message' => 'PDF already exists',
+            ]);
+        }
+
+        Log::info('Dispatching GenerateCulaanBatchJob', [
+            'culaan_id' => $culaan->id,
+            'filters' => $filters,
+            'user_id' => auth()->id()
+        ]);
+
+        GenerateCulaanBatchJob::dispatch(
+            $culaan->id,
+            $filters,
+            auth()->id()
+        );
 
         return response()->json([
             'success' => true,
-            'exists' => true,
-            'url' => asset('storage/' . $path) . '?t=' . time(),
-            'message' => 'PDF already exists',
+            'exists' => false,
+            'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
         ]);
     }
-
-    Log::info('Dispatching GenerateCulaanBatchJob', [
-        'culaan_id' => $culaan->id,
-        'filters' => $filters,
-        'user_id' => auth()->id()
-    ]);
-
-    GenerateCulaanBatchJob::dispatch(
-        $culaan->id,
-        $filters,
-        auth()->id()
-    );
-
-    return response()->json([
-        'success' => true,
-        'exists' => false,
-        'message' => $force ? 'PDF regeneration started.' : 'PDF generation started.',
-    ]);
-}
 
 
 
@@ -1083,6 +1083,38 @@ public function exportPdf(Request $request, Culaan $culaan)
                         $nama = $row->properties['nama'] ?? 'N/A';
                         $no_kp = $row->properties['no_kp'] ?? 'N/A';
                         return "New voter <strong>{$nama}</strong> <small>{$no_kp}</small>  (ID {$row->subject_id}) was <span class='text-success'>created</span>";
+
+
+                    case 'updated pengundi':
+                        $nama = $row->properties['new']['nama'] ?? 'N/A';
+                        $no_kp = $row->properties['new']['no_kp'] ?? 'N/A';
+
+                        // Compare old vs new to find changes
+                        $ignoreKeys = ['updated_by', 'updated_at'];
+                        $changes = [];
+
+                        foreach ($row->properties['new'] as $key => $newValue) {
+                            if (in_array($key, $ignoreKeys)) {
+                                continue; // Skip logging these fields
+                            }
+
+                            $oldValue = $row->properties['old'][$key] ?? null;
+
+                            // Normalize empty strings to null for comparison
+                            $normalizedOld = $oldValue === '' ? null : $oldValue;
+                            $normalizedNew = $newValue === '' ? null : $newValue;
+
+                            // Only include meaningful changes
+                            if ($normalizedOld != $normalizedNew) {
+                                $changes[] = "<strong>{$key}</strong>: <em>"
+                                    . ($normalizedOld ?? 'null') . " → "
+                                    . ($normalizedNew ?? 'null') . "</em>";
+                            }
+                        }
+
+                        $changesText = implode(', ', $changes);
+
+                        return "Voter <strong>{$nama}</strong> <small>{$no_kp}</small> (ID {$row->subject_id}) was <span class='text-warning'>updated</span>: {$changesText}";
 
                     case 'queued pengundi import':
                         $file_name = $row->properties['file_name'] ?? 'unknown file';
