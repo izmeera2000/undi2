@@ -113,6 +113,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
 
         $globalPage = 1;
         $globalRow = 1;
+        $toc = [];
 
         foreach ($pms as $pm) {
 
@@ -124,6 +125,13 @@ class GenerateCulaanBatchJob implements ShouldQueue
                 continue;
             }
 
+            $toc[] = [
+                'pm' => $pm,
+                'start_page' => $globalPage,
+                'total_rows' => $totalRows,
+            ];
+
+
             $totalPages = (int) ceil($totalRows / $perPage);
 
             for ($page = 1; $page <= $totalPages; $page++) {
@@ -134,7 +142,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
                     $culaanId,
                     $filters,
                     $globalPage,
-                    $page, 
+                    $page,
                     $perPage,
                     $pm,
                     $globalRow
@@ -154,7 +162,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
                 $globalPage++;
             }
         }
-
+        Log::info('Table of Contents prepared', ['toc' => $toc]);
         // -------------------------
 // Dispatch jobs
 // -------------------------
