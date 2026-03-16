@@ -18,22 +18,24 @@
 
     <div class="card">
         <div class="card-body">
+            <div class="table-responsive">
 
-            <table id="pengundiTable" class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nama</th>
-                        <th>Kad Pengenalan</th>
-                        <th>Jantina</th>
-                        <th>Bangsa</th>
-                        <th>Umur</th>
-                        <th>No Siri</th>
-                        <th>PM</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+                <table id="pengundiTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Pengundi</th>
+                            {{-- <th>Kad Pengenalan</th> --}}
+                            <th>Jantina</th>
+                            <th>Bangsa</th>
+                            <th>Umur</th>
+                            <th>No Siri</th>
+                            <th>PM</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
         </div>
     </div>
@@ -63,8 +65,8 @@
                 },
                 columns: [
                     { data: 'id' },
-                    { data: 'nama' },
-                    { data: 'nokp_baru' },
+                    { data: 'pengundi_details' },
+                    // { data: 'nokp_baru' },
                     {
                         data: 'jantina',
                         render: function (data, type, row) {

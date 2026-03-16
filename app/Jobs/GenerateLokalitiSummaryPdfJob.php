@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Mpdf\Mpdf;
 use App\Models\User;
 use App\Notifications\LokalitiPdfGenerated;
 use Throwable;
@@ -36,6 +36,8 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
             'userId' => $this->userId,
             'memory_start_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
         ]);
+
+
 
         $startTime = microtime(true);
 
@@ -68,20 +70,66 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 return;
             }
 
+
             $selectedPRUDate = $selectedPRUYear . '-12-31';
+
+
+            $areaInfo = DB::table('dm as d')
+                ->join('dun as dn', 'd.kod_dun', '=', 'dn.kod_dun')
+                ->join('parlimen as p', 'dn.parlimen_id', '=', 'p.id')
+
+                ->select(
+                    'd.koddm',
+                    'd.namadm',
+                    'dn.kod_dun',
+                    'dn.namadun',
+                    'p.id as parlimen_id',
+                    'p.namapar'
+                )
+
+                ->where('d.koddm', $dm)
+                ->where('dn.kod_dun', $dun)
+
+                // DM validity
+                ->whereYear('d.effective_from', '<=', $selectedPRUYear)
+                ->where(function ($q) use ($selectedPRUYear) {
+                    $q->whereNull('d.effective_to')
+                        ->orWhereYear('d.effective_to', '>=', $selectedPRUYear);
+                })
+
+                // DUN validity
+                ->whereYear('dn.effective_from', '<=', $selectedPRUYear)
+                ->where(function ($q) use ($selectedPRUYear) {
+                    $q->whereNull('dn.effective_to')
+                        ->orWhereYear('dn.effective_to', '>=', $selectedPRUYear);
+                })
+
+                ->first();
+
+            $distinctSaluran = DB::table('pengundi')
+                ->where('pilihan_raya_type', $type)
+                ->where('pilihan_raya_series', $series)
+                ->where('kod_lokaliti', '!=', null) // optional: only valid lokaliti
+                ->distinct()
+                ->orderBy('saluran')
+                ->pluck('saluran')
+                ->toArray();
+
+
+            $saluranColumns = [];
+            foreach ($distinctSaluran as $s) {
+                $saluranColumns[] = "SUM(CASE WHEN p.saluran = {$s} THEN 1 ELSE 0 END) AS saluran_{$s}";
+            }
+
+            $saluranSelectRaw = implode(",\n", $saluranColumns);
+
+
 
             Log::info('Running aggregation query...', [
                 'memory_before_query_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
             ]);
 
-            $rows = DB::table(function ($query) use (
-                $type,
-                $series,
-                $parlimen,
-                $dun,
-                $dm,
-                $selectedPRUDate
-            ) {
+            $rows = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate) {
                 $query->from('pengundi as p')
                     ->select('p.id', 'p.kod_lokaliti', 'p.saluran', 'l.nama_lokaliti')
                     ->distinct()
@@ -116,17 +164,11 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                     ->where('l.koddm', $dm);
             }, 'p')
                 ->selectRaw("
-                    p.kod_lokaliti,
-                    p.nama_lokaliti,
-                    SUM(CASE WHEN p.saluran = 1 THEN 1 ELSE 0 END) AS saluran_1,
-                    SUM(CASE WHEN p.saluran = 2 THEN 1 ELSE 0 END) AS saluran_2,
-                    SUM(CASE WHEN p.saluran = 3 THEN 1 ELSE 0 END) AS saluran_3,
-                    SUM(CASE WHEN p.saluran = 4 THEN 1 ELSE 0 END) AS saluran_4,
-                    SUM(CASE WHEN p.saluran = 5 THEN 1 ELSE 0 END) AS saluran_5,
-                    SUM(CASE WHEN p.saluran = 6 THEN 1 ELSE 0 END) AS saluran_6,
-                    SUM(CASE WHEN p.saluran = 7 THEN 1 ELSE 0 END) AS saluran_7,
-                    COUNT(*) AS total
-                ")
+                        p.kod_lokaliti,
+                        p.nama_lokaliti,
+                        {$saluranSelectRaw},
+                        COUNT(*) AS total
+                    ")
                 ->groupBy('p.kod_lokaliti', 'p.nama_lokaliti')
                 ->orderBy('p.kod_lokaliti')
                 ->get();
@@ -141,18 +183,40 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 'memory_before_pdf_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
             ]);
 
-            $pdf = Pdf::loadView('pengundi.pdf.list_data_pdf', [
+            $html = view('pengundi.pdf.list_data_pdf', [
                 'data' => $rows,
-                'filters' => $this->filters
-            ])->setPaper('a4', 'landscape');
+                'areaInfo' => $areaInfo,
+                'filters' => $this->filters,
+                'saluranList' => $distinctSaluran
 
-            $pdfContent = $pdf->output();
 
-            unset($pdf);
+            ])->render();
+
+            $mpdf = new Mpdf([
+                'format' => 'A4-P',
+                'margin_top' => 20,
+                'margin_bottom' => 15,
+                'margin_left' => 10,
+                'margin_right' => 10
+            ]);
+
+            // Performance tweaks
+            $mpdf->simpleTables = true;
+            $mpdf->packTableData = true;
+            $mpdf->shrink_tables_to_fit = 1;
+
+            // Render PDF
+            $mpdf->WriteHTML($html);
+
+            // Capture output as string
+            $pdfContent = $mpdf->Output('', 'S');
+
+            unset($mpdf);
             gc_collect_cycles();
+            $now = now()->timestamp;
 
             $folderPath = "pdfs/{$type}/{$series}/{$dm}";
-            $fileName = "{$dm}_summary.pdf";
+            $fileName = "pengundi_{$dm}_summary_{$now}.pdf";
             $fullPath = "{$folderPath}/{$fileName}";
 
             Storage::disk('public')->put($fullPath, $pdfContent);

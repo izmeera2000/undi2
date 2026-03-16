@@ -171,78 +171,47 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
         $mpdf->simpleTables = true;
         $mpdf->packTableData = true;
 
-        // Path to your transparent PNG logo
+        // Watermark
         $mpdf->SetWatermarkImage(public_path('assets/img/UMNO_logo.png'));
         $mpdf->showWatermarkImage = true;
         $mpdf->watermarkImageAlpha = 0.1;
-
-        // 'P' = Center of Page, 'F' = Full Page, 'D' = Diagonal
         $mpdf->watermarkImgBehind = true;
 
-        $mpdf->SetHTMLHeader("
-        <div style='font-weight:bold;font-size:14px;background:#f0f0f0;padding:6px;border:1px solid #ccc'>
-            PM: {$this->pm} | Page {$this->globalPage}
-        </div>
-        ");
 
         /*
         |--------------------------------------------------------------------------
-        | Table
+        | Header
         |--------------------------------------------------------------------------
         */
 
-        $html = '
-        <table width="100%" border="1" cellspacing="0" cellpadding="4"
-        style="border-collapse:collapse;font-size:11px;table-layout:fixed">
+        $header = view('culaan.culaan_pdf_header', [
+            'pm' => $this->pm ?? '',
+            'page' => $this->globalPage ?? '',
+        ])->render();
 
-        <thead>
-        <tr style="background:#e8e8e8">
-            <th width="10%">No</th>
-            <th width="35%">Pengundi</th>
-            <th width="25%">Lokaliti</th>
-            <th width="20%">Details</th>
-            <th width="10%">Culaan</th>
-        </tr>
-        </thead>
-        <tbody>';
+        $mpdf->SetHTMLHeader($header);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare Data
+        |--------------------------------------------------------------------------
+        */
 
         $counter = $this->rowStart;
 
-        foreach ($rows as $row) {
-
-            $statusCode = $row->status_culaan
-                ? strtoupper(substr(trim($row->status_culaan), 0, 1))
-                : 'O';
-
-            $status = $statuses[$statusCode] ?? $statusCode;
-
-            $lokaliti = '<strong>' . $row->lokaliti . '</strong><br>(' . $row->kod_lokaliti . ')';
-
-            $details = $row->kategori_pengundi .
-                ($row->status_pengundi ? "<br>({$row->status_pengundi})" : '<br>');
-
-            $html .= "
-            <tr>
-                <td>{$counter}</td>
-
-                <td>
-                    <strong>{$row->nama}</strong><br>
-                    <small>{$row->no_kp}</small>
-                </td>
-
-                <td>{$lokaliti}</td>
-
-                <td>{$details}</td>
-
-                <td style='text-align:center'>{$status}</td>
-            </tr>";
-
-            $counter++;
-        }
-
-        $html .= '</tbody></table>';
+        $html = view('culaan.culaan_pdf', [
+            'rows' => $rows,
+            'counter' => $counter,
+            'lokaliti' => $lokaliti ?? '',
+        ])->render();
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Render PDF
+        |--------------------------------------------------------------------------
+        */
 
         $mpdf->WriteHTML($html);
 

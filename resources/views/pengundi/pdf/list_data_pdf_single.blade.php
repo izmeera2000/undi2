@@ -1,15 +1,13 @@
-<h3>{{ $data[0]['nama_lokaliti'] }}</h3>
-
-<table border="1" cellpadding="4" cellspacing="0">
+<table width="100%" border="1" cellspacing="0" cellpadding="4"
+        style="border-collapse:collapse;font-size:11px;table-layout:fixed">
     <thead>
-        <tr>
-            <th>No</th>
-            <th>Nama</th>
-            <th>Saluran</th>
-            <th>No KP</th>
-            <th>Bangsa</th>
-            <th>Jantina</th>
-            <th>Alamat</th>
+        <tr style="background:#e8e8e8">
+            <th width="6%">No</th>
+            <th width="36%">Pengundi</th>
+            <th width="10%">Bangsa</th>
+            <th width="10%">Jantina</th>
+            <th width="6%">Saluran</th>
+            <th width="32%">PM</th>
         </tr>
     </thead>
     <tbody>
@@ -17,11 +15,10 @@
             <tr>
                 {{-- Use the global number --}}
                 <td>{{ $startNumber + $i }}</td>
-                <td>{{ $p->nama }}</td>
-                <td>{{ $p->saluran }}</td>
-                <td>{{ $p->nokp_baru }}</td>
+                <td><strong>{{ $p->nama }}</strong><br><small>{{ $p->nokp_baru }}</small></td>
                 <td>{{ $p->bangsa }}</td>
                 <td>{{ $p->jantina }}</td>
+                <td>{{ $p->saluran }}</td>
                 <td>{{ $p->alamat_spr }}</td>
             </tr>
         @endforeach

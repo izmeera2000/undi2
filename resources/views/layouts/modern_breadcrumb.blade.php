@@ -4,7 +4,7 @@
     </h1>
 
     <nav class="breadcrumb">
-        <a href="{{ route('dashboard') }}" class="breadcrumb-item">Undi</a>
+        <a href="{{ route('dashboard') }}" class="breadcrumb-item">UndiScope</a>
         @yield('breadcrumb')
 
         @if(!empty($crumbs))

@@ -842,23 +842,21 @@ class PengundiAnalyticsController extends Controller
     public function list()
     {
         // ----------------------------
-        // 1️⃣ Get distinct pilihan_raya_type and series
+        // 1️⃣ Get distinct pilihan_raya_type, pilihan_raya_series, and saluran
         // ----------------------------
         $pengundiData = Pengundi::where('type_data_id', 2)
-            ->select('pilihan_raya_type', 'pilihan_raya_series')
+            ->select('pilihan_raya_type', 'pilihan_raya_series', 'saluran')
             ->distinct()
             ->get();
 
         $pilihanRayaTypes = $pengundiData->pluck('pilihan_raya_type')->unique()->sort()->values();
         $pilihanRayaSeries = $pengundiData->pluck('pilihan_raya_series')->unique()->sort()->values();
-
-
-
+        $saluranList = $pengundiData->pluck('saluran')->unique()->sort()->values();
 
         return view('pengundi.list', compact(
             'pilihanRayaTypes',
             'pilihanRayaSeries',
-
+            'saluranList'
         ));
     }
 
@@ -1054,7 +1052,7 @@ class PengundiAnalyticsController extends Controller
                     . ($dun ?? '0') . "/"
                     . ($dm ?? '0') . "/"
                     . ($row['kod_lokaliti'] ?? '0') . "/"
-                    . $i  ;
+                    . $i;
 
             }
             return $row;
@@ -1310,6 +1308,22 @@ class PengundiAnalyticsController extends Controller
                     });
                 }
             })
+            ->addColumn('pengundi_details', function ($row) {
+
+                return '
+            <div class="d-flex align-items-center gap-3">
+
+
+                <div>
+                    <span class="fw-semibold">' . $row->nama . '</span>
+                    <div class="text-muted small">' . $row->nokp_baru . '</div>
+                </div>
+
+            </div>';
+            })
+
+            ->rawColumns(['pengundi_details'])
+
             ->make(true);
     }
 
@@ -1382,7 +1396,7 @@ class PengundiAnalyticsController extends Controller
             'last_modified' => Carbon::createFromTimestamp(
                 Storage::disk('public')->lastModified($latestFile)
             )->setTimezone('Asia/Kuala_Lumpur')
-                ->format('Y-m-d H:i:s'),
+                ->format('d M Y, h:i A'),
             'files' => array_map(function ($file) {
                 return [
                     'name' => basename($file),
@@ -1390,7 +1404,7 @@ class PengundiAnalyticsController extends Controller
                     'last_modified' => Carbon::createFromTimestamp(
                         Storage::disk('public')->lastModified($file)
                     )->setTimezone('Asia/Kuala_Lumpur')
-                        ->format('Y-m-d H:i:s')
+                        ->format('d M Y, h:i A'),
                 ];
             }, $pdfFiles)
         ]);

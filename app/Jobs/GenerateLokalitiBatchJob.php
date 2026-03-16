@@ -39,52 +39,63 @@ class GenerateLokalitiBatchJob implements ShouldQueue
 
         $type = $this->filters['type'] ?? null;
         $series = isset($this->filters['series']) ? (int) $this->filters['series'] : null;
-        $parlimen = $this->filters['parlimen'] ?? null;
         $dun = $this->filters['dun'] ?? null;
         $dm = $this->filters['dm'] ?? null;
 
-        if (!$type || !$series || !$parlimen || !$dun || !$dm) {
+        if (!$type || !$series || !$dun || !$dm) {
             Log::error('Missing required filters.', $this->filters);
             return;
         }
 
-        // -------------------------
-        // Get election year from DB
-        // -------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Get election year
+        |--------------------------------------------------------------------------
+        */
         $selectedPRUYear = DB::table('elections')
             ->where('type', $type)
             ->where('number', $series)
             ->value('year');
 
         if (!$selectedPRUYear) {
-            Log::error('Election not found in database', [
+            Log::error('Election not found.', [
                 'type' => $type,
-                'series' => $series,
+                'series' => $series
             ]);
             return;
         }
 
-        // -------------------------
-        // Folder cleanup
-        // -------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare PDF folder
+        |--------------------------------------------------------------------------
+        */
+
         $folderPath = "pdfs/{$type}/{$series}/{$dm}";
 
-        if (Storage::disk('public')->exists($folderPath)) {
+        if (!Storage::disk('public')->exists($folderPath)) {
+            Storage::disk('public')->makeDirectory($folderPath);
+        } else {
             $files = Storage::disk('public')->files($folderPath);
             if (!empty($files)) {
                 Storage::disk('public')->delete($files);
-                Log::info("Deleted existing PDFs", ['deleted_count' => count($files)]);
+                Log::info("Deleted existing PDFs", [
+                    'deleted_count' => count($files)
+                ]);
             }
         }
 
-        // -------------------------
-        // Fetch DMs
-        // -------------------------
+        /*
+        |--------------------------------------------------------------------------
+        | Get valid DM
+        |--------------------------------------------------------------------------
+        */
+
         $validDMs = DB::table('dm')
             ->whereYear('effective_from', '<=', $selectedPRUYear)
             ->where(function ($q) use ($selectedPRUYear) {
                 $q->whereYear('effective_to', '>=', $selectedPRUYear)
-                  ->orWhereNull('effective_to');
+                    ->orWhereNull('effective_to');
             })
             ->where('kod_dun', $dun)
             ->where('koddm', $dm)
@@ -93,79 +104,86 @@ class GenerateLokalitiBatchJob implements ShouldQueue
             ->toArray();
 
         if (empty($validDMs)) {
-            Log::warning('No valid DMs found.');
+            Log::warning('No valid DM found.');
             return;
         }
 
-        // -------------------------
-        // Fetch Lokaliti
-        // -------------------------
-        $validLokaliti = DB::table('lokaliti')
+        /*
+        |--------------------------------------------------------------------------
+        | Get Lokaliti
+        |--------------------------------------------------------------------------
+        */
+        // 1. Fetching the list (Key = Name, Value = Code)
+        $lokalitiList = DB::table('lokaliti')
             ->whereIn('koddm', $validDMs)
-            ->pluck('kod_lokaliti')
+            ->pluck('kod_lokaliti', 'nama_lokaliti')
             ->unique()
             ->toArray();
 
-        if (empty($validLokaliti)) {
+        if (empty($lokalitiList)) {
             Log::warning('No lokaliti found.');
             return;
         }
 
-        // -------------------------
-        // Prepare per-lokaliti jobs
-        // -------------------------
-        $perPage = 200;
+        $perPage = 22;
         $jobs = [];
 
-        foreach ($validLokaliti as $kodLokaliti) {
+        // 2. Change the foreach to capture both Key and Value
+        foreach ($lokalitiList as $namaLokaliti => $kodLokaliti) {
 
-            $totalRows = DB::table('pengundi')
+            // Fetch records for this specific code
+            $records = DB::table('pengundi')
                 ->where('pilihan_raya_type', $type)
                 ->where('pilihan_raya_series', $series)
                 ->where('kod_lokaliti', $kodLokaliti)
-                ->count();
+                ->orderBy('id')
+                ->get();
 
-            if ($totalRows === 0) continue;
-
-            $totalPages = ceil($totalRows / $perPage);
-
-            for ($page = 1; $page <= $totalPages; $page++) {
-                $jobs[] = new GenerateSingleLokalitiPdfJob(
-                    $this->filters,
-                    $kodLokaliti,
-                    $page,
-                    $perPage
-                );
+            if ($records->isEmpty()) {
+                continue;
             }
+
+            // 3. Pass both $kodLokaliti and $namaLokaliti to the Job
+            $jobs[] = new GenerateSingleLokalitiPdfJobOptimized(
+                $this->filters,
+                $kodLokaliti,
+                $namaLokaliti, // Added this parameter
+                $records->toArray(),
+                $perPage
+            );
         }
 
         if (empty($jobs)) {
-            Log::warning('No jobs created.');
+            Log::warning('No PDF jobs created.');
             return;
         }
 
-        Log::info('Jobs prepared', ['total_jobs' => count($jobs)]);
+        Log::info('PDF jobs prepared', [
+            'total_jobs' => count($jobs)
+        ]);
 
         $filtersCopy = $this->filters;
         $userIdCopy = $this->userId;
         $typeCopy = $type;
         $seriesCopy = $series;
         $dmCopy = $dm;
-        $uniqueLokalitiCopy = $validLokaliti;
+        $lokalitiCopy = $lokalitiList;
+
+        /*
+        |--------------------------------------------------------------------------
+        | Batch: Generate pages
+        |--------------------------------------------------------------------------
+        */
 
         Bus::batch($jobs)
-            ->then(function (Batch $batch) use (
-                $uniqueLokalitiCopy,
-                $typeCopy,
-                $seriesCopy,
-                $dmCopy,
-                $filtersCopy,
-                $userIdCopy
-            ) {
+            ->then(function (Batch $batch) use ($lokalitiCopy, $typeCopy, $seriesCopy, $dmCopy, $filtersCopy, $userIdCopy) {
+
+                Log::info('Page batch finished. Starting merge jobs.');
 
                 $mergeJobs = [];
 
-                foreach ($uniqueLokalitiCopy as $kodLokaliti) {
+                foreach ($lokalitiCopy as $kodLokaliti) {
+
                     $mergeJobs[] = new MergeLokalitiPdfJob(
                         $kodLokaliti,
                         [
@@ -176,25 +194,41 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                     );
                 }
 
+                /*
+                |--------------------------------------------------------------------------
+                | Batch: Merge PDFs
+                |--------------------------------------------------------------------------
+                */
+
                 Bus::batch($mergeJobs)
                     ->then(function () use ($filtersCopy, $userIdCopy) {
+
+                        Log::info('Merge batch finished. Generating summary.');
+
                         GenerateLokalitiSummaryPdfJob::dispatch(
                             $filtersCopy,
                             $userIdCopy
                         );
                     })
-                    ->catch(function (Batch $mergeBatch, Throwable $e) {
-                        Log::error('Merge batch FAILED', ['error' => $e->getMessage()]);
+                    ->catch(function (Batch $batch, Throwable $e) {
+
+                        Log::error('Merge batch FAILED', [
+                            'error' => $e->getMessage()
+                        ]);
                     })
                     ->dispatch();
             })
             ->catch(function (Batch $batch, Throwable $e) {
-                Log::error('Page batch FAILED', ['error' => $e->getMessage()]);
+
+                Log::error('Page batch FAILED', [
+                    'error' => $e->getMessage()
+                ]);
             })
             ->dispatch();
 
         Log::info('GenerateLokalitiBatchJob completed', [
             'execution_time_sec' => round(microtime(true) - $startTime, 2),
+            'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
         ]);
     }
 }

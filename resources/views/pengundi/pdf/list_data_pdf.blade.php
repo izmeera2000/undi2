@@ -1,66 +1,67 @@
-<h2>Senarai Pengundi Mengikut Lokaliti</h2>
+<h2 style="margin-bottom:10px;">Senarai Pengundi Mengikut Lokaliti</h2>
 
-<table class="data-table" border="1" width="100%" cellspacing="0" cellpadding="5">
-
+<table border="1" width="100%" cellspacing="0" cellpadding="5" style="border-collapse:collapse;font-size:11px;">
     <!-- Maklumat Penapis -->
     <tr>
         <td><strong>Jenis PRU:</strong> {{ $filters['type'] ?? '-' }}</td>
         <td><strong>Series:</strong> {{ $filters['series'] ?? '-' }}</td>
     </tr>
     <tr>
-        <td><strong>Parlimen:</strong> {{ $filters['parlimen'] ?? '-' }}</td>
-        <td><strong>DUN:</strong> {{ $filters['dun'] ?? '-' }}</td>
+        <td><strong>Parlimen:</strong> {{ $areaInfo->namapar ?? '-' }}</td>
+        <td><strong>DUN:</strong> {{ $areaInfo->namadun ?? '-' }} ({{ $areaInfo->kod_dun ?? '-' }})</td>
     </tr>
     <tr>
-        <td colspan="2"><strong>DM:</strong> {{ $filters['dm'] ?? '-' }}</td>
+        <td colspan="2"><strong>DM:</strong> {{ $areaInfo->namadm ?? '-' }} ({{ $areaInfo->koddm ?? '-' }})</td>
     </tr>
+</table>
 
-    <!-- Spacer Row -->
-    <tr>
-        <td colspan="11">&nbsp;</td>
-    </tr>
+<br>
 
-    <!-- Header Data -->
-    <thead>
-        <tr>
-            <th rowspan="2">No</th>
-            <th rowspan="2">Kod Lokaliti</th>
-            <th rowspan="2" class="text-left">Nama Lokaliti</th>
-            <th colspan="7">Saluran</th>
-            <th rowspan="2">Total</th>
+<table border="1" width="100%" cellspacing="0" cellpadding="5"
+    style="border-collapse:collapse;font-size:11px;table-layout:fixed;">
+
+    <thead style="display: table-header-group;">
+        <tr style="background:#e8e8e8;">
+            <th rowspan="2" width="4%">No</th>
+            <th rowspan="2" width="20%">Lokaliti</th>
+            <th colspan="{{ count($saluranList) }}">Saluran</th>
+            <th rowspan="2" width="12%">Total</th>
         </tr>
-        <tr>
-            @for ($i = 1; $i <= 7; $i++)
-                <th>{{ $i }}</th>
-            @endfor
+
+        <tr style="background:#e8e8e8;">
+            @foreach($saluranList as $saluran)
+                <th width="{{ floor(60 / count($saluranList)) }}%">{{ $saluran }}</th>
+            @endforeach
         </tr>
     </thead>
-    @php $grandTotal = 0; @endphp
 
-    @forelse ($data as $index => $row)
-        @php $grandTotal += $row->total; @endphp
-        <tr>
-            <td>{{ $index + 1 }}</td>
-            <td>{{ $row->kod_lokaliti }}</td>
-            <td class="text-left">{{ $row->nama_lokaliti }}</td>
+    <tbody>
+        @php $grandTotal = 0; @endphp
 
-            @for ($i = 1; $i <= 7; $i++)
-                <td>{{ $row->{'saluran_' . $i} }}</td>
-            @endfor
+        @forelse ($data as $index => $row)
+            @php $grandTotal += $row->total; @endphp
+            <tr>
+                <td align="center">{{ $index + 1 }}</td>
+                <td><strong>{{ $row->nama_lokaliti }}</strong><br><small>{{ $row->kod_lokaliti }}</small></td>
 
-            <td>{{ $row->total }}</td>
-        </tr>
-    @empty
-        <tr>
-            <td colspan="11" align="center">Tiada data dijumpai</td>
-        </tr>
-    @endforelse
+                @foreach($saluranList as $saluran)
+                    <td align="center">{{ $row->{'saluran_' . $saluran} ?? 0 }}</td>
+                @endforeach
 
-    @if($data->isNotEmpty())
-        <tr class="total-row">
-            <td colspan="10" align="right"><strong>GRAND TOTAL</strong></td>
-            <td><strong>{{ $grandTotal }}</strong></td>
-        </tr>
-    @endif
+                <td align="center">{{ $row->total }}</td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="{{ 2 + count($saluranList) + 1 }}" align="center">Tiada data dijumpai</td>
+            </tr>
+        @endforelse
+
+        @if($data->isNotEmpty())
+            <tr style="background:#f5f5f5;font-weight:bold;">
+                <td colspan="{{ 2 + count($saluranList) }}" align="right">GRAND TOTAL</td>
+                <td align="center">{{ $grandTotal }}</td>
+            </tr>
+        @endif
+    </tbody>
 
 </table>
