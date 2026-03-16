@@ -211,11 +211,11 @@ class GenerateSingleCulaanPdfJob implements ShouldQueue
             $lokaliti = $row->lokaliti . ' (' . $row->kod_lokaliti . ')';
 
             $details = $row->kategori_pengundi .
-                ($row->status_pengundi ? " ({$row->status_pengundi})" : '');
+                ($row->status_pengundi ? "<br>({$row->status_pengundi})" : '');
 
             $html .= "
             <tr>
-                <td>{$counter}<br>ID :{$row->id}</td>
+                <td>{$counter}<br>(ID:{$row->id})</td>
 
                 <td>
                     <strong>{$row->nama}</strong><br>
