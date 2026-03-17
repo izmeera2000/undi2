@@ -120,6 +120,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
 
                 // PM metadata cache key using batch ID
                 $metadataKey = "culaan_{$culaanId}_{$batchId}_pm_metadata";
+ 
                 $toc = Cache::get($metadataKey, []);
 
                 Log::info('TOC ready for merging', [
@@ -131,8 +132,10 @@ class GenerateCulaanBatchJob implements ShouldQueue
                 GenerateCulaanSummaryPdfJob::dispatch($culaanId, $filters, $userId, $toc);
                 MergeCulaanPdfJob::dispatch($culaanId, $filters, $userId);
 
-                // Optional: clear cache
-                Cache::forget($metadataKey);
+
+
+       
+
 
             })
             ->catch(function ($batch, Throwable $e) {

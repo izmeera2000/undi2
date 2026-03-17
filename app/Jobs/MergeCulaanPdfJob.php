@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use setasign\Fpdi\Fpdi;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Bus\Batchable;
+use Illuminate\Support\Facades\Cache;
 
 use App\Models\User;
 use App\Notifications\CulaanPdfReadyNotification;
@@ -102,6 +103,16 @@ class MergeCulaanPdfJob implements ShouldQueue
         foreach ($filesToMerge as $file) {
             Storage::disk('public')->delete($file);
         }
+        $batchId = $this->batch()?->id ?? 'default';
+
+        $metadataKey = "culaan_{$this->culaanId}_{$batchId}_pm_metadata";
+        $globalRowKey = "culaan_{$this->culaanId}_{$batchId}_global_row";
+        $globalPageKey = "culaan_{$this->culaanId}_{$batchId}_global_page";
+
+        // Optional: clear cache
+        Cache::forget($metadataKey);
+        Cache::forget($globalRowKey);
+        Cache::forget($globalPageKey);
 
         $user = User::find($this->userId);
 

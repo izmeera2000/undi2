@@ -35,7 +35,11 @@
                     <small>{{ $row['no_kp'] ?? '' }}</small>
                 </td>
 
-                <td>{{ $lokaliti ?? $row['lokaliti'] ?? '' }}</td>
+
+                <td>
+                    <strong>{{ $row['lokaliti'] ?? '' }}</strong><br>
+                    <small>{{ $row['kod_lokaliti'] ?? '' }}</small>
+                </td>
 
                 <td>{{ $row['details'] ?? '' }}</td>
 
@@ -47,4 +51,3 @@
 
     </tbody>
 </table>
-
