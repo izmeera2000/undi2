@@ -9,6 +9,6 @@ class CulaanPengundiSeeder extends Seeder
 {
     public function run(): void
     {
-        CulaanPengundi::factory()->count(100)->create();
+        CulaanPengundi::factory()->count(20)->create();
     }
 }

@@ -11,8 +11,9 @@ class CulaanPengundiFactory extends Factory
         return [
             'culaan_id' => 2,
 
-            'kod_lokaliti' => 0221112001,
-            'lokaliti' => 'KG TENDONG CHINA',
+            'kod_lokaliti' => $this->faker->randomElement(['0221112002', '0221112003', '0221112004', '0221112005']),
+
+            'lokaliti' => $this->faker->name,
             'pm' => $this->faker->name,
 
             'no_siri' => $this->faker->numberBetween(1, 500),
