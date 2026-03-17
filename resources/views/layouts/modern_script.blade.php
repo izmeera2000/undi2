@@ -129,86 +129,90 @@
 </script>
 
 <script>
- document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
 
-    const userId = "{{ auth()->id() }}";
+        const userId = "{{ auth()->id() }}";
 
-    // Grab elements
-    const badge = document.getElementById('notification-badge');
-    const countSpan = document.querySelector('.notification-count');
-    const notificationList = document.querySelector('.notification-list');
+        // Grab elements
+        const badge = document.getElementById('notification-badge');
+        const countSpan = document.querySelector('.notification-count');
+        const notificationList = document.querySelector('.notification-list');
 
-    if (window.Echo) {
-        window.Echo.private(`App.Models.User.${userId}`)
-            .notification((notification) => {
+        if (window.Echo) {
+            window.Echo.private(`App.Models.User.${userId}`)
+                .notification((notification) => {
 
-                // Show toast
-                toastr.success(notification.message, notification.title);
-
-                if (notificationList) {
-                    const item = document.createElement('a');
-
-                    const url = notification.url || '#';
-                    item.href = url;
-                    item.dataset.id = notification.id;
-
-                    // Open PDF links in new tab
-                    if (url.endsWith('.pdf')) {
-                        item.target = '_blank';
+                    // Play sound
+                    const sound = document.getElementById('notification-sound');
+                    if (sound) {
+                        sound.currentTime = 0; // rewind in case it’s still playing
+                        sound.play().catch(e => console.log('Sound play failed:', e));
                     }
 
-                    item.className =
-                        "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
+                    // Show toast
+                    toastr.success(notification.message, notification.title);
 
-                    const now = new Date().toISOString(); // current timestamp
+                    if (notificationList) {
+                        const item = document.createElement('a');
 
-                    item.innerHTML = `
-                        <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
-                            <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
-                        </div>
+                        const url = notification.url || '#';
+                        item.href = url;
+                        item.dataset.id = notification.id;
 
-                        <div class="notification-content flex-grow-1">
-                            <div class="notification-title fw-semibold">
-                                ${notification.title ?? 'Notification'}
-                            </div>
+                        // Open PDF links in new tab
+                        if (url.endsWith('.pdf')) {
+                            item.target = '_blank';
+                        }
 
-                            <div class="notification-text small text-muted">
-                                ${notification.message ?? ''}
-                            </div>
+                        item.className =
+                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
 
-                            <div class="notification-time small text-muted mt-1" data-time="${now}">
-                                <i class="bi bi-clock me-1"></i>Just now
-                            </div>
-                        </div>
-                    `;
+                        const now = new Date().toISOString();
 
-                    // Prepend to top
-                    notificationList.prepend(item);
+                        item.innerHTML = `
+                <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
+                    <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
+                </div>
 
-                    // Limit list to 5 items (same as blade)
-                    const items = notificationList.querySelectorAll('.notification-item');
-                    if (items.length > 5) {
-                        items[items.length - 1].remove();
+                <div class="notification-content flex-grow-1">
+                    <div class="notification-title fw-semibold">
+                        ${notification.title ?? 'Notification'}
+                    </div>
+
+                    <div class="notification-text small text-muted">
+                        ${notification.message ?? ''}
+                    </div>
+
+                    <div class="notification-time small text-muted mt-1" data-time="${now}">
+                        <i class="bi bi-clock me-1"></i>Just now
+                    </div>
+                </div>
+            `;
+
+                        notificationList.prepend(item);
+
+                        const items = notificationList.querySelectorAll('.notification-item');
+                        if (items.length > 5) {
+                            items[items.length - 1].remove();
+                        }
                     }
-                }
 
-                // Update badge
-                if (badge) {
-                    let count = parseInt(badge.innerText || '0', 10) + 1;
-                    badge.innerText = count;
-                    badge.style.display = ''; // ensure it’s visible
+                    if (badge) {
+                        let count = parseInt(badge.innerText || '0', 10) + 1;
+                        badge.innerText = count;
+                        badge.style.display = '';
 
-                    if (countSpan) {
-                        countSpan.innerText = count + ' new';
+                        if (countSpan) {
+                            countSpan.innerText = count + ' new';
+                        }
                     }
-                }
 
-            });
-    } else {
-        // console.log('Echo is not loaded');
-    }
+                });
+        } else {
+            // console.log('Echo is not loaded');
+        }
 
-});
+    });
 </script>
 
 <script>

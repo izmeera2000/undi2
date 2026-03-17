@@ -48,6 +48,7 @@
     </div>
     <!-- Footer -->
     <!-- Footer -->
+    <audio id="notification-sound" src="{{ asset('assets/sounds/notification.mp3') }}" preload="auto"></audio>
     @include('layouts.modern_footer')
 
   </main>
