@@ -8,6 +8,11 @@
       @endphp
 @endsection
 
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/vendors/datatables/datatables.css') }}">
+
+@endpush
+
 @section('content')
     <section class="section">
         <div class="row">
@@ -15,75 +20,76 @@
                 <div class="card notif-inbox-card">
                     <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="selectAllNotif">
-                            </div>
+                            <button class="btn btn-sm btn-outline-success" id="markSelectedBtn">Mark Selected as
+                                Read</button>
+
                             <button class="btn btn-sm btn-outline-secondary" id="markAllBtn">Mark All as Read</button>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="input-group input-group-sm" style="width: 200px;">
-                                <input type="text" class="form-control" placeholder="Search notifications..."
-                                    id="notifSearch">
-                                <button class="btn btn-outline-secondary" type="button"><i
-                                        class="bi bi-search"></i></button>
-                            </div>
-                        </div>
                     </div>
-
-                    <div class="card-body p-0">
-                        @php
-                            $grouped = auth()->user()->notifications->groupBy(function ($notif) {
-                                $date = $notif->created_at;
-                                if ($date->isToday())
-                                    return 'Today';
-                                if ($date->isYesterday())
-                                    return 'Yesterday';
-                                return 'This Week';
-                            });
-                        @endphp
-
-                        @foreach($grouped as $section => $notifications)
-                            <div class="notif-section">
-                                <div
-                                    class="notif-section-header d-flex justify-content-between align-items-center px-3 py-2 bg-light">
-                                    <span>{{ $section }}</span>
-                                    <span class="notif-section-count">{{ $notifications->count() }} notifications</span>
-                                </div>
-
-                                @foreach($notifications as $notification)
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover" id="notificationsTable">
+                            <thead>
+                                <tr>
+                                    <th width="5%">
+                                        <input type="checkbox" id="selectAllNotif">
+                                    </th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Message</th>
+                                    <th>Time</th>
+                                    <th width="15%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(auth()->user()->notifications as $notification)
                                     @php
                                         $data = $notification->data;
                                     @endphp
-                                    <div class="notif-item {{ $notification->data['notify_type'] ?? 'info' }}">
-                                        <div class="notif-item-avatar {{ $notification->data['notify_type'] ?? 'info' }}">
-                                            <i class="bi {{ $notification->data['icon'] ?? 'bi-bell' }}"></i>
-                                        </div>
-                                        <div class="notif-item-content">
-                                            <div class="notif-item-header">
-                                                <h6>{{ $notification->data['title'] }}</h6>
-                                                <span
-                                                    class="notif-item-time">{{ $notification->created_at->diffForHumans() }}</span>
-                                            </div>
-                                            <p>{{ $notification->data['message'] }}</p>
-                                            @if(isset($notification->data['file']))
-                                                <a href="{{ Storage::url($notification->data['file']) }}" class="btn btn-sm btn-primary"
-                                                    target="_blank">Download PDF</a>
+                                    <tr class="notification-row {{ is_null($notification->read_at) ? 'bg-primary-light' : 'read' }}"
+                                        data-id="{{ $notification->id }}">
+
+                                        <td>
+                                            <input type="checkbox" class="notif-checkbox">
+                                        </td>
+
+                                        <td>
+                                            <span class="badge bg-{{ $data['notify_type'] ?? 'secondary' }}">
+                                                {{ strtoupper($data['notify_type'] ?? 'info') }}
+                                            </span>
+                                        </td>
+
+                                        <td>{{ $data['title'] ?? '-' }}</td>
+
+                                        <td>{{ $data['message'] ?? '-' }}</td>
+
+                                        <td>{{ $notification->created_at->diffForHumans() }}</td>
+
+                                        <td>
+                                            @if(isset($data['file']))
+                                                <a href="{{ Storage::url($data['file']) }}" target="_blank"
+                                                    class="btn btn-sm btn-primary">
+                                                    PDF
+                                                </a>
                                             @endif
-                                        </div>
-                                    </div>
+
+                                            @if(is_null($notification->read_at))
+                                                <button class="btn btn-sm btn-success mark-read-btn">
+                                                    Read
+                                                </button>
+                                            @endif
+                                        </td>
+
+                                    </tr>
                                 @endforeach
-                            </div>
-                        @endforeach
+                            </tbody>
+                        </table>
 
                         @if(auth()->user()->notifications->isEmpty())
                             <p class="text-center py-4">No notifications yet.</p>
                         @endif
                     </div>
 
-                    <div class="card-footer bg-transparent">
-                        <span class="text-muted small">Showing {{ auth()->user()->notifications->count() }}
-                            notifications</span>
-                    </div>
+
                 </div>
             </div>
         </div>
@@ -91,14 +97,39 @@
 @endsection
 
 @push('scripts')
+
+    <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
+
     <script>
         const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
-        // Mark individual notification as read
-        document.querySelectorAll('.mark-read-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const card = this.closest('.notif-item');
-                const id = card.dataset.id;
+        $(document).ready(function () {
+
+            // Init DataTable
+            let table = $('#notificationsTable').DataTable({
+                order: [[4, 'desc']], // initially sort by column index 4 (zero-based)
+                pageLength: 10,
+                columnDefs: [
+                    { targets: [0, 1], orderable: false }, // columns 0 and 1 cannot be sorted
+                    { targets: '_all', orderable: true }   // all other columns sortable
+                ]
+            });
+
+            // Custom search (link your existing search box)
+            $('#notifSearch').on('keyup', function () {
+                table.search(this.value).draw();
+            });
+
+            // Select all checkbox
+            $('#selectAllNotif').on('click', function () {
+                $('.notif-checkbox').prop('checked', this.checked);
+            });
+
+            // Mark individual as read
+            $('#notificationsTable').on('click', '.mark-read-btn', function () {
+                const row = $(this).closest('tr');
+                const id = row.data('id');
+                const btn = $(this);
 
                 fetch(`/notifications/mark-as-read/${id}`, {
                     method: 'POST',
@@ -106,39 +137,93 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
                     },
-                }).then(res => res.json()).then(data => {
-                    if (data.success) card.classList.remove('unread');
-                    this.remove();
-                });
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            row.removeClass('table-warning');
+                            btn.remove();
+                        }
+                    });
             });
+
+            // Mark all as read
+            $('#markAllBtn').on('click', function () {
+                fetch(`{{ route('notifications.allread') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                    },
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            $('#notificationsTable tr').removeClass('table-warning');
+                            $('.mark-read-btn').remove();
+
+                            const badge = document.getElementById('notification-badge');
+                            if (badge) badge.style.display = 'none';
+                        }
+                    });
+            });
+
         });
 
-        // Mark all notifications as read
-        document.getElementById('markAllBtn').addEventListener('click', function () {
-            fetch(`{{ route('notifications.allread') }}`, {
+        // Mark selected as read
+        $('#markSelectedBtn').on('click', function () {
+
+            // Collect IDs of checked notifications
+            let selectedIds = [];
+            $('#notificationsTable .notif-checkbox:checked').each(function () {
+                const row = $(this).closest('tr');
+                const id = row.data('id');
+                if (id) selectedIds.push(id);
+            });
+
+            if (selectedIds.length === 0) {
+                alert('Please select at least one notification.');
+                return;
+            }
+
+            fetch(`{{ route('notifications.markSelected') }}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json',
+                    'Content-Type': 'application/json',
                 },
-            }).then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Remove unread highlight
-                    document.querySelectorAll('.notif-item, .notification-item.unread').forEach(el => {
-                        el.classList.remove('unread', 'bg-primary-light');
-                    });
-
-                    // Remove the badge
-                    const badge = document.getElementById('notification-badge');
-                    if (badge) badge.style.display = 'none';
-
-              
-
-                    // Optional: refresh the page
-                    // location.reload();
-                }
+                body: JSON.stringify({ ids: selectedIds })
             })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update rows UI
+                        selectedIds.forEach(id => {
+                            const row = $(`#notificationsTable tr[data-id="${id}"]`);
+                            row.removeClass('table-warning');
+                            row.find('.mark-read-btn').remove();
+                        });
+
+                        // Update badge
+                        const badge = document.getElementById('notification-badge');
+                        const countSpan = document.querySelector('.notification-count');
+
+                        if (badge) {
+                            let current = parseInt(badge.innerText || '0', 10);
+                            let newCount = Math.max(current - selectedIds.length, 0);
+                            badge.innerText = newCount;
+                            if (newCount === 0) badge.style.display = 'none';
+                        }
+
+                        if (countSpan) {
+                            let current = parseInt(countSpan.innerText || '0', 10);
+                            let newCount = Math.max(current - selectedIds.length, 0);
+                            countSpan.innerText = newCount + ' new';
+                        }
+                    }
+                })
+                .catch(err => console.error('Error marking selected notifications as read:', err));
         });
     </script>
 @endpush

@@ -32,4 +32,16 @@ class NotificationController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function markSelected(Request $request)
+{
+    $ids = $request->input('ids', []);
+
+    if (!empty($ids)) {
+        auth()->user()->unreadNotifications()->whereIn('id', $ids)->update(['read_at' => now()]);
+    }
+
+    return response()->json(['success' => true]);
 }
+}
+
