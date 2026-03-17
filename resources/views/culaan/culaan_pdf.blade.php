@@ -13,26 +13,38 @@
 
     <tbody>
 
+        @php
+            $startNumber = $counter ?? 1; // global row number passed from job
+
+            $statuses = [
+                'D' => 'BN',
+                'A' => 'PH',
+                'C' => 'PAS',
+                'E' => 'TP',
+                'O' => 'BC',
+            ];
+        @endphp
+
         @foreach ($rows as $i => $row)
             <tr>
-
-                <td>{{ $counter + $i }}</td>
+                {{-- Global row number --}}
+                <td>{{ $startNumber + $i }}</td>
 
                 <td>
-                    <strong>{{ $row->nama }}</strong><br>
-                    <small>{{ $row->no_kp }}</small>
+                    <strong>{{ $row['nama'] ?? '' }}</strong><br>
+                    <small>{{ $row['no_kp'] ?? '' }}</small>
                 </td>
 
-                <td>{{ $lokaliti }}</td>
+                <td>{{ $lokaliti ?? $row['lokaliti'] ?? '' }}</td>
 
-                <td>{{ $row->details ?? '' }}</td>
+                <td>{{ $row['details'] ?? '' }}</td>
 
                 <td style="text-align:center">
-                    {{ $row->status ?? '' }}
+                    {{ $statuses[substr($row['status_culaan'] ?? '', 0, 1)] ?? $row['status_culaan'] ?? '' }}
                 </td>
-
             </tr>
         @endforeach
 
     </tbody>
 </table>
+

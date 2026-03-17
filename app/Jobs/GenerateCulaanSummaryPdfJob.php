@@ -7,11 +7,11 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Mpdf\Mpdf;
 
 class GenerateCulaanSummaryPdfJob implements ShouldQueue
 {
@@ -20,9 +20,7 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
     protected int $culaanId;
     protected array $filters;
     protected int $userId;
-
     protected array $toc;
-
 
     public function __construct(int $culaanId, array $filters, int $userId, array $toc)
     {
@@ -83,24 +81,16 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
                 $q->where('status_culaan', $this->filters['status_culaan']);
             })
             ->when(!empty($this->filters['search_name']), function ($q) {
-                $search = trim($this->filters['search_name']); // trim whitespace
-    
-                $q->where(function ($qq) use ($search) {
+                $search = trim($this->filters['search_name']);
 
+                $q->where(function ($qq) use ($search) {
                     if (str_starts_with($search, '*') && str_ends_with($search, '*')) {
-                        // *something* → contains
-                        $term = substr($search, 1, -1);
-                        $pattern = "%{$term}%";
+                        $pattern = "%" . substr($search, 1, -1) . "%";
                     } elseif (str_starts_with($search, '*')) {
-                        // *something → ends with
-                        $term = substr($search, 1);
-                        $pattern = "%{$term}";
+                        $pattern = "%" . substr($search, 1);
                     } elseif (str_ends_with($search, '*')) {
-                        // something* → starts with
-                        $term = substr($search, 0, -1);
-                        $pattern = "{$term}%";
+                        $pattern = substr($search, 0, -1) . "%";
                     } else {
-                        // default → contains
                         $pattern = "%{$search}%";
                     }
 
@@ -109,10 +99,6 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
                 });
             });
 
-        // Log the SQL and bindings
-        // Log::info('Filtered Pengundi SQL: ' . $query->toSql(), $query->getBindings());
-
-        // Then count
         $totalFilteredPengundi = $query->count();
 
         Log::info('Count query completed', [
@@ -121,35 +107,47 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
 
         $logo = base64_encode(file_get_contents(public_path('assets/img/UMNO_logo.png')));
 
- 
-
         // -------------------------
-        // Generate PDF
+        // Render HTML
         // -------------------------
-        $pdf = Pdf::loadView('culaan.culaan_summary_pdf', [
+        $html = view('culaan.culaan_summary_pdf', [
             'culaan' => $culaan,
             'filters' => $this->filters,
             'totalPengundi' => $totalFilteredPengundi,
             'logo' => $logo,
-            'culaan_date' => Carbon::parse($culaan->date)->timezone('Asia/Kuala_Lumpur')->format('d M Y H:i') ,
-
+            'culaan_date' => Carbon::parse($culaan->date)
+                                ->timezone('Asia/Kuala_Lumpur')
+                                ->format('d M Y H:i'),
             'generatedAt' => now('Asia/Kuala_Lumpur')->format('d M Y H:i'),
-            'toc' => $this->toc, 
-        ])->setPaper('a4', 'portrait');
-
-        Log::info('PDF rendered', [
-            'memory_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
-        ]);
+            'toc' => $this->toc,
+        ])->render();
 
         // -------------------------
-        // Filename
+        // Generate PDF using mPDF
+        // -------------------------
+        $mpdf = new Mpdf([
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+            'margin_left' => 10,
+            'margin_right' => 10
+        ]);
+
+        // Performance tweaks
+        $mpdf->simpleTables = true;
+        $mpdf->packTableData = true;
+ 
+        $mpdf->WriteHTML($html);
+
+        // -------------------------
+        // Save PDF
         // -------------------------
         $sanitize = fn($value) =>
             $value ? preg_replace('/[^A-Za-z0-9]/', '_', $value) : 'all';
 
         $lokaliti = $sanitize($this->filters['lokaliti'] ?? null);
         $search = $sanitize($this->filters['search_name'] ?? null);
-
         $statusLabel = $statuses[$this->filters['status_culaan'] ?? ''] ?? 'all';
 
         $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statusLabel}_search_{$search}_summary.pdf";
@@ -157,14 +155,13 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
         $summaryPath = "{$folderPath}/{$fileName}";
 
         Storage::disk('public')->makeDirectory($folderPath);
+        Storage::disk('public')->put($summaryPath, $mpdf->Output('', 'S'));
 
-        Storage::disk('public')->put($summaryPath, $pdf->output());
+        unset($mpdf);
+        gc_collect_cycles();
 
         $endMemory = memory_get_usage(true);
         $peakMemory = memory_get_peak_usage(true);
-
-        unset($pdf);
-        gc_collect_cycles();
 
         Log::info('Summary PDF generated', [
             'culaan_id' => $this->culaanId,
