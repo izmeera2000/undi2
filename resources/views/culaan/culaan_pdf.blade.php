@@ -42,7 +42,7 @@
                 </td>
 
                 <td>
-                    {{ $row['kateegori_pengundi'] ?? '' }}
+                    {{ $row['kategori_pengundi'] ?? '' }}
                     @if(!empty($row['status_pengundi']))
                         ({{ $row['status_pengundi'] }})
                     @endif
