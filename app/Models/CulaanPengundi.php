@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CulaanPengundi extends Model
 {
+        use HasFactory;
     protected $table = 'culaan_pengundis';
 
     protected $fillable = [
@@ -36,8 +38,7 @@ class CulaanPengundi extends Model
         'alamat',
 
         'status_culaan',
-        'kategori_culaan',
-        'notes',
+         'notes',
 
         'updated_by'
     ];
