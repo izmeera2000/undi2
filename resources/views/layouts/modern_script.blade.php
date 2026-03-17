@@ -129,46 +129,40 @@
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+ document.addEventListener("DOMContentLoaded", function () {
 
-        const userId = "{{ auth()->id() }}";
+    const userId = "{{ auth()->id() }}";
 
+    // Grab elements
+    const badge = document.getElementById('notification-badge');
+    const countSpan = document.querySelector('.notification-count');
+    const notificationList = document.querySelector('.notification-list');
 
+    if (window.Echo) {
+        window.Echo.private(`App.Models.User.${userId}`)
+            .notification((notification) => {
 
+                // Show toast
+                toastr.success(notification.message, notification.title);
 
-        if (window.Echo) {
+                if (notificationList) {
+                    const item = document.createElement('a');
 
-            // console.log('Echo listening for user', userId);
+                    const url = notification.url || '#';
+                    item.href = url;
+                    item.dataset.id = notification.id;
 
-            window.Echo.private(`App.Models.User.${userId}`)
-                .notification((notification) => {
+                    // Open PDF links in new tab
+                    if (url.endsWith('.pdf')) {
+                        item.target = '_blank';
+                    }
 
-                    // console.log('Real-time notification:', notification);
+                    item.className =
+                        "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
 
-                    // Toast
-                    toastr.success(notification.message, notification.title);
+                    const now = new Date().toISOString(); // current timestamp
 
-                    if (notificationList) {
-
-                        const item = document.createElement('a');
-
-                        const url = notification.url || '#';
-                        item.href = url;
-                        item.dataset.id = notification.id;
-
-                        // Open PDF links in new tab
-                        if (url.endsWith('.pdf')) {
-                            item.target = '_blank';
-                        }
-
-
-
-                        item.className =
-                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
-
-                        const now = new Date().toISOString(); // current timestamp
-
-                        item.innerHTML = `
+                    item.innerHTML = `
                         <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
                             <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
                         </div>
@@ -188,35 +182,33 @@
                         </div>
                     `;
 
-                        // prepend to top
-                        notificationList.prepend(item);
+                    // Prepend to top
+                    notificationList.prepend(item);
 
-                        // limit list to 5 items (same as blade)
-                        const items = notificationList.querySelectorAll('.notification-item');
-                        if (items.length > 5) {
-                            items[items.length - 1].remove();
-                        }
+                    // Limit list to 5 items (same as blade)
+                    const items = notificationList.querySelectorAll('.notification-item');
+                    if (items.length > 5) {
+                        items[items.length - 1].remove();
                     }
+                }
 
-                    // Update badge
-                    if (badge) {
+                // Update badge
+                if (badge) {
+                    let count = parseInt(badge.innerText || '0', 10) + 1;
+                    badge.innerText = count;
+                    badge.style.display = ''; // ensure it’s visible
 
-                        let count = parseInt(badge.innerText || '0', 10) + 1;
-
-                        badge.innerText = count;
-
-                        if (countSpan) {
-                            countSpan.innerText = count + ' new';
-                        }
+                    if (countSpan) {
+                        countSpan.innerText = count + ' new';
                     }
+                }
 
-                });
+            });
+    } else {
+        // console.log('Echo is not loaded');
+    }
 
-        } else {
-            console.log('Echo is not loaded');
-        }
-
-    });
+});
 </script>
 
 <script>

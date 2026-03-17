@@ -61,7 +61,8 @@
                                         <div class="notif-item-content">
                                             <div class="notif-item-header">
                                                 <h6>{{ $notification->data['title'] }}</h6>
-                                                <span class="notif-item-time">{{ $notification->created_at->diffForHumans() }}</span>
+                                                <span
+                                                    class="notif-item-time">{{ $notification->created_at->diffForHumans() }}</span>
                                             </div>
                                             <p>{{ $notification->data['message'] }}</p>
                                             @if(isset($notification->data['file']))
@@ -91,7 +92,7 @@
 
 @push('scripts')
     <script>
-  const csrfToken = $('meta[name="csrf-token"]').attr('content');
+        const csrfToken = $('meta[name="csrf-token"]').attr('content');
 
         // Mark individual notification as read
         document.querySelectorAll('.mark-read-btn').forEach(btn => {
@@ -120,12 +121,24 @@
                     'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json',
                 },
-            }).then(res => res.json()).then(data => {
+            }).then(res => res.json())
+            .then(data => {
                 if (data.success) {
-                    document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
-                    document.querySelectorAll('.mark-read-btn').forEach(btn => btn.remove());
+                    // Remove unread highlight
+                    document.querySelectorAll('.notif-item, .notification-item.unread').forEach(el => {
+                        el.classList.remove('unread', 'bg-primary-light');
+                    });
+
+                    // Remove the badge
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) badge.style.display = 'none';
+
+              
+
+                    // Optional: refresh the page
+                    // location.reload();
                 }
-            });
+            })
         });
     </script>
 @endpush
