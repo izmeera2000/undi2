@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
-
+use Mpdf\Mpdf;
+use Illuminate\Support\Facades\View;
 use Devrabiul\ToastMagic\Facades\ToastMagic;
+use App\Jobs\GenerateCulaanPdfAnalytics;
 
 class CulaanController extends Controller
 {
@@ -899,15 +901,21 @@ class CulaanController extends Controller
     {
         $charts = $request->input('charts');
 
-        return Pdf::loadView('culaan.analytics_pdf', [
-            'charts' => $charts,
-            'culaan' => $culaan
-        ])
-            ->setPaper('a4', 'portrait')
-            ->stream('culaan-analytics.pdf');
+        // Get filters from request
+        $filters = $request->input('filters', []);
+
+        // Dispatch job with charts, culaan ID, user ID, and filters
+        GenerateCulaanPdfAnalytics::dispatch(
+            $charts,
+            $culaan->id,
+            auth()->id(),
+            $filters
+        );
+
+        return response()->json([
+            'message' => 'PDF is being generated. Please wait...'
+        ]);
     }
-
-
 
 
     public function exportPdf(Request $request, Culaan $culaan)

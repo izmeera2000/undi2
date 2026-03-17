@@ -30,29 +30,29 @@
 
 
                     <div class="col-md-3">
-                        <select id="dm" class="form-control">
+                        <select id="dm" class="form-control" onchange="debounceLoadAnalytics()">
                             <option value="">All DM</option>
                             @foreach($dmList as $dm)
-                                <option value="{{ $dm->koddm }}">{{ $dm->namadm }}
-                                    ({{  $dm->koddm}})</option>
+                                <option value="{{ $dm->koddm }}">
+                                    {{ $dm->namadm }} ({{ $dm->koddm }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
-
                     <div class="col-md-3">
-                        <select id="lokaliti" class="form-control">
+                        <select id="lokaliti" class="form-control" onchange="debounceLoadAnalytics()">
                             <option value="">All Lokaliti</option>
                             @foreach($lokalitiList as $lokaliti)
-                                <option value="{{ $lokaliti->kod_lokaliti }}">{{ $lokaliti->nama_lokaliti }}
-                                    ({{  $lokaliti->kod_lokaliti}})</option>
+                                <option value="{{ $lokaliti->kod_lokaliti }}">
+                                    {{ $lokaliti->nama_lokaliti }} ({{ $lokaliti->kod_lokaliti }})
+                                </option>
                             @endforeach
                         </select>
                     </div>
 
-
                     <div class="col-md-3">
-                        <select id="status_culaan" class="form-control">
+                        <select id="status_culaan" class="form-control" onchange="debounceLoadAnalytics()">
                             <option value="">All Status</option>
                             <option value="D">BN</option>
                             <option value="A">PH</option>
@@ -62,11 +62,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
-                        <button class="btn btn-primary w-100" onclick="loadAnalytics()">
-                            Filter
-                        </button>
-                    </div>
+
 
                     <div class="col-md-3">
 
@@ -191,7 +187,8 @@
             colors = [],
             modalTitle = 'All Data',
             modalLabelsMap = {},
-            stacked = false // new param for stacked bars
+            stacked = false, // new param for stacked bars
+            horizontal = false
         ) {
             // Destroy existing chart if present
             if (charts[id]) charts[id].destroy();
@@ -284,19 +281,19 @@
                             }
 
                             const html = items.map(i => `
-                                                                                            <div class="tooltip-row d-flex align-items-center mb-1">
-                                                                                                <span style="
-                                                                                                    background:${i.color};
-                                                                                                    width:12px;
-                                                                                                    height:12px;
-                                                                                                    display:inline-block;
-                                                                                                    margin-right:6px;
-                                                                                                    border-radius:3px;
-                                                                                                "></span>
-                                                                                                <span>${i.name}</span>
-                                                                                                <strong class="ms-auto">${i.value}</strong>
-                                                                                            </div>
-                                                                                        `).join('');
+                                            <div class="tooltip-row d-flex align-items-center mb-1">
+                                                <span style="
+                                                    background:${i.color};
+                                                    width:12px;
+                                                    height:12px;
+                                                    display:inline-block;
+                                                    margin-right:6px;
+                                                    border-radius:3px;
+                                                "></span>
+                                                <span>${i.name}</span>
+                                                <strong class="ms-auto">${i.value}</strong>
+                                            </div>
+                                        `).join('');
 
                             document.getElementById("tooltipModalBody").innerHTML = html;
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();
@@ -358,7 +355,7 @@
 
                 options.plotOptions = {
                     bar: {
-                        horizontal: isMobile,
+                        horizontal: isMobile || horizontal,
                         distributed: !stacked // only distributed for non-stacked bars
                     }
                 };
@@ -386,8 +383,7 @@
         }
         function loadAnalytics() {
             let data = {
-                // search_name: $('#search_name').val(),
-                dm: $('#dm').val(), // Added this
+                dm: $('#dm').val(),
                 lokaliti: $('#lokaliti').val(),
                 status_culaan: $('#status_culaan').val(),
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -428,7 +424,7 @@
 
                     renderChart('umurChart', res.umur_chart.labels, res.umur_chart.series, 'bar', 'First TIme Voter', [], 'First TIme Voter', {}, true);
 
-                    renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti');
+                    renderChart('lokalitiChart', res.lokaliti_chart.labels, res.lokaliti_chart.series, 'bar', 'Top Lokaliti', [], 'Top Lokaliti', {}, false, false);
                 },
                 error: function (err) {
                     console.error("Error loading analytics:", err);
@@ -445,46 +441,60 @@
 
 
     <script>
-
         document.getElementById('exportPdf').addEventListener('click', async () => {
 
-            toastr.info("Exporting", "Generating PDF...");
 
             if (!DashboardState.charts) {
-                alert('Charts not ready');
+                toastr.error("Charts not ready");
                 return;
             }
 
-            const images = [];
+            try {
+                // Generate all chart images in parallel
+                const chartPromises = Object.values(DashboardState.charts).map(async ({ chart, title }) => {
+                    if (!chart) return null;
 
-            for (const { chart, title } of Object.values(DashboardState.charts)) {
-
-                if (!chart) continue;
-
-                await new Promise(r => setTimeout(r, 300));
-
-                const { imgURI } = await chart.dataURI({ scale: 2 });
-
-                images.push({
-                    image: imgURI,
-                    title: title
+                    const { imgURI } = await chart.dataURI({ scale: 2 });
+                    return { image: imgURI, title };
                 });
+
+                let images = await Promise.all(chartPromises);
+
+                // Filter out nulls (charts that didn’t exist)
+                images = images.filter(Boolean);
+
+                if (!images.length) {
+                    toastr.error('No charts ready for export.');
+                    return;
+                }
+
+                // Get filter values
+                const filters = {
+                    dm: document.getElementById('dm').value,
+                    lokaliti: document.getElementById('lokaliti').value,
+                    status_culaan: document.getElementById('status_culaan').value,
+                };
+
+                // Send all images to backend at once
+                const response = await fetch("{{ route('culaan.analytics_pdf', $culaan) }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        charts: images,
+                        filters: filters
+                    })
+                });
+                const data = await response.json();
+
+                toastr.success(data.message || "PDF generation started");
+
+            } catch (error) {
+                console.error(error);
+                toastr.error("Failed to generate PDF");
             }
-
-            if (!images.length) {
-                alert('No charts ready for export.');
-                return;
-            }
-
-            fetch("{{ route('culaan.analytics_pdf', $culaan) }}", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ charts: images })
-            })
-
         });
 
 
@@ -508,6 +518,16 @@
 
             $('#lokaliti').val('');
         });
+
+        let analyticsTimer;
+
+        function debounceLoadAnalytics() {
+            clearTimeout(analyticsTimer);
+
+            analyticsTimer = setTimeout(() => {
+                loadAnalytics();
+            }, 400); // 400ms buffer (you can adjust)
+        }
 
     </script>
 @endpush
