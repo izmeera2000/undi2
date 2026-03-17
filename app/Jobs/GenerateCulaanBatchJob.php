@@ -48,10 +48,12 @@ class GenerateCulaanBatchJob implements ShouldQueue
                     // Filter by lokaliti if provided
                     $q->where('kod_lokaliti', 'like', "%{$filters['lokaliti']}%");
                 } elseif (!empty($filters['dm'])) {
-                    // If lokaliti is null but dm exists, filter by dm
+                    // Only filter by dm if dm exists
                     $q->where('kod_lokaliti', 'like', "{$filters['dm']}%");
                 }
-            })->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "{$status}%"))
+                // If both lokaliti and dm are null, do nothing
+            })
+            ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "{$status}%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
                 $search = trim($search);
                 $q->where(function ($qq) use ($search) {

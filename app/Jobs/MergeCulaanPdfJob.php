@@ -79,7 +79,14 @@ class MergeCulaanPdfJob implements ShouldQueue
                 $fpdi->AddPage($size['orientation'], [$size['width'], $size['height']]);
                 $fpdi->useTemplate($tpl);
             }
+
         }
+
+
+                // Save final merged PDF
+        $dm = !empty($this->filters['dm'])
+            ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['dm'])
+            : 'all';
 
         // Save final merged PDF
         $lokaliti = !empty($this->filters['lokaliti'])
@@ -92,7 +99,7 @@ class MergeCulaanPdfJob implements ShouldQueue
             ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['search_name'])
             : 'all';
 
-        $fileName = "culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
+        $fileName = "culaan_{$this->culaanId}_dm_{$dm}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}.pdf";
 
         $mergedPath = "{$folderPath}/{$fileName}";
 

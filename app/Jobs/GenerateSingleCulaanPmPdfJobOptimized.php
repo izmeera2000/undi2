@@ -144,6 +144,10 @@ class GenerateSingleCulaanPmPdfJobOptimized implements ShouldQueue
             // Save PDF
             // ----------------------
 
+            $dm = !empty($this->filters['dm'])
+                ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['dm'])
+                : 'all';
+
             $lokaliti = !empty($this->filters['lokaliti'])
                 ? preg_replace('/[^A-Za-z0-9]/', '_', $this->filters['lokaliti'])
                 : 'all';
@@ -158,7 +162,7 @@ class GenerateSingleCulaanPmPdfJobOptimized implements ShouldQueue
 
             $safePm = preg_replace('/[^A-Za-z0-9]/', '_', $this->pm);
 
-            $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}_pm_{$safePm}_page{$globalPage}.pdf";
+            $fileName = "temp_culaan_{$this->culaanId}_dm_{$dm}_lokaliti_{$lokaliti}_status_{$status}_search_{$search}_pm_{$safePm}_page{$globalPage}.pdf";
             $filePath = "pdfs/culaan/{$this->culaanId}/{$fileName}";
 
             $pdfContent = $mpdf->Output('', Destination::STRING_RETURN);

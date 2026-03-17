@@ -146,11 +146,12 @@ class GenerateCulaanSummaryPdfJob implements ShouldQueue
         $sanitize = fn($value) =>
             $value ? preg_replace('/[^A-Za-z0-9]/', '_', $value) : 'all';
 
+        $dm = $sanitize($this->filters['dm'] ?? null);
         $lokaliti = $sanitize($this->filters['lokaliti'] ?? null);
         $search = $sanitize($this->filters['search_name'] ?? null);
         $statusLabel = $statuses[$this->filters['status_culaan'] ?? ''] ?? 'all';
 
-        $fileName = "temp_culaan_{$this->culaanId}_lokaliti_{$lokaliti}_status_{$statusLabel}_search_{$search}_summary.pdf";
+        $fileName = "temp_culaan_{$this->culaanId}_dm_{$dm}_lokaliti_{$lokaliti}_status_{$statusLabel}_search_{$search}_summary.pdf";
 
         $summaryPath = "{$folderPath}/{$fileName}";
 
