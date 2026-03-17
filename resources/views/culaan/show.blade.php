@@ -5,6 +5,8 @@
 @section('breadcrumb')
     @php
         $crumbs = [
+            ['label' => 'Pengundi'],
+
             ['label' => 'Culaan', 'url' => route('culaan.index')],
             ['label' => $culaan->name]
         ];

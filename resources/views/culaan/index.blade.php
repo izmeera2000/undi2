@@ -6,6 +6,7 @@
     @php
         // Build dynamic crumbs based on request
         $crumbs = [
+            ['label' => 'Pengundi'],
             ['label' => 'Culaan', 'url' => route('culaan.index')],
             ['label' => 'List', 'url' => route('culaan.index')],
         ];

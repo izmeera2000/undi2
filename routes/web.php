@@ -386,7 +386,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     });
 
 
-    Route::prefix('culaan')->name('culaan.')->group(function () {
+    Route::prefix('pengundi/culaan')->name('culaan.')->group(function () {
 
         // Standard Culaan routes
         Route::get('/', [CulaanController::class, 'index'])->name('index');
