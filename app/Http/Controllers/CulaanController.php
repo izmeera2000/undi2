@@ -211,8 +211,8 @@ class CulaanController extends Controller
 
 
                 <div>
-                    <span class="fw-semibold">' . $row->kategori_pengundi . '</span>
-                    <div class="text-muted small">' . $row->status_pengundi . '</div>
+                    <span class="fw-semibold">' . $row->status_pengundi . '</span>
+                    <div class="text-muted small">' . $row->kategori_pengundi . '</div>
                 </div>
 
             </div>';
