@@ -225,24 +225,22 @@
         const notificationButton = document.querySelector('.notification-dropdown button');
 
         function formatTimeAgo(dateString) {
-
             const time = new Date(dateString);
             const now = new Date();
 
             const seconds = Math.floor((now - time) / 1000);
 
-            if (seconds < 60) return "just now";
+            if (seconds < 60) return "Just now";
 
             const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return minutes + " min ago";
+            if (minutes < 60) return minutes + (minutes === 1 ? " minute ago" : " minutes ago");
 
             const hours = Math.floor(minutes / 60);
-            if (hours < 24) return hours + " hour ago";
+            if (hours < 24) return hours + (hours === 1 ? " hour ago" : " hours ago");
 
             const days = Math.floor(hours / 24);
-            return days + " day ago";
+            return days + (days === 1 ? " day ago" : " days ago");
         }
-
         function updateNotificationTimes() {
 
             document.querySelectorAll('.notification-time').forEach(el => {
