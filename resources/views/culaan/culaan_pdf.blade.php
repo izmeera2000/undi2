@@ -41,8 +41,12 @@
                     <small>{{ $row['kod_lokaliti'] ?? '' }}</small>
                 </td>
 
-                <td>{{ $row['kateegori_pengundi'] ?? '' }}<br>{{ $row['status_pengundi'] ?? '' }}</td>
-
+                <td>
+                    {{ $row['kateegori_pengundi'] ?? '' }}
+                    @if(!empty($row['status_pengundi']))
+                        ({{ $row['status_pengundi'] }})
+                    @endif
+                </td>
                 <td style="text-align:center">
                     {{ $statuses[substr($row['status_culaan'] ?? '', 0, 1)] ?? $row['status_culaan'] ?? '' }}
                 </td>
