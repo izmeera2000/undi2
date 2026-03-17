@@ -62,8 +62,9 @@
 
                                         <td>{{ $data['message'] ?? '-' }}</td>
 
-                                        <td>{{ $notification->created_at->diffForHumans() }}</td>
-
+                                        <td data-order="{{ $notification->created_at->timestamp }}">
+                                            {{ $notification->created_at->diffForHumans() }}
+                                        </td>
                                         <td>
                                             @if(isset($data['file']))
                                                 <a href="{{ Storage::url($data['file']) }}" target="_blank"
@@ -107,11 +108,13 @@
 
             // Init DataTable
             let table = $('#notificationsTable').DataTable({
-                order: [[4, 'desc']], // initially sort by column index 4 (zero-based)
+                order: [[4, 'desc']],
                 pageLength: 10,
+                autoWidth: false,
+                responsive: true,
                 columnDefs: [
-                    { targets: [0, 1], orderable: false }, // columns 0 and 1 cannot be sorted
-                    { targets: '_all', orderable: true }   // all other columns sortable
+                    { targets: [0, 1], orderable: false },
+                    { targets: 5, width: "180px" } // 👈 force Action column width
                 ]
             });
 
