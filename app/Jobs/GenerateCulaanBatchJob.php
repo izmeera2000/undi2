@@ -43,8 +43,15 @@ class GenerateCulaanBatchJob implements ShouldQueue
         // Build filtered query
         // -------------------------
         $query = CulaanPengundi::where('culaan_id', $culaanId)
-            ->when($filters['lokaliti'] ?? null, fn($q, $lok) => $q->where('kod_lokaliti', 'like', "%{$lok}%"))
-            ->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "{$status}%"))
+            ->when(true, function ($q) use ($filters) {
+                if (!empty($filters['lokaliti'])) {
+                    // Filter by lokaliti if provided
+                    $q->where('kod_lokaliti', 'like', "%{$filters['lokaliti']}%");
+                } elseif (!empty($filters['dm'])) {
+                    // If lokaliti is null but dm exists, filter by dm
+                    $q->where('kod_lokaliti', 'like', "{$filters['dm']}%");
+                }
+            })->when($filters['status_culaan'] ?? null, fn($q, $status) => $q->where('status_culaan', 'like', "{$status}%"))
             ->when($filters['search_name'] ?? null, function ($q, $search) {
                 $search = trim($search);
                 $q->where(function ($qq) use ($search) {
@@ -120,7 +127,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
 
                 // PM metadata cache key using batch ID
                 $metadataKey = "culaan_{$culaanId}_{$batchId}_pm_metadata";
- 
+
                 $toc = Cache::get($metadataKey, []);
 
                 Log::info('TOC ready for merging', [
@@ -134,7 +141,7 @@ class GenerateCulaanBatchJob implements ShouldQueue
 
 
 
-       
+
 
 
             })
