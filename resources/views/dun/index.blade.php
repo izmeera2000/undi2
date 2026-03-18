@@ -78,7 +78,7 @@
                             <option value="">-- Select Parlimen --</option>
                             @foreach($parlimens as $parlimen)
                                 <option value="{{ $parlimen->id }}">
-                                    {{ $parlimen->namapar }}
+                                    {{ $parlimen->nama_par }}
                                 </option>
                             @endforeach
                         </select>
@@ -90,7 +90,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nama DUN</label>
-                            <input type="text" name="namadun" class="form-control" required>
+                            <input type="text" name="nama_dun" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Status</label>
@@ -148,9 +148,9 @@
                     }
                 },
                 columns: [
-                    { data: 'parlimen_name', name: 'parlimen.namapar' },
+                    { data: 'parlimen_name', name: 'parlimen.nama_par' },
                     { data: 'kod_dun', name: 'kod_dun' },
-                    { data: 'namadun', name: 'namadun' },
+                    { data: 'nama_dun', name: 'nama_dun' },
                     { data: 'effective_from', name: 'effective_from', searchable: false },
                     { data: 'effective_to', name: 'effective_to', searchable: false },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },

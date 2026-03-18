@@ -7,11 +7,11 @@
         <td><strong>Series:</strong> {{ $filters['series'] ?? '-' }}</td>
     </tr>
     <tr>
-        <td><strong>Parlimen:</strong> {{ $areaInfo->namapar ?? '-' }}</td>
-        <td><strong>DUN:</strong> {{ $areaInfo->namadun ?? '-' }} ({{ $areaInfo->kod_dun ?? '-' }})</td>
+        <td><strong>Parlimen:</strong> {{ $areaInfo->nama_par ?? '-' }}</td>
+        <td><strong>DUN:</strong> {{ $areaInfo->nama_dun ?? '-' }} ({{ $areaInfo->kod_dun ?? '-' }})</td>
     </tr>
     <tr>
-        <td colspan="2"><strong>DM:</strong> {{ $areaInfo->namadm ?? '-' }} ({{ $areaInfo->koddm ?? '-' }})</td>
+        <td colspan="2"><strong>DM:</strong> {{ $areaInfo->nama_dm ?? '-' }} ({{ $areaInfo->kod_dm ?? '-' }})</td>
     </tr>
 </table>
 

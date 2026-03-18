@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('parlimen', function (Blueprint $table) {
             $table->id();
             $table->string('kod_par')->unique();
-            $table->string('namapar');
+            $table->string('nama_par');
             $table->timestamps();
         });
     }

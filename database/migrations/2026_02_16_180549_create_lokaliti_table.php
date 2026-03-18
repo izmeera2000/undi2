@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('lokaliti', function (Blueprint $table) {
             $table->id();
 
-            $table->string('koddm')->nullable();
+            $table->string('kod_dm')->nullable();
 
             $table->string('kod_lokaliti')->nullable();
             $table->string('nama_lokaliti');

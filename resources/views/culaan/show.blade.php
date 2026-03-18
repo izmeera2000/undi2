@@ -121,8 +121,8 @@
                         <select id="filter_dm" class="form-control">
                             <option value="">All DM</option>
                             @foreach($dmList as $dm)
-                                <option value="{{ $dm->koddm }}" data-name="{{$dm->namadm}}">{{ $dm->namadm }}
-                                    ({{  $dm->koddm}})</option>
+                                <option value="{{ $dm->kod_dm }}" data-name="{{$dm->nama_dm}}">{{ $dm->nama_dm }}
+                                    ({{  $dm->kod_dm}})</option>
                             @endforeach
                         </select>
                     </div>

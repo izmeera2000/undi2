@@ -29,7 +29,7 @@
 
                 <!-- Nama Dun -->
                 <div class="mb-3">
-                    <strong>Nama Dun:</strong> {{ $dun->namadun }}
+                    <strong>Nama Dun:</strong> {{ $dun->nama_dun }}
                 </div>
 
                 <!-- Parlimen -->
@@ -37,7 +37,7 @@
                     <strong>Parlimen:</strong>
                     @if($dun->parlimen)
                         <a href="{{ route('parlimen.show', $dun->parlimen->id) }}">
-                            {{ $dun->parlimen->namapar }}
+                            {{ $dun->parlimen->nama_par }}
                         </a>
                     @else
                         <span class="text-muted">Not Assigned</span>
@@ -84,8 +84,8 @@
                                 @foreach($dun->dms as $index => $dm)
                                     <tr>
                                         <td>{{ $index + 1 }}</td>
-                                        <td>{{ $dm->koddm }}</td>
-                                        <td>{{ $dm->namadm }}</td>
+                                        <td>{{ $dm->kod_dm }}</td>
+                                        <td>{{ $dm->nama_dm }}</td>
                                         <td>
                                             <a href="{{ route('dm.show', $dm->id) }}" class="btn btn-sm btn-outline-primary">
                                                 View
@@ -113,7 +113,7 @@
             // Filter: only show those with different name or effective dates
             $filteredDuns = $sameDuns->filter(function ($record) use ($dun) {
                 return $record->id !== $dun->id && (
-                    $record->namadun !== $dun->namadun ||
+                    $record->nama_dun !== $dun->nama_dun ||
                     $record->effective_from?->format('Y-m-d') !== $dun->effective_from?->format('Y-m-d') ||
                     $record->effective_to?->format('Y-m-d') !== $dun->effective_to?->format('Y-m-d')
                 );
@@ -139,7 +139,7 @@
                                         <p class="mb-2">
                                             <strong>Nama DUN:</strong>
                                             <a href="{{ route('dun.show', $record->id) }}">
-                                                {{ $record->namadun }} ({{ $record->kod_dun }})
+                                                {{ $record->nama_dun }} ({{ $record->kod_dun }})
                                             </a>
                                         </p>
 
@@ -147,7 +147,7 @@
                                             <strong>Parlimen:</strong>
                                             @if($record->parlimen)
                                                 <a href="{{ route('parlimen.show', $record->parlimen->id) }}">
-                                                    {{ $record->parlimen->namapar }}
+                                                    {{ $record->parlimen->nama_par }}
                                                 </a>
                                             @else
                                                 <span class="text-muted">Not Assigned</span>

@@ -36,14 +36,14 @@
                     {{-- 1️⃣ Kod DM --}}
                     <div class="mb-3">
                         <label class="form-label">Kod DM (2 digits)</label>
-                        <input type="text" name="koddm" id="koddm" class="form-control" maxlength="2" pattern="\d{2}"
-                            value="{{ substr($dm->koddm, -2) }}" {{-- Take last 2 digits of full koddm --}} required>
+                        <input type="text" name="kod_dm" id="kod_dm" class="form-control" maxlength="2" pattern="\d{2}"
+                            value="{{ substr($dm->kod_dm, -2) }}" {{-- Take last 2 digits of full kod_dm --}} required>
                         <small class="text-muted">Enter 2 digits. Full DM code will be generated automatically.</small>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Nama DM</label>
-                        <input type="text" name="namadm" class="form-control" value="{{ $dm->namadm }}" required>
+                        <input type="text" name="nama_dm" class="form-control" value="{{ $dm->nama_dm }}" required>
                     </div>
 
 

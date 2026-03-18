@@ -10,6 +10,8 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\Models\User;
+use App\Notifications\CulaanImportDone;
 
 class CulaanPengundiImportJob implements ShouldQueue
 {
@@ -17,12 +19,15 @@ class CulaanPengundiImportJob implements ShouldQueue
 
     public int $culaanId;
     public string $path;
+    public int $userId;
+
     protected int $batchSize = 300;
 
-    public function __construct(int $culaanId, string $path)
+    public function __construct(int $culaanId, string $path, $userId)
     {
         $this->culaanId = $culaanId;
         $this->path = $path;
+        $this->userId = $userId;
     }
 
     public function handle()
@@ -124,6 +129,15 @@ class CulaanPengundiImportJob implements ShouldQueue
         fclose($handle);
         Cache::forget($cacheKey);
         Storage::delete($this->path);
+
+        $user = User::find($this->userId);
+
+        if ($user) {
+            $url = route('culaan.show', $this->culaanId);
+
+            $user->notify(new CulaanImportDone($url, $this->culaanId));
+        }
+
     }
 
 

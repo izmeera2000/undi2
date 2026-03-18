@@ -33,8 +33,8 @@
                         <select id="dm" class="form-control" onchange="debounceLoadAnalytics()">
                             <option value="">All DM</option>
                             @foreach($dmList as $dm)
-                                <option value="{{ $dm->koddm }}">
-                                    {{ $dm->namadm }} ({{ $dm->koddm }})
+                                <option value="{{ $dm->kod_dm }}">
+                                    {{ $dm->nama_dm }} ({{ $dm->kod_dm }})
                                 </option>
                             @endforeach
                         </select>

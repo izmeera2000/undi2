@@ -37,7 +37,7 @@
                     <strong>DM:</strong>
                     @if($lokaliti->dm)
                         <a href="{{ route('dm.show', $lokaliti->dm->id) }}">
-                            {{ $lokaliti->dm->namadm }} ({{ $lokaliti->dm->koddm }})
+                            {{ $lokaliti->dm->nama_dm }} ({{ $lokaliti->dm->kod_dm }})
                         </a>
                     @else
                         <span class="text-muted">Not Assigned</span>
@@ -49,7 +49,7 @@
                     <strong>DUN:</strong>
                     @if($lokaliti->dun)
                         <a href="{{ route('dun.show', $lokaliti->dun->id) }}">
-                            {{ $lokaliti->dun->namadun }} ({{ $lokaliti->dun->kod_dun }})
+                            {{ $lokaliti->dun->nama_dun }} ({{ $lokaliti->dun->kod_dun }})
                         </a>
                     @else
                         <span class="text-muted">Not Available</span>
@@ -61,7 +61,7 @@
                     <strong>Parlimen:</strong>
                     @if($lokaliti->dun && $lokaliti->dun->parlimen)
                         <a href="{{ route('parlimen.show', $lokaliti->dun->parlimen->id) }}">
-                            {{ $lokaliti->dun->parlimen->namapar }}
+                            {{ $lokaliti->dun->parlimen->nama_par }}
                         </a>
                     @else
                         <span class="text-muted">Not Available</span>

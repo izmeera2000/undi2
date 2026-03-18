@@ -138,7 +138,7 @@
                 },
                 columns: [
                     { data: 'kod_par', name: 'kod_par' },
-                    { data: 'name', name: 'namapar' },
+                    { data: 'name', name: 'nama_par' },
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },
                 ]
             });

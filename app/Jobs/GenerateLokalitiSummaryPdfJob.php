@@ -79,15 +79,15 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 ->join('parlimen as p', 'dn.parlimen_id', '=', 'p.id')
 
                 ->select(
-                    'd.koddm',
-                    'd.namadm',
+                    'd.kod_dm',
+                    'd.nama_dm',
                     'dn.kod_dun',
-                    'dn.namadun',
+                    'dn.nama_dun',
                     'p.id as parlimen_id',
-                    'p.namapar'
+                    'p.nama_par'
                 )
 
-                ->where('d.koddm', $dm)
+                ->where('d.kod_dm', $dm)
                 ->where('dn.kod_dun', $dun)
 
                 // DM validity
@@ -142,7 +142,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                             });
                     })
                     ->join('dm as d', function ($join) use ($selectedPRUDate) {
-                        $join->on('l.koddm', '=', 'd.koddm')
+                        $join->on('l.kod_dm', '=', 'd.kod_dm')
                             ->where('d.effective_from', '<=', $selectedPRUDate)
                             ->where(function ($q) use ($selectedPRUDate) {
                                 $q->whereNull('d.effective_to')
@@ -161,7 +161,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                     ->where('p.pilihan_raya_series', $series)
                     ->where('dn.parlimen_id', $parlimen)
                     ->where('d.kod_dun', $dun)
-                    ->where('l.koddm', $dm);
+                    ->where('l.kod_dm', $dm);
             }, 'p')
                 ->selectRaw("
                         p.kod_lokaliti,

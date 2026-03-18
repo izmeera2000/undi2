@@ -15,7 +15,7 @@ class Dun extends Model
     protected $fillable = [
         'parlimen_id',
         'kod_dun',       // Ensure 'kod_dun' is part of fillable fields
-        'namadun',
+        'nama_dun',
         'status',
         'effective_from',
         'effective_to'
@@ -43,9 +43,9 @@ public function lokalitis()
         Lokaliti::class,
         Dm::class,
         'kod_dun',      // Foreign key on dm table
-        'koddm',       // Foreign key on lokaliti table
+        'kod_dm',       // Foreign key on lokaliti table
         'kod_dun',      // Local key on dun table
-        'koddm'        // Local key on dm table
+        'kod_dm'        // Local key on dm table
     );
 }
 
@@ -74,7 +74,7 @@ public function lokalitis()
     {
         return LogOptions::defaults()
             ->useLogName('dun')  // Set log name to 'dun'
-            ->logOnly(['kod_dun', 'namadun', 'parlimen_id']) // Only log changes to these attributes
+            ->logOnly(['kod_dun', 'nama_dun', 'parlimen_id']) // Only log changes to these attributes
             ->logOnlyDirty() // Log only dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
             ->setDescriptionForEvent(fn(string $eventName) => "Dun with ID {$this->id} was {$eventName}"); // Custom log description

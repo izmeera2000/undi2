@@ -24,12 +24,12 @@
             <div class="card-body">
                 <!-- Kod DM -->
                 <div class="mb-3">
-                    <strong>Kod DM:</strong> {{ $dm->koddm }}
+                    <strong>Kod DM:</strong> {{ $dm->kod_dm }}
                 </div>
 
                 <!-- Nama DM -->
                 <div class="mb-3">
-                    <strong>Nama DM:</strong> {{ $dm->namadm }}
+                    <strong>Nama DM:</strong> {{ $dm->nama_dm }}
                 </div>
 
                 <!-- DUN Information -->
@@ -37,7 +37,7 @@
                     <strong>DUN:</strong>
                     @if($dm->dun)
                         <a href="{{ route('dun.show', $dm->dun->id) }}">
-                            {{ $dm->dun->namadun }} ({{ $dm->dun->kod_dun }})
+                            {{ $dm->dun->nama_dun }} ({{ $dm->dun->kod_dun }})
                         </a>
                     @else
                         <span class="text-muted">Not Assigned</span>
@@ -49,7 +49,7 @@
                     <strong>Parlimen:</strong>
                     @if($dm->dun && $dm->dun->parlimen)
                         <a href="{{ route('parlimen.show', $dm->dun->parlimen->id) }}">
-                            {{ $dm->dun->parlimen->namapar }}
+                            {{ $dm->dun->parlimen->nama_par }}
                         </a>
                     @else
                         <span class="text-muted">Not Available</span>
@@ -139,13 +139,13 @@
         </div>
 
         @php
-            $sameDms = \App\Models\Dm::where('koddm', $dm->koddm)
+            $sameDms = \App\Models\Dm::where('kod_dm', $dm->kod_dm)
                 ->orderBy('effective_from')
                 ->get();
 
             $filteredDms = $sameDms->filter(function ($record) use ($dm) {
                 return $record->id !== $dm->id && (
-                    $record->namadm !== $dm->namadm ||
+                    $record->nama_dm !== $dm->nama_dm ||
                     $record->effective_from != $dm->effective_from ||
                     $record->effective_to != $dm->effective_to
                 );
@@ -165,14 +165,14 @@
                             <div class="d-flex justify-content-center">
                                 <div class="card shadow-sm" style="width: 30rem;">
                                     <div class="card-header bg-light">
-                                        <strong>Kod DM:</strong> {{ $record->koddm }}
+                                        <strong>Kod DM:</strong> {{ $record->kod_dm }}
                                     </div>
                                     <div class="card-body">
 
                                         <p class="mb-2">
                                             <strong>Nama DM:</strong>
                                             <a href="{{ route('dm.show', $record->id) }}">
-                                                {{ $record->namadm }} ({{ $record->koddm }})
+                                                {{ $record->nama_dm }} ({{ $record->kod_dm }})
                                             </a>
                                         </p>
 
@@ -180,7 +180,7 @@
                                             <strong>DUN:</strong>
                                             @if($record->dun)
                                                 <a href="{{ route('dun.show', $record->dun->id) }}">
-                                                    {{ $record->dun->namadun }} ({{ $record->dun->kod_dun }})
+                                                    {{ $record->dun->nama_dun }} ({{ $record->dun->kod_dun }})
                                                 </a>
                                             @else
                                                 <span class="text-muted">Not Assigned</span>
@@ -191,7 +191,7 @@
                                             <strong>Parlimen:</strong>
                                             @if($record->dun && $record->dun->parlimen)
                                                 <a href="{{ route('parlimen.show', $record->dun->parlimen->id) }}">
-                                                    {{ $record->dun->parlimen->namapar }}
+                                                    {{ $record->dun->parlimen->nama_par }}
                                                 </a>
                                             @else
                                                 <span class="text-muted">Not Available</span>

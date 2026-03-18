@@ -98,8 +98,8 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                     ->orWhereNull('effective_to');
             })
             ->where('kod_dun', $dun)
-            ->where('koddm', $dm)
-            ->pluck('koddm')
+            ->where('kod_dm', $dm)
+            ->pluck('kod_dm')
             ->unique()
             ->toArray();
 
@@ -115,7 +115,7 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         */
         // 1. Fetching the list (Key = Name, Value = Code)
         $lokalitiList = DB::table('lokaliti')
-            ->whereIn('koddm', $validDMs)
+            ->whereIn('kod_dm', $validDMs)
             ->pluck('kod_lokaliti', 'nama_lokaliti')
             ->unique()
             ->toArray();

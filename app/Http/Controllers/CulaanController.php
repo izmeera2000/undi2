@@ -126,7 +126,7 @@ class CulaanController extends Controller
                 $q->whereYear('effective_to', '>=', $year)
                     ->orWhereNull('effective_to');
             })
-            ->orderBy('koddm')
+            ->orderBy('kod_dm')
 
             ->get();
 
@@ -346,7 +346,7 @@ class CulaanController extends Controller
                 $q->whereYear('effective_to', '>=', $year)
                     ->orWhereNull('effective_to');
             })
-            ->orderBy('koddm')
+            ->orderBy('kod_dm')
             ->get();
 
 

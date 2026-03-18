@@ -54,6 +54,6 @@ public function pengundis()
             ->useLogName('culaan')
             ->logOnlyDirty() // Log only dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
-            ->setDescriptionForEvent(fn(string $eventName) => "Dm with ID {$this->id} was {$eventName}"); // Custom log description
+            ->setDescriptionForEvent(fn(string $eventName) => "Culaan with ID {$this->id} was {$eventName}"); // Custom log description
     }
 }

@@ -26,7 +26,7 @@
                 <strong>Kod Parlimen:</strong> {{ $parlimen->kod_par }}
             </div>
             <div class="mb-3">
-                <strong>Nama Parlimen:</strong> {{ $parlimen->namapar }}
+                <strong>Nama Parlimen:</strong> {{ $parlimen->nama_par }}
             </div>
 
             <hr>
@@ -51,7 +51,7 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $dun->kod_dun }}</td>
-                                    <td>{{ $dun->namadun }}</td>
+                                    <td>{{ $dun->nama_dun }}</td>
                                     <td>
                                         <a href="{{ route('dun.show', $dun->id) }}" class="btn btn-sm btn-outline-primary">
                                             View

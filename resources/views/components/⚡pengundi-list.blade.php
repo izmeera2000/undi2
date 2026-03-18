@@ -111,7 +111,7 @@ $response = Http::withCookies([
             return [];
         return collect($this->hierarchy)
             ->where('kod_dun', $this->dun)
-            ->unique('koddm')
+            ->unique('kod_dm')
             ->values();
     }
 
@@ -197,7 +197,7 @@ $response = Http::withCookies([
                     <select wire:model.live="parlimen" class="form-select" @disabled(!$this->type || !$this->series)>
                         <option value="">-- Pilih Parlimen --</option>
                         @foreach($this->parlimenOptions as $p)
-                            <option value="{{ $p['parlimen_id'] }}">{{ $p['namapar'] }}</option>
+                            <option value="{{ $p['parlimen_id'] }}">{{ $p['nama_par'] }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -207,7 +207,7 @@ $response = Http::withCookies([
                     <select wire:model.live="dun" class="form-select" @disabled(!$this->parlimen)>
                         <option value="">-- Pilih DUN --</option>
                         @foreach($this->dunOptions as $d)
-                            <option value="{{ $d['kod_dun'] }}">{{ $d['namadun'] }}</option>
+                            <option value="{{ $d['kod_dun'] }}">{{ $d['nama_dun'] }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -217,7 +217,7 @@ $response = Http::withCookies([
                     <select wire:model.live="dm" class="form-select" @disabled(!$this->dun)>
                         <option value="">-- Pilih DM --</option>
                         @foreach($this->dmOptions as $dmOpt)
-                            <option value="{{ $dmOpt['koddm'] }}">{{ $dmOpt['namadm'] }}</option>
+                            <option value="{{ $dmOpt['kod_dm'] }}">{{ $dmOpt['nama_dm'] }}</option>
                         @endforeach
                     </select>
                 </div>

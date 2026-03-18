@@ -28,8 +28,7 @@ class CulaanPengundiImportController extends Controller
             $path = $file->store('culaan_import');
 
             // Dispatch job to queue
-            CulaanPengundiImportJob::dispatch($request->culaan_id, $path);
-
+            CulaanPengundiImportJob::dispatch($request->culaan_id, $path, auth()->id());
             // Activity log
             $culaan = Culaan::find($request->culaan_id);
 

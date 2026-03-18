@@ -97,7 +97,7 @@ class TaskController extends Controller
             'priority' => 'required|in:low,medium,high',
             'due_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
-            'category_id' => 'nullable|exists:tasks_category,id',
+            'category_id' => 'nullable|exists:tasks_categories,id',
             'tags' => 'nullable|array',
         ]);
 
@@ -137,7 +137,7 @@ class TaskController extends Controller
             'priority' => 'sometimes|in:low,medium,high',
             'due_at' => 'nullable|date',
             'assigned_to' => 'nullable|exists:users,id',
-            'category_id' => 'nullable|exists:tasks_category,id',
+            'category_id' => 'nullable|exists:tasks_categories,id',
             'tags' => 'nullable|array',
             'subtasks' => 'nullable|array',
             'subtasks.*.title' => 'required|string|max:255',

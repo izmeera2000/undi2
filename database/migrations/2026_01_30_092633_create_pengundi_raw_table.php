@@ -11,13 +11,13 @@ return new class extends Migration {
             $table->id();
 
             $table->string('kod_par')->nullable();
-            $table->string('namapar')->nullable();
+            $table->string('nama_par')->nullable();
 
             $table->string('kod_dun')->nullable();
-            $table->string('namadun')->nullable();
+            $table->string('nama_dun')->nullable();
 
-            $table->string('koddm')->nullable();
-            $table->string('namadm')->nullable();
+            $table->string('kod_dm')->nullable();
+            $table->string('nama_dm')->nullable();
 
             $table->string('kodlokaliti')->nullable();
             $table->string('namalokaliti')->nullable();

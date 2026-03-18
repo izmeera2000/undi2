@@ -10,11 +10,13 @@ class SqlImportSeeder extends Seeder
 {
     public function run(): void
     {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::disableQueryLog(); // 🔥 prevent memory issues
         $files = [
             database_path('sql/pengundi.sql'),
-            // database_path('sql/members.sql'),
             database_path('sql/maps.sql'),
-
+            
+            database_path('sql/members.sql'),
             
         ];
 
@@ -32,7 +34,9 @@ class SqlImportSeeder extends Seeder
 
             $this->command->info("Imported successfully: " . basename($path));
         }
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
         $this->command->info('All SQL files processed.');
+        
     }
 }

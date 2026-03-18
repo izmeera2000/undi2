@@ -23,10 +23,10 @@
                     {{-- 1️⃣ DM Selection at Top --}}
                     <div class="mb-3">
                         <label class="form-label">DM</label>
-                        <select name="koddm" class="form-select" required>
-                            @foreach($dms->unique('koddm') as $dm)
-                                <option value="{{ $dm->koddm }}" {{ $lokaliti->koddm == $dm->koddm ? 'selected' : '' }}>
-                                    {{ $dm->koddm }} 
+                        <select name="kod_dm" class="form-select" required>
+                            @foreach($dms->unique('kod_dm') as $dm)
+                                <option value="{{ $dm->kod_dm }}" {{ $lokaliti->kod_dm == $dm->kod_dm ? 'selected' : '' }}>
+                                    {{ $dm->kod_dm }} 
                                 </option>
                             @endforeach
                         </select>

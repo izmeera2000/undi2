@@ -54,16 +54,16 @@ class Pengundi extends Model
     }
 
     // Access DM through Lokaliti
-    // Access DM through Lokaliti (lokaliti.koddm → dm.koddm)
+    // Access DM through Lokaliti (lokaliti.kod_dm → dm.kod_dm)
     public function dm()
     {
         return $this->hasOneThrough(
             Dm::class,          // final model
             Lokaliti::class,    // intermediate model
-            'koddm',            // FK on Dm? No, intermediate FK is lokaliti.koddm
-            'koddm',            // PK on Dm = koddm
+            'kod_dm',            // FK on Dm? No, intermediate FK is lokaliti.kod_dm
+            'kod_dm',            // PK on Dm = kod_dm
             'kod_lokaliti',     // Local key on Pengundi
-            'koddm'             // Local key on Lokaliti
+            'kod_dm'             // Local key on Lokaliti
         );
     }
 
@@ -76,7 +76,7 @@ class Pengundi extends Model
             Dm::class,
             'kod_dun',     // FK on Dm = kod_dun
             'kod_dun',     // PK on Dun = kod_dun
-            'koddm',       // Local key on Pengundi? Actually via dm
+            'kod_dm',       // Local key on Pengundi? Actually via dm
             'kod_dun'      // Local key on DM
         );
     }

@@ -51,7 +51,7 @@ class PengundiAnalyticsController extends Controller
     public function analytics()
     {
         // Get all DUNs
-        $duns = Dun::orderBy('namadun')->get();
+        $duns = Dun::orderBy('nama_dun')->get();
 
         $datas = Pengundi::selectRaw('tarikh_undian as year, pilihan_raya_type,pilihan_raya_series')
             ->where('type_data_id', 1)
@@ -137,29 +137,29 @@ class PengundiAnalyticsController extends Controller
                     $sub->select('kod_dun')->from('dun')->where('parlimen_id', $parlimen);
                 }))
                 ->when($dun_kod, fn($q) => $q->where('kod_dun', $dun_kod))
-                ->when($dm, fn($q) => $q->where('koddm', $dm))
+                ->when($dm, fn($q) => $q->where('kod_dm', $dm))
                 ->whereYear('effective_from', '<=', $year)
                 ->where(function ($q) use ($year) {
                     $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
                 })
-                ->select('koddm', 'namadm', 'kod_dun')
+                ->select('kod_dm', 'nama_dm', 'kod_dun')
                 ->get();
         };
 
         $resolveValidLokaliti = function ($year, $validDMCodes) use ($lokaliti) {
             return DB::table('lokaliti')
-                ->whereIn('koddm', $validDMCodes)
+                ->whereIn('kod_dm', $validDMCodes)
                 ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
                 ->whereYear('effective_from', '<=', $year)
                 ->where(function ($q) use ($year) {
                     $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
                 })
-                ->select('kod_lokaliti', 'nama_lokaliti', 'koddm')
+                ->select('kod_lokaliti', 'nama_lokaliti', 'kod_dm')
                 ->get();
         };
 
         $validDMs1 = $resolveValidDMs($year1);
-        $validDMCodes1 = $validDMs1->pluck('koddm')->toArray();
+        $validDMCodes1 = $validDMs1->pluck('kod_dm')->toArray();
         $validLokaliti1 = $resolveValidLokaliti($year1, $validDMCodes1);
         $validLokalitiCodes1 = $validLokaliti1->pluck('kod_lokaliti')->toArray();
 
@@ -168,7 +168,7 @@ class PengundiAnalyticsController extends Controller
         $validLokalitiCodes2 = [];
         if ($mode === 'compare' && $year2) {
             $validDMs2 = $resolveValidDMs($year2);
-            $validDMCodes2 = $validDMs2->pluck('koddm')->toArray();
+            $validDMCodes2 = $validDMs2->pluck('kod_dm')->toArray();
             $validLokaliti2 = $resolveValidLokaliti($year2, $validDMCodes2);
             $validLokalitiCodes2 = $validLokaliti2->pluck('kod_lokaliti')->toArray();
         }
@@ -400,7 +400,7 @@ class PengundiAnalyticsController extends Controller
                         });
                 })
                 ->join('dm as d', function ($join) use ($year) {
-                    $join->on('l.koddm', '=', 'd.koddm')
+                    $join->on('l.kod_dm', '=', 'd.kod_dm')
                         ->whereYear('d.effective_from', '<=', $year)
                         ->where(function ($q) use ($year) {
                             $q->whereYear('d.effective_to', '>=', $year)->orWhereNull('d.effective_to');
@@ -408,8 +408,8 @@ class PengundiAnalyticsController extends Controller
                 })
                 ->join('dun as du', 'd.kod_dun', '=', 'du.kod_dun')
                 ->selectRaw("
-                du.namadun,
-                d.namadm,
+                du.nama_dun,
+                d.nama_dm,
                 CASE
                     WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
                     WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
@@ -419,7 +419,7 @@ class PengundiAnalyticsController extends Controller
                     ELSE '60+'
                 END AS umur_group,
                 COUNT(DISTINCT p.id) AS total
-            ")->groupBy('du.namadun', 'd.namadm', 'umur_group')
+            ")->groupBy('du.nama_dun', 'd.nama_dm', 'umur_group')
                 ->get();
         };
 
@@ -593,14 +593,14 @@ class PengundiAnalyticsController extends Controller
     {
         $parlimens = Parlimen::all();
         $duns = Dun::all();
-        $lokalitis = Lokaliti::select('kod_lokaliti', 'koddm')->distinct()
+        $lokalitis = Lokaliti::select('kod_lokaliti', 'kod_dm')->distinct()
             ->orderBy('kod_lokaliti', 'asc') // order by name ascending
             ->get();
         ;
 
-        $dms = Dm::select('koddm', 'dun_id')
-            ->distinct('koddm')  // distinct by 'koddm'
-            ->orderBy('koddm', 'asc')  // order by 'namadm' ascending
+        $dms = Dm::select('kod_dm', 'dun_id')
+            ->distinct('kod_dm')  // distinct by 'kod_dm'
+            ->orderBy('kod_dm', 'asc')  // order by 'nama_dm' ascending
             ->get();
 
 
@@ -674,7 +674,7 @@ class PengundiAnalyticsController extends Controller
     public function analytics_test(Request $request)
     {
         $filters = $request->only([
-            'koddm',
+            'kod_dm',
             'tarikh_undian',
             'jantina',
             'status_umno',
@@ -761,12 +761,12 @@ class PengundiAnalyticsController extends Controller
         $dmUmurChart = $applyFilters(
             DB::table('pengundi as p')
                 ->join('lokaliti as l', 'p.kod_lokaliti', '=', 'l.kod_lokaliti')
-                ->join('dm as d', 'l.koddm', '=', 'd.koddm')
+                ->join('dm as d', 'l.kod_dm', '=', 'd.kod_dm')
                 ->join('dun as du', 'd.kod_dun', '=', 'du.kod_dun')
                 ->selectRaw("
                 p.tarikh_undian,
-                du.namadun,
-                d.namadm,
+                du.nama_dun,
+                d.nama_dm,
                 CASE
                     WHEN p.umur IS NULL OR p.umur = ''  THEN 'UNKNOWN'
                     WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
@@ -778,7 +778,7 @@ class PengundiAnalyticsController extends Controller
                 END AS umur_group,
                 COUNT(*) as total
             ")
-                ->groupBy('p.tarikh_undian', 'du.namadun', 'd.namadm', 'umur_group')
+                ->groupBy('p.tarikh_undian', 'du.nama_dun', 'd.nama_dm', 'umur_group')
         )->get();
 
 
@@ -903,7 +903,7 @@ class PengundiAnalyticsController extends Controller
                     });
             })
             ->join('dm', function ($join) use ($selectedPRUDate) {
-                $join->on('lokaliti.koddm', '=', 'dm.koddm')
+                $join->on('lokaliti.kod_dm', '=', 'dm.kod_dm')
                     ->where('dm.effective_from', '<=', $selectedPRUDate)
                     ->where(function ($q) use ($selectedPRUDate) {
                         $q->whereNull('dm.effective_to')
@@ -921,13 +921,13 @@ class PengundiAnalyticsController extends Controller
             ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
             ->select(
                 'pengundi.kod_lokaliti',
-                'lokaliti.koddm',
+                'lokaliti.kod_dm',
                 'lokaliti.nama_lokaliti',
                 'dm.kod_dun',
-                'dm.namadm',
+                'dm.nama_dm',
                 'dun.parlimen_id',
-                'dun.namadun',
-                'parlimen.namapar'
+                'dun.nama_dun',
+                'parlimen.nama_par'
             )
             ->distinct()
             ->get();
@@ -1003,7 +1003,7 @@ class PengundiAnalyticsController extends Controller
                         });
                 })
                 ->join('dm as d', function ($join) use ($selectedPRUDate) {
-                    $join->on('l.koddm', '=', 'd.koddm')
+                    $join->on('l.kod_dm', '=', 'd.kod_dm')
                         ->where('d.effective_from', '<=', $selectedPRUDate)
                         ->where(function ($q) use ($selectedPRUDate) {
                             $q->whereNull('d.effective_to')
@@ -1022,7 +1022,7 @@ class PengundiAnalyticsController extends Controller
                 ->where('p.pilihan_raya_series', $series)
                 ->where('dn.parlimen_id', $parlimen)
                 ->where('d.kod_dun', $dun)
-                ->where('l.koddm', $dm);
+                ->where('l.kod_dm', $dm);
         }, 'p') // alias the subquery as p
             ->selectRaw("
     p.kod_lokaliti,
@@ -1135,23 +1135,23 @@ class PengundiAnalyticsController extends Controller
         }
 
         if ($dm) {
-            $dmQuery->where('koddm', $dm);
+            $dmQuery->where('kod_dm', $dm);
         }
 
-        $validDMs = $dmQuery->pluck('koddm')->toArray();
+        $validDMs = $dmQuery->pluck('kod_dm')->toArray();
 
         // -------------------------------
         // Step 2: Filter Lokaliti
         // -------------------------------
         $lokalitiQuery = DB::table('lokaliti')
-            ->whereIn('koddm', $validDMs);
+            ->whereIn('kod_dm', $validDMs);
 
         if ($lokaliti) {
             $lokalitiQuery->where('kod_lokaliti', $lokaliti);
         }
 
         $validLokaliti = $lokalitiQuery
-            ->select('kod_lokaliti', 'nama_lokaliti', 'koddm')
+            ->select('kod_lokaliti', 'nama_lokaliti', 'kod_dm')
             ->get()
             ->keyBy('kod_lokaliti');
 
@@ -1184,15 +1184,15 @@ class PengundiAnalyticsController extends Controller
         // Step 4: Get names for Parlimen, DUN, DM
         // -------------------------------
         $parlimenName = $parlimen
-            ? DB::table('parlimen')->where('id', $parlimen)->value('namapar')
+            ? DB::table('parlimen')->where('id', $parlimen)->value('nama_par')
             : null;
 
         $dunName = $dun_kod
-            ? DB::table('dun')->where('kod_dun', $dun_kod)->value('namadun')
+            ? DB::table('dun')->where('kod_dun', $dun_kod)->value('nama_dun')
             : null;
 
         $dmName = $dm
-            ? DB::table('dm')->where('koddm', $dm)->value('namadm')
+            ? DB::table('dm')->where('kod_dm', $dm)->value('nama_dm')
             : null;
 
         $lokalitiName = ($lokaliti && isset($validLokaliti[$lokaliti]))
@@ -1277,13 +1277,13 @@ class PengundiAnalyticsController extends Controller
                 $q2->select('kod_dun')->from('dun')->where('parlimen_id', $parlimen);
             }))
             ->when($dun_kod, fn($q) => $q->where('kod_dun', $dun_kod))
-            ->when($dm, fn($q) => $q->where('koddm', $dm))
-            ->pluck('koddm')
+            ->when($dm, fn($q) => $q->where('kod_dm', $dm))
+            ->pluck('kod_dm')
             ->toArray();
 
         // Step 2: Get valid Lokaliti
         $validLokalitiCodes = DB::table('lokaliti')
-            ->whereIn('koddm', $validDMs)
+            ->whereIn('kod_dm', $validDMs)
             ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
             ->pluck('kod_lokaliti')
             ->toArray();

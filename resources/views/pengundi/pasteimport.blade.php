@@ -34,7 +34,7 @@
                             <option value="">-- Pilih Parlimen --</option>
                             @foreach($parlimens as $par)
                                 <option value="{{ $par->id }}">
-                                    {{ $par->namapar }}
+                                    {{ $par->nama_par }}
                                 </option>
                             @endforeach
                         </select>
@@ -46,7 +46,7 @@
                             <option value="">-- Pilih DUN --</option>
                             @foreach($duns as $dun)
                                 <option value="{{ $dun->kod_dun }}" data-parent="{{ $dun->parlimen_id }}">
-                                    {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                                    {{ $dun->nama_dun }} ({{ $dun->kod_dun }})
                                 </option>
                             @endforeach
                         </select>
@@ -57,7 +57,7 @@
                         <select id="dmSelect" class="form-select" disabled required>
                             <option value="">-- Pilih DM --</option>
                             @foreach($dms as $dm)
-                                <option value="{{ $dm->koddm }}" data-parent="{{ $dm->dun->kod_dun  }}">{{ $dm->koddm }}</option>
+                                <option value="{{ $dm->kod_dm }}" data-parent="{{ $dm->dun->kod_dun  }}">{{ $dm->kod_dm }}</option>
 
                             @endforeach
                         </select>
@@ -68,7 +68,7 @@
                         <select id="lokalitiSelect" name="kod_lokaliti" class="form-select" disabled required>
                             <option value="">-- Pilih Lokaliti --</option>
                             @foreach($lokalitis as $loc)
-                                <option value="{{ $loc->kod_lokaliti }}" data-parent="{{ $loc->dm->koddm }}">{{ $loc->kod_lokaliti }}
+                                <option value="{{ $loc->kod_lokaliti }}" data-parent="{{ $loc->dm->kod_dm }}">{{ $loc->kod_lokaliti }}
                                 </option>
                             @endforeach
                         </select>

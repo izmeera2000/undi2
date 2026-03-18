@@ -19,11 +19,11 @@ class PengundiImportController extends Controller
 
     protected array $headerMap = [
         'KOD PAR' => 'kod_par',
-        'NAMAPAR' => 'namapar',
+        'NAMAPAR' => 'nama_par',
         'KOD DUN' => 'kod_dun',
-        'NAMADUN' => 'namadun',
-        'KODDM' => 'koddm',
-        'NAMADM' => 'namadm',
+        'NAMADUN' => 'nama_dun',
+        'KODDM' => 'kod_dm',
+        'NAMADM' => 'nama_dm',
         'KODLOKALITI' => 'kodlokaliti',
         'NAMALOKALITI' => 'namalokaliti',
         'NOKP BARU' => 'nokp_baru',

@@ -12,7 +12,7 @@ class Parlimen extends Model
 
     protected $table = 'parlimen';
 
-    protected $fillable = ['kod_par', 'namapar'];
+    protected $fillable = ['kod_par', 'nama_par'];
 
     /**
      * Get all DUNs under this Parlimen
@@ -31,7 +31,7 @@ class Parlimen extends Model
     {
         return LogOptions::defaults()
             ->useLogName('parlimen')  // Set log name to 'parlimen'
-            ->logOnly(['kod_par', 'namapar']) // Only log changes to 'kod_par' and 'namapar'
+            ->logOnly(['kod_par', 'nama_par']) // Only log changes to 'kod_par' and 'nama_par'
             ->logOnlyDirty() // Only log dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
             ->setDescriptionForEvent(fn(string $eventName) => "Parlimen with ID {$this->id} was {$eventName}"); // Custom log description

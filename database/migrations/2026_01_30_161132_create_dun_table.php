@@ -20,7 +20,7 @@ return new class extends Migration {
                 ->cascadeOnDelete();
 
             $table->string('kod_dun');
-            $table->string('namadun');
+            $table->string('nama_dun');
 
             // Restructure control
             $table->enum('status', ['active', 'inactive'])->default('active');

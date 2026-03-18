@@ -39,8 +39,8 @@ class DunController extends Controller
     // List all
 public function index()
 {
-    $duns = Dun::orderBy('namadun')->get();
-    $parlimens = Parlimen::orderBy('namapar')->get();
+    $duns = Dun::orderBy('nama_dun')->get();
+    $parlimens = Parlimen::orderBy('nama_par')->get();
 
     return view('dun.index', compact('duns', 'parlimens'));
 }
@@ -53,7 +53,7 @@ public function index()
         $request->validate([
             'parlimen_id' => 'required',
             'kod_dun' => 'required|unique:dun,kod_dun',
-            'namadun' => 'required',
+            'nama_dun' => 'required',
             'status' => 'required|string', // Add validation for status
             'effective_from' => 'nullable|date', // Add validation for effective_from
             'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
@@ -80,7 +80,7 @@ public function index()
     {
         $request->validate([
             'kod_dun' => 'required|unique:dun,kod_dun,' . $dun->id, // ignore current DUN
-            'namadun' => 'required',
+            'nama_dun' => 'required',
             'parlimen_id' => 'required|exists:parlimen,id', // ensure selected Parlimen exists
             'status' => 'required|string', // Add validation for status
             'effective_from' => 'nullable|date', // Add validation for effective_from
@@ -88,7 +88,7 @@ public function index()
         ]);
 
         // Update Dun record
-        $dun->update($request->only('kod_dun', 'namadun', 'parlimen_id', 'status', 'effective_from', 'effective_to'));
+        $dun->update($request->only('kod_dun', 'nama_dun', 'parlimen_id', 'status', 'effective_from', 'effective_to'));
 
         // Log activity on update
         activity()->performedOn($dun)->log("Dun with ID {$dun->id} updated.");
@@ -110,7 +110,7 @@ public function index()
     // Optional: show single
     public function show(Dun $dun)
     {
-        $dms = $dun->dms->sortByDesc('koddm');
+        $dms = $dun->dms->sortByDesc('kod_dm');
 
         return view('dun.show', compact('dun'));
     }
@@ -121,15 +121,15 @@ public function index()
 
         return datatables($query)
             ->addColumn('parlimen_name', function ($row) {
-                return $row->parlimen ? $row->parlimen->namapar : '-';
+                return $row->parlimen ? $row->parlimen->nama_par : '-';
             })
             ->addColumn('dun_name', function ($row) {
                 // Ensure that the route is generated properly
-                return '<a href="' . route('dun.show', ['dun' => $row->id]) . '">' . $row->namadun . '</a>';
+                return '<a href="' . route('dun.show', ['dun' => $row->id]) . '">' . $row->nama_dun . '</a>';
             })
 
                 ->filterColumn('dun_name', function ($query, $keyword) {
-                $query->where('namadun', 'like', "%{$keyword}%");
+                $query->where('nama_dun', 'like', "%{$keyword}%");
             })
 
             

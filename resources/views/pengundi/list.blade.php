@@ -237,13 +237,13 @@
                 data.forEach(row => {
 
                     if (!pruHierarchy[row.parlimen_id])
-                        pruHierarchy[row.parlimen_id] = { namapar: row.namapar, duns: {} };
+                        pruHierarchy[row.parlimen_id] = { nama_par: row.nama_par, duns: {} };
 
                     if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun])
-                        pruHierarchy[row.parlimen_id].duns[row.kod_dun] = { namadun: row.namadun, dms: {} };
+                        pruHierarchy[row.parlimen_id].duns[row.kod_dun] = { nama_dun: row.nama_dun, dms: {} };
 
-                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm])
-                        pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.koddm] = { namadm: row.namadm };
+                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.kod_dm])
+                        pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.kod_dm] = { nama_dm: row.nama_dm };
 
                 });
 
@@ -253,7 +253,7 @@
             function buildParlimen() {
                 parSelect.disabled = false;
                 for (const id in pruHierarchy) {
-                    parSelect.innerHTML += `<option value="${id}">${pruHierarchy[id].namapar}</option>`;
+                    parSelect.innerHTML += `<option value="${id}">${pruHierarchy[id].nama_par}</option>`;
                 }
             }
 
@@ -266,7 +266,7 @@
                 const duns = pruHierarchy[parId].duns;
 
                 for (const kod in duns) {
-                    dunSelect.innerHTML += `<option value="${kod}">${duns[kod].namadun}</option>`;
+                    dunSelect.innerHTML += `<option value="${kod}">${duns[kod].nama_dun}</option>`;
                 }
 
                 dunSelect.disabled = false;
@@ -281,7 +281,7 @@
                 const dms = pruHierarchy[parId].duns[dunId].dms;
 
                 for (const kod in dms) {
-                    dmSelect.innerHTML += `<option value="${kod}">${dms[kod].namadm}</option>`;
+                    dmSelect.innerHTML += `<option value="${kod}">${dms[kod].nama_dm}</option>`;
                 }
 
                 dmSelect.disabled = false;

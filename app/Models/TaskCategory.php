@@ -9,7 +9,7 @@ use App\Models\Task;
 
 class TaskCategory extends Model
 {
-    protected $table = 'tasks_category';
+    protected $table = 'tasks_categories';
 
     protected $fillable = ['name', 'description'];
 

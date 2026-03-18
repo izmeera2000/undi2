@@ -31,7 +31,7 @@ class LokalitiController extends Controller
     {
         // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required|exists:dm,koddm',
+            'kod_dm' => 'required|exists:dm,kod_dm',
             'kod_lokaliti' => 'required|digits:3',
             'nama_lokaliti' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
@@ -41,7 +41,7 @@ class LokalitiController extends Controller
         DB::transaction(function () use ($request) {
 
             // 2️⃣ Generate full kod_lokaliti
-            $dm = $request->koddm;
+            $dm = $request->kod_dm;
             $lokalitiCode = str_pad($request->kod_lokaliti, 3, '0', STR_PAD_LEFT);
             $fullKodLokaliti = $dm . $lokalitiCode;
 
@@ -60,7 +60,7 @@ class LokalitiController extends Controller
 
             // 5️⃣ Insert new record
             Lokaliti::create([
-                'koddm' => $dm,
+                'kod_dm' => $dm,
                 'kod_lokaliti' => $fullKodLokaliti,
                 'nama_lokaliti' => $request->nama_lokaliti,
                 'effective_from' => $request->effective_from ?? now(),
@@ -77,7 +77,7 @@ class LokalitiController extends Controller
     // Show edit form
     public function edit(Lokaliti $lokaliti)
     {
-        $dms = Dm::select('koddm', 'namadm', 'effective_from', 'effective_to')
+        $dms = Dm::select('kod_dm', 'nama_dm', 'effective_from', 'effective_to')
             ->distinct()
             ->orderBy('effective_from', 'desc')
             ->get();
@@ -89,7 +89,7 @@ class LokalitiController extends Controller
     {
         // 1️⃣ Validate input
         $request->validate([
-            'koddm' => 'required|exists:dm,koddm',       // Ensure selected DM exists
+            'kod_dm' => 'required|exists:dm,kod_dm',       // Ensure selected DM exists
             'kod_lokaliti' => 'required|digits:3',       // User enters only 3-digit code
             'nama_lokaliti' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
@@ -97,11 +97,11 @@ class LokalitiController extends Controller
         ]);
 
         // 2️⃣ Generate full kod_lokaliti (DM code + 3-digit Lokaliti code)
-        $fullKodLokaliti = $request->koddm . str_pad($request->kod_lokaliti, 3, '0', STR_PAD_LEFT);
+        $fullKodLokaliti = $request->kod_dm . str_pad($request->kod_lokaliti, 3, '0', STR_PAD_LEFT);
 
         // 3️⃣ Update the Lokaliti record
         $lokaliti->update([
-            'koddm' => $request->koddm,
+            'kod_dm' => $request->kod_dm,
             'kod_lokaliti' => $fullKodLokaliti,
             'nama_lokaliti' => $request->nama_lokaliti,
             'effective_from' => $request->effective_from,
@@ -156,10 +156,10 @@ class LokalitiController extends Controller
             })
 
             // DM name column
-            ->addColumn('dm_name', fn($row) => $row->dm?->namadm ?? '-')
+            ->addColumn('dm_name', fn($row) => $row->dm?->nama_dm ?? '-')
             ->filterColumn('dm_name', function ($query, $keyword) {
                 $query->whereHas('dm', function ($q) use ($keyword) {
-                    $q->where('namadm', 'like', "%{$keyword}%");
+                    $q->where('nama_dm', 'like', "%{$keyword}%");
                 });
             })
 
@@ -196,7 +196,7 @@ class LokalitiController extends Controller
 
             // Insert new record
             Lokaliti::create([
-                'koddm' => $kodDm,
+                'kod_dm' => $kodDm,
                 'kod_lokaliti' => $kodLokaliti,
                 'nama_lokaliti' => $row[2],
                 'effective_from' => $row[3] ?? now(),

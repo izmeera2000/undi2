@@ -25,7 +25,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Nama Parlimen</label>
-                        <input type="text" name="namapar" class="form-control" value="{{ $parlimen->namapar }}" required>
+                        <input type="text" name="nama_par" class="form-control" value="{{ $parlimen->nama_par }}" required>
                     </div>
 
                     <input type="hidden" name="_method" value="PUT">

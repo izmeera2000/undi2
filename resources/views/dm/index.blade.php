@@ -83,7 +83,7 @@
                             <select name="kod_dun" class="form-select" required>
                                 @foreach($duns as $dun)
                                     <option value="{{ $dun->kod_dun }}">
-                                        {{ $dun->namadun }} ({{ $dun->kod_dun }})
+                                        {{ $dun->nama_dun }} ({{ $dun->kod_dun }})
                                     </option>
                                 @endforeach
                             </select>
@@ -92,7 +92,7 @@
                         {{-- 1️⃣ Kod DM --}}
                         <div class="mb-3">
                             <label class="form-label">Kod DM (2 digits)</label>
-                            <input type="text" name="koddm" id="koddm" class="form-control" maxlength="2" pattern="\d{2}"
+                            <input type="text" name="kod_dm" id="kod_dm" class="form-control" maxlength="2" pattern="\d{2}"
                                 required>
                             <small class="text-muted">Enter 2 digits. Full DM code will be generated automatically.</small>
                         </div>
@@ -100,7 +100,7 @@
                         {{-- 2️⃣ Nama DM --}}
                         <div class="mb-3">
                             <label class="form-label">Nama DM</label>
-                            <input type="text" name="namadm" class="form-control" required>
+                            <input type="text" name="nama_dm" class="form-control" required>
                         </div>
 
 
@@ -179,8 +179,8 @@
                         contextMenu: true,
                         colHeaders: [
                             'kod_dun',
-                            'koddm (2 digits)',
-                            'namadm',
+                            'kod_dm (2 digits)',
+                            'nama_dm',
                             'effective_from',
                             'effective_to'
                         ],
@@ -260,8 +260,8 @@
                 },
                 columns: [
                     { data: 'dun_name', name: 'dun_name' , searchable: false},
-                    { data: 'koddm', name: 'koddm' },
-                    { data: 'namadm', name: 'namadm' },
+                    { data: 'kod_dm', name: 'kod_dm' },
+                    { data: 'nama_dm', name: 'nama_dm' },
                     { data: 'effective_from', name: 'effective_from' , searchable: false},
                     { data: 'effective_to', name: 'effective_to' , searchable: false},
                     { data: 'actions', name: 'actions', orderable: false, searchable: false },

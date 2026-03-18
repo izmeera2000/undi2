@@ -27,7 +27,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Nama Dun</label>
-                        <input type="text" name="namadun" class="form-control" value="{{ $dun->namadun }}" required>
+                        <input type="text" name="nama_dun" class="form-control" value="{{ $dun->nama_dun }}" required>
                     </div>
 
                     <div class="mb-3">
@@ -35,7 +35,7 @@
                         <select name="parlimen_id" class="form-control" required>
                             @foreach($parlimens as $parlimen)
                                 <option value="{{ $parlimen->id }}" {{ $dun->parlimen_id == $parlimen->id ? 'selected' : '' }}>
-                                    {{ $parlimen->namapar }}
+                                    {{ $parlimen->nama_par }}
                                 </option>
                             @endforeach
                         </select>

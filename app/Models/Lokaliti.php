@@ -9,7 +9,7 @@ class Lokaliti extends Model
     protected $table = 'lokaliti';
 
     protected $fillable = [
-        'koddm',        // Make sure 'koddm' is correctly referenced here
+        'kod_dm',        // Make sure 'kod_dm' is correctly referenced here
         'kod_lokaliti',
         'nama_lokaliti',
         'status',
@@ -27,13 +27,13 @@ class Lokaliti extends Model
     /**
      * The DM (District Manager) relationship.
      *
-     * Update the foreign key to 'koddm' if it's changed from 'dm_id'.
+     * Update the foreign key to 'kod_dm' if it's changed from 'dm_id'.
      */
 // In Lokaliti.php
 public function dm()
 {
-    // Lokaliti.koddm → Dm.koddm
-    return $this->belongsTo(Dm::class, 'koddm', 'koddm');
+    // Lokaliti.kod_dm → Dm.kod_dm
+    return $this->belongsTo(Dm::class, 'kod_dm', 'kod_dm');
 }
 
 public function dun()
@@ -42,9 +42,9 @@ public function dun()
     return $this->hasOneThrough(
         Dun::class,     // Related model
         Dm::class,      // Intermediate model
-        'koddm',        // Foreign key on Dm model (links to Lokaliti.koddm)
+        'kod_dm',        // Foreign key on Dm model (links to Lokaliti.kod_dm)
         'kod_dun',      // Foreign key on Dun model (links to Dm.kod_dun)
-        'koddm',        // Local key on Lokaliti
+        'kod_dm',        // Local key on Lokaliti
         'kod_dun'       // Local key on Dm
     );
 }
@@ -57,7 +57,7 @@ public function parlimen()
         Dun::class,      // Intermediate model
         'kod_dun',       // Foreign key on Dun (links to Lokaliti via dun relation)
         'kod_par',  // Foreign key on Parlimen
-        'koddm',         // Local key on Lokaliti
+        'kod_dm',         // Local key on Lokaliti
         'kod_par'   // Local key on Dun
     );
 }

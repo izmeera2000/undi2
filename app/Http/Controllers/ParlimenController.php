@@ -43,7 +43,7 @@ class ParlimenController extends Controller
     // List all
     public function index()
     {
-        $parlimens = Parlimen::orderBy('namapar')->get();
+        $parlimens = Parlimen::orderBy('nama_par')->get();
         return view('parlimen.index', compact('parlimens'));
     }
 
@@ -58,7 +58,7 @@ class ParlimenController extends Controller
     {
         $request->validate([
             'kod_par' => 'required|unique:parlimen,kod_par',
-            'namapar' => 'required',
+            'nama_par' => 'required',
         ]);
 
         Parlimen::create($request->all());
@@ -77,7 +77,7 @@ class ParlimenController extends Controller
     {
         $request->validate([
             'kod_par' => 'required|unique:parlimen,kod_par,' . $parlimen->id,
-            'namapar' => 'required',
+            'nama_par' => 'required',
         ]);
 
         $parlimen->update($request->all());
@@ -107,7 +107,7 @@ class ParlimenController extends Controller
         return datatables($query)
             ->addColumn('name', function ($row) {
                 // Ensure that the route is generated properly
-                return '<a href="' . route('parlimen.show', ['parlimen' => $row->id]) . '" >' . $row->namapar . '</a>';
+                return '<a href="' . route('parlimen.show', ['parlimen' => $row->id]) . '" >' . $row->nama_par . '</a>';
             })
             ->addColumn('actions', function ($row) {
                 // Add 'Edit' and 'Delete' buttons

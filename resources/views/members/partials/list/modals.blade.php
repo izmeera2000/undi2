@@ -113,8 +113,8 @@
               <select name="kod_dm" id="kod_dm" class="form-select">
                 <option value="">-- Select DM --</option>
                 @foreach($dms as $dm)
-                  <option value="{{ $dm->koddm }}" {{ old('kod_dm', $member->kod_dm ?? '') == $dm->koddm ? 'selected' : '' }}>
-                    {{ $dm->koddm }}
+                  <option value="{{ $dm->kod_dm }}" {{ old('kod_dm', $member->kod_dm ?? '') == $dm->kod_dm ? 'selected' : '' }}>
+                    {{ $dm->kod_dm }}
                   </option>
                 @endforeach
               </select>

@@ -189,7 +189,7 @@ new class extends Component {
                                         <select wire:model="kod_dm" class="form-select" @disabled(!$kod_dun)>
                                             <option value="">-- DM --</option>
                                             @foreach($dms as $dm)
-                                                <option value="{{ $dm->koddm }}">{{ $dm->koddm }}</option>
+                                                <option value="{{ $dm->kod_dm }}">{{ $dm->kod_dm }}</option>
                                             @endforeach
                                         </select>
                                     </div>

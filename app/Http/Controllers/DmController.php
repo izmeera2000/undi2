@@ -40,7 +40,7 @@ class DmController extends Controller
     // List all DM
     public function index()
     {
-        $dms = Dm::orderBy('namadm')->get();
+        $dms = Dm::orderBy('nama_dm')->get();
         $duns = Dun::all();
 
         return view('dm.index', compact('dms', 'duns'));
@@ -61,23 +61,23 @@ class DmController extends Controller
         // 1️⃣ Validate input
         $request->validate([
             'kod_dun' => 'required|exists:dun,kod_dun',
-            'koddm' => 'required|digits:2',
-            'namadm' => 'required|string|max:255',
+            'kod_dm' => 'required|digits:2',
+            'nama_dm' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
         DB::transaction(function () use ($request) {
 
-            // 2️⃣ Generate full koddm
-            $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
+            // 2️⃣ Generate full kod_dm
+            $fullKoddm = $request->kod_dun . str_pad($request->kod_dm, 2, '0', STR_PAD_LEFT);
 
             $effectiveFrom = $request->effective_from
                 ? Carbon::parse($request->effective_from)
                 : now();
 
             // 3️⃣ Check existing active record
-            $existing = Dm::where('koddm', $fullKoddm)
+            $existing = Dm::where('kod_dm', $fullKoddm)
                 ->whereNull('effective_to')
                 ->latest('effective_from')
                 ->first();
@@ -91,8 +91,8 @@ class DmController extends Controller
 
             // 5️⃣ Insert new record
             Dm::create([
-                'koddm' => $fullKoddm,
-                'namadm' => $request->namadm,
+                'kod_dm' => $fullKoddm,
+                'nama_dm' => $request->nama_dm,
                 'kod_dun' => $request->kod_dun,
                 'effective_from' => $effectiveFrom,
                 'effective_to' => $request->effective_to,
@@ -117,19 +117,19 @@ class DmController extends Controller
         // 1️⃣ Validate input
         $request->validate([
             'kod_dun' => 'required|exists:dun,kod_dun',   // ensure selected DUN exists
-            'koddm' => 'required|digits:2|unique:dm,koddm,' . $dm->id, // ignore current DM
-            'namadm' => 'required|string|max:255',
+            'kod_dm' => 'required|digits:2|unique:dm,kod_dm,' . $dm->id, // ignore current DM
+            'nama_dm' => 'required|string|max:255',
             'effective_from' => 'nullable|date',
             'effective_to' => 'nullable|date|after_or_equal:effective_from',
         ]);
 
-        // 2️⃣ Generate full koddm (DUN code + 3-digit DM code)
-        $fullKoddm = $request->kod_dun . str_pad($request->koddm, 2, '0', STR_PAD_LEFT);
+        // 2️⃣ Generate full kod_dm (DUN code + 3-digit DM code)
+        $fullKoddm = $request->kod_dun . str_pad($request->kod_dm, 2, '0', STR_PAD_LEFT);
 
         // 3️⃣ Update DM record
         $dm->update([
-            'koddm' => $fullKoddm,
-            'namadm' => $request->namadm,
+            'kod_dm' => $fullKoddm,
+            'nama_dm' => $request->nama_dm,
             'kod_dun' => $request->kod_dun,
             'effective_from' => $request->effective_from,
             'effective_to' => $request->effective_to,
@@ -160,17 +160,17 @@ class DmController extends Controller
             ->orderByDesc('effective_to');
 
         return datatables($query)
-            ->addColumn('koddm', fn($row) => $row->koddm)
-            ->filterColumn('koddm', function ($query, $keyword) {
-                $query->where('koddm', 'like', "%{$keyword}%");
+            ->addColumn('kod_dm', fn($row) => $row->kod_dm)
+            ->filterColumn('kod_dm', function ($query, $keyword) {
+                $query->where('kod_dm', 'like', "%{$keyword}%");
             })
 
-            ->addColumn('namadm', fn($row) => '<a href="' . route('dm.show', $row->id) . '">' . $row->namadm . '</a>')
-            ->filterColumn('namadm', function ($query, $keyword) {
-                $query->where('namadm', 'like', "%{$keyword}%");
+            ->addColumn('nama_dm', fn($row) => '<a href="' . route('dm.show', $row->id) . '">' . $row->nama_dm . '</a>')
+            ->filterColumn('nama_dm', function ($query, $keyword) {
+                $query->where('nama_dm', 'like', "%{$keyword}%");
             })
 
-            ->addColumn('dun_name', fn($row) => $row->dun?->namadun ?? '-') // null safe operator
+            ->addColumn('dun_name', fn($row) => $row->dun?->nama_dun ?? '-') // null safe operator
             ->addColumn('effective_from', fn($row) => $row->effective_from?->format('Y-m-d') ?? '-')
             ->addColumn('effective_to', fn($row) => $row->effective_to?->format('Y-m-d') ?? '-')
             ->addColumn('actions', function ($row) {
@@ -178,7 +178,7 @@ class DmController extends Controller
                 $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-dm"><i class="fas fa-trash me-1"></i> Delete</button>';
                 return $edit . ' ' . $delete;
             })
-            ->rawColumns(['namadm', 'actions'])
+            ->rawColumns(['nama_dm', 'actions'])
             ->make(true);
     }
 
@@ -202,7 +202,7 @@ class DmController extends Controller
                     : now();
 
                 // Check existing active record
-                $existing = Dm::where('koddm', $fullKoddm)
+                $existing = Dm::where('kod_dm', $fullKoddm)
                     ->whereNull('effective_to')
                     ->latest('effective_from')
                     ->first();
@@ -217,8 +217,8 @@ class DmController extends Controller
                 // Insert new record
                 Dm::create([
                     'kod_dun' => $kodDun,
-                    'koddm' => $fullKoddm,
-                    'namadm' => $row[2],
+                    'kod_dm' => $fullKoddm,
+                    'nama_dm' => $row[2],
                     'effective_from' => $effectiveFrom,
                     'effective_to' => $row[4] ?? null,
                 ]);

@@ -15,8 +15,8 @@ return new class extends Migration {
  
             $table->string('kod_dun');
 
-            $table->string('koddm');
-            $table->string('namadm');
+            $table->string('kod_dm');
+            $table->string('nama_dm');
 
             // Restructure control
             $table->enum('status', ['active', 'inactive'])->default('active');
@@ -25,7 +25,7 @@ return new class extends Migration {
 
             $table->timestamps();
 
-            $table->index(['koddm', 'status']);
+            $table->index(['kod_dm', 'status']);
         });
 
     }

@@ -59,7 +59,7 @@ class TransferPengundiJob implements ShouldQueue
                             // 1️⃣ Collect Parlimen Data
                             $parlimen = Parlimen::firstOrCreate(
                                 ['kod_par' => $row->kod_par],
-                                ['namapar' => $row->namapar]
+                                ['nama_par' => $row->nama_par]
                             );
 
                             // 2️⃣ Collect Dun Data
@@ -72,23 +72,23 @@ class TransferPengundiJob implements ShouldQueue
                                 $dun = Dun::create([
                                     'kod_dun' => $row->kod_dun,
                                     'parlimen_id' => $parlimen->id,
-                                    'namadun' => $row->namadun,
+                                    'nama_dun' => $row->nama_dun,
                                     'status' => 'active',
                                     'effective_from' => $this->effectiveFrom,
                                     'effective_to' => $this->effectiveTo,
                                 ]);
                             }
                             // 3️⃣ Collect Dm Data
-                            $dm = Dm::where('koddm', $row->koddm)
+                            $dm = Dm::where('kod_dm', $row->kod_dm)
                                 ->where('status', 'active')
                                 ->latest('effective_from')
                                 ->first();
 
                             if (!$dm) {
                                 $dm = Dm::create([
-                                    'koddm' => $row->koddm,
+                                    'kod_dm' => $row->kod_dm,
                                     'kod_dun' => $dun->kod_dun,  // Updated to use kod_dun instead of dun_id
-                                    'namadm' => $row->namadm,
+                                    'nama_dm' => $row->nama_dm,
                                     'status' => 'active',
                                     'effective_from' => $this->effectiveFrom,
                                     'effective_to' => $this->effectiveTo,
@@ -99,14 +99,14 @@ class TransferPengundiJob implements ShouldQueue
 
                             // 4️⃣ Collect Lokaliti Data
                             $lokaliti = Lokaliti::where('kod_lokaliti', $row->kodlokaliti)
-                                ->where('koddm', $dm->koddm)
+                                ->where('kod_dm', $dm->kod_dm)
                                 ->latest('effective_from')
                                 ->first();
 
                             if (!$lokaliti) {
                                 $lokaliti = Lokaliti::create([
                                     'kod_lokaliti' => $row->kodlokaliti,
-                                    'koddm' => $dm->koddm,
+                                    'kod_dm' => $dm->kod_dm,
                                     'nama_lokaliti' => $row->namalokaliti,
                                     'effective_from' => $this->effectiveFrom,
                                     'effective_to' => $this->effectiveTo,
@@ -149,17 +149,17 @@ class TransferPengundiJob implements ShouldQueue
 
                     // 1️⃣ Insert or Upsert Parlimen
                     if (count($parlimenData) > 0) {
-                        Parlimen::upsert($parlimenData, ['kod_par'], ['namapar']);
+                        Parlimen::upsert($parlimenData, ['kod_par'], ['nama_par']);
                     }
 
                     // 2️⃣ Insert or Upsert Dun
                     if (count($dunData) > 0) {
-                        Dun::upsert($dunData, ['kod_dun'], ['namadun', 'effective_from', 'effective_to']);
+                        Dun::upsert($dunData, ['kod_dun'], ['nama_dun', 'effective_from', 'effective_to']);
                     }
 
                     // 3️⃣ Insert or Upsert Dm
                     if (count($dmData) > 0) {
-                        Dm::upsert($dmData, ['koddm'], ['namadm', 'effective_from', 'effective_to']);
+                        Dm::upsert($dmData, ['kod_dm'], ['nama_dm', 'effective_from', 'effective_to']);
                     }
 
                     // 4️⃣ Insert or Upsert Lokaliti

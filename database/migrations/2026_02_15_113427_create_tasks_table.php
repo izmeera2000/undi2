@@ -35,7 +35,7 @@ return new class extends Migration {
 
             $table->foreignId('category_id')
                 ->nullable()
-                ->constrained('task_categories')
+                ->constrained('tasks_categories')
                 ->onDelete('set null');
 
             $table->json('tags')->nullable();

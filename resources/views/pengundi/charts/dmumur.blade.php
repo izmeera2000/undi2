@@ -27,7 +27,7 @@
 
 
     // Get all unique DUNs from both datasets
-    const allDuns = [...new Set([...dataset1, ...dataset2].map(x => x.namadun))];
+    const allDuns = [...new Set([...dataset1, ...dataset2].map(x => x.nama_dun))];
 
     // Use for...of to handle async/await correctly
     for (let i = 0; i < allDuns.slice(0, 2).length; i++) {
@@ -35,10 +35,10 @@
       const container = document.querySelector(`#dunChart${i + 1}`);
       if (!container) continue;
 
-      const dunData1 = dataset1.filter(x => x.namadun === dunName);
-      const dunData2 = dataset2.filter(x => x.namadun === dunName);
+      const dunData1 = dataset1.filter(x => x.nama_dun === dunName);
+      const dunData2 = dataset2.filter(x => x.nama_dun === dunName);
 
-      const dmCategories = [...new Set([...dunData1, ...dunData2].map(x => x.namadm))];
+      const dmCategories = [...new Set([...dunData1, ...dunData2].map(x => x.nama_dm))];
       if (!dmCategories.length) {
         container.innerHTML = '<p>No DM data available.</p>';
         continue;
@@ -56,7 +56,7 @@
           name: labelPrefix ? `${labelPrefix} - ${umur}` : umur,
           data: dmCategories.map(dm =>
             dataset
-              .filter(x => x.namadm === dm && x.umur_group === umur)
+              .filter(x => x.nama_dm === dm && x.umur_group === umur)
               .reduce((sum, x) => sum + Number(x.total || 0), 0)
           ),
           color: lighten ? lightenColor(baseColors[umur]) : baseColors[umur],

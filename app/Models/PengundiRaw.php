@@ -10,11 +10,11 @@ class PengundiRaw extends Model
 
     protected $fillable = [
         'kod_par',
-        'namapar',
+        'nama_par',
         'kod_dun',
-        'namadun',
-        'koddm',
-        'namadm',
+        'nama_dun',
+        'kod_dm',
+        'nama_dm',
         'kodlokaliti',
         'namalokaliti',
         'nokp_baru',

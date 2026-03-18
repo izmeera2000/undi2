@@ -78,10 +78,10 @@
                         {{-- 1️⃣ DM Selection at Top --}}
                         <div class="mb-3">
                             <label class="form-label">DM</label>
-                            <select name="koddm" id="koddm" class="form-select" required>
-                                @foreach($dms->unique('koddm') as $dm)
-                                    <option value="{{ $dm->koddm }}">
-                                        {{ $dm->koddm }}
+                            <select name="kod_dm" id="kod_dm" class="form-select" required>
+                                @foreach($dms->unique('kod_dm') as $dm)
+                                    <option value="{{ $dm->kod_dm }}">
+                                        {{ $dm->kod_dm }}
                                     </option>
                                 @endforeach
                             </select>
@@ -181,7 +181,7 @@
                         colWidths: [120, 200, 150, 150, 150],
 
                         colHeaders: [
-                            'koddm',
+                            'kod_dm',
                             'kod_lokaliti (3 digits)',
                             'nama_lokaliti',
                             'effective_from',
@@ -191,7 +191,7 @@
                         columns: [
                             {
                                 type: 'dropdown',
-                                source: @json($dms->unique('koddm')->pluck('koddm')->values())
+                                source: @json($dms->unique('kod_dm')->pluck('kod_dm')->values())
                             },
                             { type: 'text' },
                             { type: 'text' },

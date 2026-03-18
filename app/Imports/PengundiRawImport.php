@@ -21,11 +21,11 @@ class PengundiRawImport implements
     {
         return new PengundiRaw([
             'kod_par' => $row['kod_par'],
-            'namapar' => $row['namapar'],
+            'nama_par' => $row['nama_par'],
             'kod_dun' => $row['kod_dun'],
-            'namadun' => $row['namadun'],
-            'koddm' => $row['koddm'],
-            'namadm' => $row['namadm'],
+            'nama_dun' => $row['nama_dun'],
+            'kod_dm' => $row['kod_dm'],
+            'nama_dm' => $row['nama_dm'],
             'kodlokaliti' => $row['kodlokaliti'],
             'namalokaliti' => $row['namalokaliti'],
             'nokp_baru' => $row['nokp_baru'],

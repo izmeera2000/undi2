@@ -14,8 +14,8 @@ class Dm extends Model
 
     protected $fillable = [
         'kod_dun',        // Change dun_id to kod_dun
-        'koddm',
-        'namadm',
+        'kod_dm',
+        'nama_dm',
         'status',
         'effective_from',
         'effective_to'
@@ -54,7 +54,7 @@ class Dm extends Model
      */
     public function lokalitis()
     {
-        return $this->hasMany(Lokaliti::class, 'koddm', 'koddm');
+        return $this->hasMany(Lokaliti::class, 'kod_dm', 'kod_dm');
     }
 
     /**
@@ -66,7 +66,7 @@ class Dm extends Model
     {
         return LogOptions::defaults()
             ->useLogName('dm')  // Set log name to 'dm'
-            ->logOnly(['koddm', 'namadm', 'kod_dun']) // Log changes to kod_dun instead of dun_id
+            ->logOnly(['kod_dm', 'nama_dm', 'kod_dun']) // Log changes to kod_dun instead of dun_id
             ->logOnlyDirty() // Log only dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
             ->setDescriptionForEvent(fn(string $eventName) => "Dm with ID {$this->id} was {$eventName}"); // Custom log description

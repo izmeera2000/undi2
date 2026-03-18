@@ -56,15 +56,15 @@ class MembersController extends Controller
     public function list()
     {
         // Get distinct DUNs, ordered by kod_dun
-        $duns = Dun::select('kod_dun', 'namadun')
-            ->groupBy('kod_dun', 'namadun') // group by ensures distinct combination
+        $duns = Dun::select('kod_dun', 'nama_dun')
+            ->groupBy('kod_dun', 'nama_dun') // group by ensures distinct combination
             ->orderBy('kod_dun')
             ->get();
 
-        // Get distinct DMs, ordered by koddm
-        $dms = Dm::select('koddm', 'namadm')
-            ->groupBy('koddm', 'namadm')
-            ->orderBy('koddm')
+        // Get distinct DMs, ordered by kod_dm
+        $dms = Dm::select('kod_dm', 'nama_dm')
+            ->groupBy('kod_dm', 'nama_dm')
+            ->orderBy('kod_dm')
             ->get();
         return view('members.list', compact('duns', 'dms'));
     }
@@ -335,7 +335,7 @@ class MembersController extends Controller
     public function getDmsByDun($kod_dun)
     {
         // Fetch DMs using kod_dun
-        $dms = Dm::where('kod_dun', $kod_dun)->get(['koddm', 'namadm']);
+        $dms = Dm::where('kod_dun', $kod_dun)->get(['kod_dm', 'nama_dm']);
 
         // Return JSON
         return response()->json(['dms' => $dms]);

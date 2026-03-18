@@ -1028,8 +1028,8 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $effective_to
      * @property \Illuminate\Support\Carbon|null $effective_from
      * @property mixed $status
-     * @property string $namadm
-     * @property string $koddm
+     * @property string $nama_dm
+     * @property string $kod_dm
      * @property string $kod_dun
      * @property int $id
      * @property-read \App\Models\Dun $dun
@@ -1040,8 +1040,8 @@ namespace App\Models {
      * @property-read int|null $activities_count
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKodDun($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKoddm($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereNamadm($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereKodDm($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereNamaDm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereStatus($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereEffectiveFrom($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dm>|Dm whereEffectiveTo($value)
@@ -1365,7 +1365,7 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $effective_to
      * @property \Illuminate\Support\Carbon|null $effective_from
      * @property mixed $status
-     * @property string $namadun
+     * @property string $nama_dun
      * @property string $kod_dun
      * @property int $parlimen_id
      * @property int $id
@@ -1381,7 +1381,7 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereParlimenId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereKodDun($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereNamadun($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereNamaDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereStatus($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereEffectiveFrom($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereEffectiveTo($value)
@@ -3035,7 +3035,7 @@ namespace App\Models {
      * @property mixed $status
      * @property string $nama_lokaliti
      * @property string|null $kod_lokaliti
-     * @property string|null $koddm
+     * @property string|null $kod_dm
      * @property int $id
      * @property-read \App\Models\Dm $dm
      * @property-read \App\Models\Dun $dun
@@ -3043,7 +3043,7 @@ namespace App\Models {
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Pengundi> $pengundis
      * @property-read int|null $pengundis_count
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereKoddm($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereKodDm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereKodLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereNamaLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Lokaliti>|Lokaliti whereStatus($value)
@@ -3694,7 +3694,6 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $deleted_at
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property string|null $status_ahli
      * @property string|null $phone
      * @property string|null $email
      * @property string|null $negeri
@@ -3719,12 +3718,14 @@ namespace App\Models {
      * @property string|null $no_ahli
      * @property string|null $nama_cwgn
      * @property string|null $kod_cwgn
+     * @property int $kod_dun
      * @property int $id
      * @property-read mixed $profile_picture_url
      * @property-read \App\Models\Dun $dun
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Group> $groups
      * @property-read int|null $groups_count
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereKodDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereKodCwgn($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNamaCwgn($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNoAhli($value)
@@ -3749,7 +3750,6 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereNegeri($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereEmail($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member wherePhone($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereStatusAhli($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Member>|Member whereDeletedAt($value)
@@ -4760,7 +4760,7 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property string $namapar
+     * @property string $nama_par
      * @property string $kod_par
      * @property int $id
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Dun> $duns
@@ -4769,7 +4769,7 @@ namespace App\Models {
      * @property-read int|null $activities_count
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereKodPar($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereNamapar($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereNamaPar($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Parlimen>|Parlimen newModelQuery()
@@ -5481,20 +5481,20 @@ namespace App\Models {
      * @property string|null $nokp_baru
      * @property string|null $namalokaliti
      * @property string|null $kodlokaliti
-     * @property string|null $namadm
-     * @property string|null $koddm
-     * @property string|null $namadun
+     * @property string|null $nama_dm
+     * @property string|null $kod_dm
+     * @property string|null $nama_dun
      * @property string|null $kod_dun
-     * @property string|null $namapar
+     * @property string|null $nama_par
      * @property string|null $kod_par
      * @property int $id
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereKodPar($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamapar($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamaPar($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereKodDun($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamadun($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereKoddm($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamadm($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamaDun($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereKodDm($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamaDm($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereKodlokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNamalokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<PengundiRaw>|PengundiRaw whereNokpBaru($value)
