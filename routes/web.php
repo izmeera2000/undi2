@@ -334,6 +334,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::prefix('dun')->name('dun.')->group(function () {
         Route::get('/', [DunController::class, 'index'])->name('index');   // list page
         Route::post('/', [DunController::class, 'store'])->name('store');
+                // For DataTables AJAX
+        Route::post('/data', [DunController::class, 'getList'])->name('data');
 
         Route::get('/{dun}/edit', [DunController::class, 'edit'])->name('edit');
         Route::put('/{dun}', [DunController::class, 'update'])->name('update');
@@ -342,8 +344,7 @@ Route::middleware(['auth', 'active'])->group(function () {
         // Show single Dun (must be **after** edit/update/delete routes)
         Route::get('/{dun}', [DunController::class, 'show'])->name('show');
 
-        // For DataTables AJAX
-        Route::post('/data', [DunController::class, 'getList'])->name('data');
+
     });
 
 

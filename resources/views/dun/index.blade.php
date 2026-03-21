@@ -148,7 +148,7 @@
                     }
                 },
                 columns: [
-                    { data: 'parlimen_name', name: 'parlimen.nama_par' },
+                    { data: 'parlimen_name', name: 'parlimen_name' },
                     { data: 'kod_dun', name: 'kod_dun' },
                     { data: 'nama_dun', name: 'nama_dun' },
                     { data: 'effective_from', name: 'effective_from', searchable: false },

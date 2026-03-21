@@ -6,7 +6,7 @@ use App\Models\Dun;
 use Illuminate\Http\Request;
 use App\Models\Parlimen;
 use Illuminate\Routing\Controller;
- 
+
 class DunController extends Controller
 {
     public function __construct()
@@ -37,15 +37,15 @@ class DunController extends Controller
     }
 
     // List all
-public function index()
-{
-    $duns = Dun::orderBy('nama_dun')->get();
-    $parlimens = Parlimen::orderBy('nama_par')->get();
+    public function index()
+    {
+        $duns = Dun::orderBy('nama_dun')->get();
+        $parlimens = Parlimen::orderBy('nama_par')->get();
 
-    return view('dun.index', compact('duns', 'parlimens'));
-}
+        return view('dun.index', compact('duns', 'parlimens'));
+    }
 
-    
+
 
     // Store new
     public function store(Request $request)
@@ -117,27 +117,26 @@ public function index()
 
     public function getList(Request $request)
     {
-        $query = Dun::with('parlimen'); // eager load parlimen
-
+        $query = Dun::with('parlimen')->select('dun.*');
         return datatables($query)
-            ->addColumn('parlimen_name', function ($row) {
-                return $row->parlimen ? $row->parlimen->nama_par : '-';
-            })
+
             ->addColumn('dun_name', function ($row) {
                 // Ensure that the route is generated properly
                 return '<a href="' . route('dun.show', ['dun' => $row->id]) . '">' . $row->nama_dun . '</a>';
             })
 
-                ->filterColumn('dun_name', function ($query, $keyword) {
+            ->filterColumn('dun_name', function ($query, $keyword) {
                 $query->where('nama_dun', 'like', "%{$keyword}%");
             })
 
-            
-                ->filterColumn('kod_dun', function ($query, $keyword) {
+
+            ->filterColumn('kod_dun', function ($query, $keyword) {
                 $query->where('kod_dun', 'like', "%{$keyword}%");
             })
+            ->addColumn('parlimen_name', function ($row) {
+                return $row->parlimen->nama_par ?? '-';
+            })
 
-        
             ->addColumn('effective_from', function ($row) {
                 return $row->effective_from ? $row->effective_from->format('Y-m-d') : '-';
             })
@@ -145,10 +144,10 @@ public function index()
                 return $row->effective_to ? $row->effective_to->format('Y-m-d') : '-';
             })
             ->addColumn('actions', function ($row) {
- 
+
                 $edit = '<a href="' . route('dun.edit', $row->id) . '" class="btn btn-sm btn-outline-primary action-btn"><i class="fas fa-cog me-1"></i> Manage</a>';
                 $delete = '<button data-id="' . $row->id . '" class="btn btn-sm btn-outline-danger delete-dun"><i class="fas fa-trash me-1"></i> Delete</button>';
-                
+
                 return $edit . ' ' . $delete;
             })
             ->rawColumns(['dun_name', 'status', 'effective_from', 'effective_to', 'actions'])
