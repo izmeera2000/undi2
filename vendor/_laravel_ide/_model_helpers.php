@@ -1026,7 +1026,7 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property \Illuminate\Support\Carbon|null $effective_to
-     * @property \Illuminate\Support\Carbon|null $effective_from
+     * @property \Illuminate\Support\Carbon $effective_from
      * @property mixed $status
      * @property string $nama_dm
      * @property string $kod_dm
@@ -1363,11 +1363,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property \Illuminate\Support\Carbon|null $effective_to
-     * @property \Illuminate\Support\Carbon|null $effective_from
+     * @property \Illuminate\Support\Carbon $effective_from
      * @property mixed $status
      * @property string $nama_dun
      * @property string $kod_dun
-     * @property int $parlimen_id
+     * @property string $kod_par
      * @property int $id
      * @property-read \App\Models\Parlimen $parlimen
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Lokaliti> $lokalitis
@@ -1379,7 +1379,7 @@ namespace App\Models {
      * @property-read \Illuminate\Database\Eloquent\Collection<int, \Spatie\Activitylog\Models\Activity> $activities
      * @property-read int|null $activities_count
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereParlimenId($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereKodPar($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereKodDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereNamaDun($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Dun>|Dun whereStatus($value)
@@ -3031,11 +3031,11 @@ namespace App\Models {
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
      * @property string|null $effective_to
-     * @property string|null $effective_from
+     * @property string $effective_from
      * @property mixed $status
      * @property string $nama_lokaliti
-     * @property string|null $kod_lokaliti
-     * @property string|null $kod_dm
+     * @property string $kod_lokaliti
+     * @property string $kod_dm
      * @property int $id
      * @property-read \App\Models\Dm $dm
      * @property-read \App\Models\Dun $dun
@@ -5087,12 +5087,10 @@ namespace App\Models {
      *
      * @property \Illuminate\Support\Carbon|null $updated_at
      * @property \Illuminate\Support\Carbon|null $created_at
-     * @property string|null $pilihan_raya_series
-     * @property string|null $pilihan_raya_type
+     * @property int|null $election_id
      * @property string|null $type_data_id
      * @property string|null $no_siri
      * @property string|null $saluran
-     * @property integer $tarikh_undian
      * @property string|null $status_baru
      * @property string|null $status_umno
      * @property string|null $negeri
@@ -5113,8 +5111,7 @@ namespace App\Models {
      * @property int $id
      * @property-read \App\Models\Lokaliti $lokaliti
      * @property-read \App\Models\Dm $dm
-     * @property-read \App\Models\Dun $dun
-     * @property-read \App\Models\Parlimen $parlimen
+     * @property-read \App\Models\Election $election
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereKodLokaliti($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNokpBaru($value)
@@ -5133,12 +5130,10 @@ namespace App\Models {
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNegeri($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereStatusUmno($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereStatusBaru($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereTarikhUndian($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereSaluran($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereNoSiri($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereTypeDataId($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi wherePilihanRayaType($value)
-     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi wherePilihanRayaSeries($value)
+     * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereElectionId($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereCreatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi whereUpdatedAt($value)
      * @method static \Illuminate\Database\Eloquent\Builder<Pengundi>|Pengundi newModelQuery()

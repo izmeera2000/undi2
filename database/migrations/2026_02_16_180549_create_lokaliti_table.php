@@ -13,17 +13,27 @@ return new class extends Migration {
         Schema::create('lokaliti', function (Blueprint $table) {
             $table->id();
 
-            $table->string('kod_dm')->nullable();
+            $table->string('kod_dm');
 
-            $table->string('kod_lokaliti')->nullable();
+            $table->string('kod_lokaliti');
             $table->string('nama_lokaliti');
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->date('effective_from')->nullable();
+            $table->date('effective_from');
             $table->date('effective_to')->nullable();
 
             $table->timestamps();
 
-            $table->index('nama_lokaliti');
+            $table->unique(
+                [
+                    'kod_lokaliti',
+                    'kod_dm',
+                    'nama_lokaliti',
+                    'status',
+                    'effective_from',
+                    'effective_to'
+                ],
+                'unique_lokaliti_full'
+            );
         });
 
     }

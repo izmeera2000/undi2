@@ -210,19 +210,23 @@
 
                             const getColor = (seriesIndex, dataPointIndex) => {
                                 const chartColors = w.globals.colors || w.config.colors || [];
-                                const seriesLength = w.config.series.length;
+                                const isDistributed = w.config.plotOptions?.bar?.distributed;
 
                                 if (w.config.chart?.type === 'pie') {
-                                    // pie chart: color per slice
                                     return chartColors?.[dataPointIndex] || '#000';
                                 }
 
-                                if (seriesLength === 1) {
-                                    // single series bar chart: use first color for all bars
+                                if (isDistributed) {
+                                    // ✅ color per data point (this is your top lokaliti case)
+                                    return chartColors?.[dataPointIndex] || '#000';
+                                }
+
+                                if (w.config.series.length === 1) {
+                                    // single series (non-distributed)
                                     return chartColors?.[0] || '#000';
                                 }
 
-                                // multi-series / stacked bars: use seriesIndex
+                                // multi-series / stacked
                                 return chartColors?.[seriesIndex] || '#000';
                             };
 
@@ -281,19 +285,19 @@
                             }
 
                             const html = items.map(i => `
-                                            <div class="tooltip-row d-flex align-items-center mb-1">
-                                                <span style="
-                                                    background:${i.color};
-                                                    width:12px;
-                                                    height:12px;
-                                                    display:inline-block;
-                                                    margin-right:6px;
-                                                    border-radius:3px;
-                                                "></span>
-                                                <span>${i.name}</span>
-                                                <strong class="ms-auto">${i.value}</strong>
-                                            </div>
-                                        `).join('');
+                                                <div class="tooltip-row d-flex align-items-center mb-1">
+                                                    <span style="
+                                                        background:${i.color};
+                                                        width:12px;
+                                                        height:12px;
+                                                        display:inline-block;
+                                                        margin-right:6px;
+                                                        border-radius:3px;
+                                                    "></span>
+                                                    <span>${i.name}</span>
+                                                    <strong class="ms-auto">${i.value}</strong>
+                                                </div>
+                                            `).join('');
 
                             document.getElementById("tooltipModalBody").innerHTML = html;
                             new bootstrap.Modal(document.getElementById("tooltipModal")).show();

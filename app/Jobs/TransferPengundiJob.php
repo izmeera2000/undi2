@@ -71,7 +71,7 @@ class TransferPengundiJob implements ShouldQueue
                             if (!$dun) {
                                 $dun = Dun::create([
                                     'kod_dun' => $row->kod_dun,
-                                    'parlimen_id' => $parlimen->id,
+                                    'kod_par' => $parlimen->kod_par,
                                     'nama_dun' => $row->nama_dun,
                                     'status' => 'active',
                                     'effective_from' => $this->effectiveFrom,

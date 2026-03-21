@@ -18,11 +18,11 @@
 
       @can('pengundi.view')
         <x-sidebar.nav-group pattern="pengundi.*" icon="ph-light ph-identification-card" label="Pengundi">
-          <x-sidebar.nav-link route="pengundi.list" label="All List" />
+          <x-sidebar.nav-link route="pengundi.list" label="List" />
           {{-- <x-sidebar.nav-item route="pengundi.analytics" label="Analytics" /> --}}
           @can('pengundi.add')
             <x-sidebar.nav-link route="culaan.index" label="Expectations" />
-            <x-sidebar.nav-link route="pengundi.bulkimport2" label="Bulk Import" />
+            {{-- <x-sidebar.nav-link route="pengundi.bulkimport2" label="Bulk Import" /> --}}
           @endcan
         </x-sidebar.nav-group>
       @endcan

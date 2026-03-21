@@ -23,6 +23,25 @@
 @section('content')
 
     <div class="card">
+
+        <div class="card-header">
+            <div class="row g-3 align-items-center w-100">
+                <div class="d-flex flex-wrap flex-md-row justify-content-md-end gap-2 align-items-center">
+
+                    <!-- History Button -->
+                    <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#activityModal">
+                        <i class="bi bi-clock-history me-1"></i> History
+                    </button>
+
+                    <!-- Analytics Button -->
+                    <a href="{{ route('pengundi.bulkimport2') }}" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i> Bulk Import
+                    </a>
+
+                </div>
+            </div>
+        </div>
+
         <div class="card-body">
 
             <div class="row  ">
@@ -32,7 +51,7 @@
                         <label for="pilihanRayaType" class="form-label">Jenis Pilihan Raya</label>
                         <select name="pilihan_raya_type" id="pilihanRayaType" class="form-select">
                             <option value="">-- Pilih Jenis --</option>
-                            @foreach($pilihanRayaTypes as $type)
+                            @foreach($electionType as $type)
                                 <option value="{{ $type }}">{{ $type }}</option>
                             @endforeach
                         </select>
@@ -44,7 +63,7 @@
                         <label for="pilihanRayaSeries" class="form-label">Series Pilihan Raya</label>
                         <select name="pilihan_raya_series" id="pilihanRayaSeries" class="form-select">
                             <option value="">-- Pilih Series --</option>
-                            @foreach($pilihanRayaSeries as $series)
+                            @foreach($electionNumbers as $series)
                                 <option value="{{ $series }}">{{ $series }}</option>
                             @endforeach
                         </select>
@@ -167,6 +186,37 @@
         </div>
     </div>
 
+
+
+    <div class="modal fade" id="activityModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="table-responsive">
+
+                        <table id="activityTable" class="table table-bordered w-100">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 
@@ -180,6 +230,31 @@
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
+            });
+
+
+            let activityTable;
+
+            $('#activityModal').on('shown.bs.modal', function () {
+
+                if (!activityTable) {
+
+                    activityTable = $('#activityTable').DataTable({
+                        processing: true,
+                        serverSide: true,
+                        ajax: "{{ route('pengundi.activity') }}",
+
+                        columns: [
+                            { data: 'created_at', name: 'created_at' },
+                            { data: 'user', name: 'user' },
+                            { data: 'action', name: 'action' }
+                        ]
+                    });
+
+                } else {
+                    activityTable.ajax.reload();
+                }
+
             });
 
             const parSelect = document.getElementById('parlimenSelect');
@@ -222,32 +297,75 @@
             // =====================================================
             async function loadHierarchy() {
 
+                console.log('loadHierarchy triggered', {
+                    type: typeSelect.value,
+                    series: seriesSelect.value
+                });
+
                 resetDropdowns();
                 pruHierarchy = {};
 
-                if (!typeSelect.value || !seriesSelect.value) return;
+                if (!typeSelect.value || !seriesSelect.value) {
+                    console.warn('Missing type or series', {
+                        type: typeSelect.value,
+                        series: seriesSelect.value
+                    });
+                    return;
+                }
 
-                const res = await fetch(
-                    `{{ route('pengundi.ajax.pru.hierarchy') }}?type=${typeSelect.value}&series=${seriesSelect.value}`
-                );
+                const url = `{{ route('pengundi.ajax.pru.hierarchy') }}?type=${typeSelect.value}&series=${seriesSelect.value}`;
 
-                const data = await res.json();
-                if (!data.length) return;
+                console.log('Fetching hierarchy from:', url);
 
-                data.forEach(row => {
+                try {
+                    const res = await fetch(url);
+                    console.log('Response status:', res.status);
 
-                    if (!pruHierarchy[row.parlimen_id])
-                        pruHierarchy[row.parlimen_id] = { nama_par: row.nama_par, duns: {} };
+                    const result = await res.json();
+                    console.log('Response data:', result);
 
-                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun])
-                        pruHierarchy[row.parlimen_id].duns[row.kod_dun] = { nama_dun: row.nama_dun, dms: {} };
+                    // Extract hierarchy and saluran list
+                    const data = result.hierarchy || [];
+                    const saluranList = result.saluran_list || [];
 
-                    if (!pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.kod_dm])
-                        pruHierarchy[row.parlimen_id].duns[row.kod_dun].dms[row.kod_dm] = { nama_dm: row.nama_dm };
+                    if (!data.length) {
+                        console.warn('Empty hierarchy data');
+                        return;
+                    }
 
-                });
+                    data.forEach((row, index) => {
 
-                buildParlimen();
+                        // console.log(`Processing row ${index}`, row);
+
+                        if (!pruHierarchy[row.kod_par]) {
+                            pruHierarchy[row.kod_par] = {
+                                nama_par: row.nama_par,
+                                duns: {}
+                            };
+                        }
+
+                        if (!pruHierarchy[row.kod_par].duns[row.kod_dun]) {
+                            pruHierarchy[row.kod_par].duns[row.kod_dun] = {
+                                nama_dun: row.nama_dun,
+                                dms: {}
+                            };
+                        }
+
+                        if (!pruHierarchy[row.kod_par].duns[row.kod_dun].dms[row.kod_dm]) {
+                            pruHierarchy[row.kod_par].duns[row.kod_dun].dms[row.kod_dm] = {
+                                nama_dm: row.nama_dm
+                            };
+                        }
+
+                    });
+
+                    console.log('Final hierarchy object:', pruHierarchy);
+
+                    buildParlimen();
+
+                } catch (error) {
+                    console.error('Error loading hierarchy:', error);
+                }
             }
 
             function buildParlimen() {
@@ -310,7 +428,7 @@
                     @foreach ($saluranList as $index => $saluran)
                         { data: 'saluran_{{ $saluran }}', defaultContent: 0, render: renderSaluranLink }{{ !$loop->last ? ',' : '' }}
                     @endforeach
-            ];
+                                        ];
 
                 // Full columns array including kod_lokaliti, nama_lokaliti, saluran columns, and total
                 let columnsArray = [
@@ -345,8 +463,9 @@
                             d.series = seriesSelect.value;
                         },
                         dataSrc: function (json) {
-                            console.log(json);
-                            checkPdfStatus();
+                            const isEmpty = !Array.isArray(json.data) || json.data.length === 0;
+
+                            checkPdfStatus(isEmpty);
                             return json.data ?? [];
                         }
                     },
@@ -473,7 +592,7 @@
 
 
 
-        function checkPdfStatus() {
+        function checkPdfStatus(isEmpty) {
 
             const data = {
                 parlimen: document.getElementById('parlimenSelect').value,
@@ -495,10 +614,12 @@
                 .then(res => res.json())
                 .then(response => {
 
-                    document.getElementById('pdfButtonGroup').style.display = 'inline-flex';
+                    if (isEmpty) {
+                        pdfButtonGroup.style.display = 'none'; // hide
+                    } else {
+                        pdfButtonGroup.style.display = 'inline-flex'; // show
 
-
-
+                    }
 
 
                     document.getElementById('viewPdfBtn').addEventListener('click', function (e) {
@@ -602,19 +723,19 @@
                     const pdfListHtml = (!response.exists || !response.files.length)
                         ? `<div class="text-danger">No PDF files found.<br></div>`
                         : `<div class="list-group">
-                                                ${response.files.map(file => `
-                                                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>${file.name}</strong><br>
-                                                            <small class="text-muted">${file.last_modified}</small>
-                                                        </div>
-                                                        <div>
-                                                            <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">View</a>
-                                                            <a href="${file.url}" download class="btn btn-sm btn-success">Download</a>
-                                                        </div>
-                                                    </div>
-                                                `).join('')}
-                                            </div>`;
+                        ${response.files.map(file => `
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${file.name}</strong><br>
+                                    <small class="text-muted">${file.last_modified}</small>
+                                </div>
+                                <div>
+                                    <a href="${file.url}" target="_blank" class="btn btn-sm btn-info">View</a>
+                                    <a href="${file.url}" download class="btn btn-sm btn-success">Download</a>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>`;
 
 
 
@@ -630,6 +751,9 @@
                     modal.show();
                 });
         }
+
+
+
     </script>
 
 @endpush

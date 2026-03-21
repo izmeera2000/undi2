@@ -14,17 +14,15 @@ use Illuminate\Bus\Queueable;
 
 class TransferPengundiJob2 implements ShouldQueue
 {
-    use Dispatchable, SerializesModels,  InteractsWithQueue, Queueable;
+    use Dispatchable, SerializesModels, InteractsWithQueue, Queueable;
 
-    protected int $tarikhUndian;
     protected $effectiveFrom;
     protected $effectiveTo;
     protected $pilihanRayaType;
     protected $pilihanRayaSeries;
 
-    public function __construct($tarikhUndian, $effectiveFrom = null, $effectiveTo = null, $pilihanRayaType = null, $pilihanRayaSeries = null)
+    public function __construct($effectiveFrom = null, $effectiveTo = null, $pilihanRayaType = null, $pilihanRayaSeries = null)
     {
-        $this->tarikhUndian = $tarikhUndian;
         $this->effectiveFrom = $effectiveFrom;
         $this->effectiveTo = $effectiveTo;
         $this->pilihanRayaType = $pilihanRayaType;       // 🔹 assign
@@ -35,7 +33,7 @@ class TransferPengundiJob2 implements ShouldQueue
      * Handle transfer with optional cache key for progress tracking
      */
 
- 
+
 
 
 
@@ -73,7 +71,6 @@ class TransferPengundiJob2 implements ShouldQueue
 
                             $pengundiData[] = [
                                 'nokp_baru' => $row->nokp_baru,
-                                'tarikh_undian' => $this->tarikhUndian,
                                 'kod_lokaliti' => $row->kodlokaliti,
                                 'nama' => $row->nama,
                                 'jantina' => $row->jantina,
@@ -86,7 +83,7 @@ class TransferPengundiJob2 implements ShouldQueue
 
 
                                 'negeri' => $row->negeri,
-                                         'pilihan_raya_type' => $this->pilihanRayaType,
+                                'pilihan_raya_type' => $this->pilihanRayaType,
                                 'pilihan_raya_series' => $this->pilihanRayaSeries,
 
                             ];

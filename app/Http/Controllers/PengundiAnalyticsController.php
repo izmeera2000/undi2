@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use ZipArchive;
+use Spatie\Activitylog\Models\Activity;
 
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Jobs\TransferPengundiJob;
@@ -48,614 +49,20 @@ class PengundiAnalyticsController extends Controller
 
 
 
-    public function analytics()
-    {
-        // Get all DUNs
-        $duns = Dun::orderBy('nama_dun')->get();
 
-        $datas = Pengundi::selectRaw('tarikh_undian as year, pilihan_raya_type,pilihan_raya_series')
-            ->where('type_data_id', 1)
-            ->distinct()
-            ->orderBy('year', 'desc')->get();
 
-        // Pass to the view
-        return view('pengundi.analytics', compact('duns', 'datas'));
-    }
 
-    public function analytics_data(Request $request)
-    {
-        /*
-        |--------------------------------------------------------------------------
-        | 0️⃣ Extract Inputs
-        |--------------------------------------------------------------------------
-        */
 
-        $type1 = $request->input('type1', 'PRU');
-        $series1 = (int) $request->input('series1', 12);
-        $mode = $request->input('mode', 'single');
 
-        $type2 = $request->input('type2');
-        $series2 = $request->input('series2');
 
-        /*
-        |--------------------------------------------------------------------------
-        | 1️⃣ Resolve Election Years From Database
-        |--------------------------------------------------------------------------
-        */
 
-        $year1 = DB::table('elections')
-            ->where('type', $type1)
-            ->where('number', $series1)
-            ->value('year');
 
-        if (!$year1) {
-            return response()->json([
-                'error' => 'Invalid first PR type/series'
-            ], 400);
-        }
 
-        $year2 = null;
 
-        if ($mode === 'compare' && $type2 && $series2) {
 
-            $year2 = DB::table('elections')
-                ->where('type', $type2)
-                ->where('number', (int) $series2)
-                ->value('year');
 
-            if (!$year2) {
-                return response()->json([
-                    'error' => 'Invalid second PR type/series'
-                ], 400);
-            }
-        }
-        /*
-        |----------------------------------------------------------------------
-        | 1️⃣ Base Filters
-        |----------------------------------------------------------------------
-        */
-        $parlimen = 1; // static for now
-        $dun_kod = $request->input('dun');
-        $dm = $request->input('dm');
-        $lokaliti = $request->input('lokaliti');
 
-        $extraFilters = $request->only([
-            'jantina',
-            'status_umno',
-            'status_baru',
-            'negeri'
-        ]);
 
-        /*
-        |----------------------------------------------------------------------
-        | 2️⃣ Determine Valid DM & Lokaliti (Effective Dates)
-        |----------------------------------------------------------------------
-        */
-        $resolveValidDMs = function ($year) use ($parlimen, $dun_kod, $dm) {
-            return DB::table('dm')
-                ->when($parlimen, fn($q) => $q->whereIn('kod_dun', function ($sub) use ($parlimen) {
-                    $sub->select('kod_dun')->from('dun')->where('parlimen_id', $parlimen);
-                }))
-                ->when($dun_kod, fn($q) => $q->where('kod_dun', $dun_kod))
-                ->when($dm, fn($q) => $q->where('kod_dm', $dm))
-                ->whereYear('effective_from', '<=', $year)
-                ->where(function ($q) use ($year) {
-                    $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
-                })
-                ->select('kod_dm', 'nama_dm', 'kod_dun')
-                ->get();
-        };
-
-        $resolveValidLokaliti = function ($year, $validDMCodes) use ($lokaliti) {
-            return DB::table('lokaliti')
-                ->whereIn('kod_dm', $validDMCodes)
-                ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
-                ->whereYear('effective_from', '<=', $year)
-                ->where(function ($q) use ($year) {
-                    $q->whereYear('effective_to', '>=', $year)->orWhereNull('effective_to');
-                })
-                ->select('kod_lokaliti', 'nama_lokaliti', 'kod_dm')
-                ->get();
-        };
-
-        $validDMs1 = $resolveValidDMs($year1);
-        $validDMCodes1 = $validDMs1->pluck('kod_dm')->toArray();
-        $validLokaliti1 = $resolveValidLokaliti($year1, $validDMCodes1);
-        $validLokalitiCodes1 = $validLokaliti1->pluck('kod_lokaliti')->toArray();
-
-        $validDMs2 = collect();
-        $validLokaliti2 = collect();
-        $validLokalitiCodes2 = [];
-        if ($mode === 'compare' && $year2) {
-            $validDMs2 = $resolveValidDMs($year2);
-            $validDMCodes2 = $validDMs2->pluck('kod_dm')->toArray();
-            $validLokaliti2 = $resolveValidLokaliti($year2, $validDMCodes2);
-            $validLokalitiCodes2 = $validLokaliti2->pluck('kod_lokaliti')->toArray();
-        }
-
-        // Merge valid lokaliti codes for query
-        $mergedLokalitiCodes = array_unique(array_merge($validLokalitiCodes1, $validLokalitiCodes2));
-        if (empty($mergedLokalitiCodes))
-            return response()->json(['message' => 'No valid Lokaliti found']);
-
-        /*
-        |----------------------------------------------------------------------
-        | 3️⃣ Base Query Builder (Handle Single & Compare PR)
-        |----------------------------------------------------------------------
-        */
-        $baseQuery = DB::table('pengundi as p')
-            ->whereIn('p.kod_lokaliti', $mergedLokalitiCodes);
-
-        if ($mode === 'compare' && $type2 && $series2) {
-            $baseQuery->where(function ($q) use ($type1, $series1, $type2, $series2) {
-                $q->where([['p.pilihan_raya_type', $type1], ['p.pilihan_raya_series', $series1]])
-                    ->orWhere([['p.pilihan_raya_type', $type2], ['p.pilihan_raya_series', $series2]]);
-            });
-        } else {
-            $baseQuery->where('p.pilihan_raya_type', $type1)
-                ->where('p.pilihan_raya_series', $series1);
-        }
-
-        foreach ($extraFilters as $col => $val) {
-            if ($val !== null && $val !== '')
-                $baseQuery->where("p.$col", $val);
-        }
-
-        /*
-        |----------------------------------------------------------------------
-        | 4️⃣ Jantina Chart
-        |----------------------------------------------------------------------
-        */
-        // Dataset 1
-        $jantinaChart1 = (clone $baseQuery)
-            ->selectRaw("
-        CASE 
-            WHEN p.jantina = 'L' THEN 'Lelaki'
-            WHEN p.jantina = 'P' THEN 'Perempuan'
-        END AS jantina,
-        status_umno,
-        COUNT(*) as total
-    ")
-            ->groupBy('jantina', 'status_umno')
-            ->get();
-
-        // Dataset 2
-        $jantinaChart2 = (clone $baseQuery)
-            ->selectRaw("
-        CASE 
-            WHEN p.jantina = 'L' THEN 'Lelaki'
-            WHEN p.jantina = 'P' THEN 'Perempuan'
-        END AS jantina,
-        status_umno,
-        COUNT(*) as total
-    ")
-            ->groupBy('jantina', 'status_umno')
-            ->get();
-
-        /*
-        |----------------------------------------------------------------------
-        | 5️⃣ Umur Chart
-        |----------------------------------------------------------------------
-        */
-        $umurChart1 = (clone $baseQuery)
-            ->selectRaw("
-        CASE
-            WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-            WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-            WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-            WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-            WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-            ELSE '60+'
-        END AS umur_group,
-        p.status_umno,
-        p.status_baru,
-        COUNT(*) as total
-    ")
-            ->groupBy(
-                DB::raw("
-            CASE
-                WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-                WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-                WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-                WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-                WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-                ELSE '60+'
-            END
-        "),
-                'p.status_umno',
-                'p.status_baru'
-            )
-            ->get();
-
-        $umurChart2 = null;
-        if ($mode === 'compare' && $year2) {
-            $umurChart2 = (clone $baseQuery)
-                ->selectRaw("
-        CASE
-            WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-            WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-            WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-            WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-            WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-            ELSE '60+'
-        END AS umur_group,
-        p.status_umno,
-        p.status_baru,
-        COUNT(*) as total
-    ")
-                ->groupBy(
-                    DB::raw("
-            CASE
-                WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-                WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-                WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-                WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-                WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-                ELSE '60+'
-            END
-        "),
-                    'p.status_umno',
-                    'p.status_baru'
-                )
-                ->get();
-
-        }
-        /*
-        |----------------------------------------------------------------------
-        | 6️⃣ Bangsa Chart
-        |----------------------------------------------------------------------
-        */
-        $bangsaChart1 = (clone $baseQuery)
-            ->selectRaw("
-        CASE
-            WHEN LOWER(p.bangsa) LIKE '%melayu%' THEN 'Melayu'
-            WHEN LOWER(p.bangsa) LIKE '%cina%' THEN 'Cina'
-            WHEN LOWER(p.bangsa) LIKE '%india%' THEN 'India'
-            ELSE 'Lain-lain'
-        END AS bangsa_group,
-        CASE
-            WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-            WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-            WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-            WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-            WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-            ELSE '60+'
-        END AS umur_group,
-        p.status_umno AS status_umno,
-        COUNT(*) as total
-    ")
-            ->groupBy('bangsa_group', 'umur_group', 'status_umno')
-            ->get();
-
-
-        $bangsaChart2 = null;
-        if ($mode === 'compare' && $year2) {
-            $bangsaChart2 = (clone $baseQuery)
-                ->where([['p.pilihan_raya_type', $type2], ['p.pilihan_raya_series', $series2]])
-                ->selectRaw("
-            CASE
-                WHEN LOWER(p.bangsa) LIKE '%melayu%' THEN 'Melayu'
-                WHEN LOWER(p.bangsa) LIKE '%cina%' THEN 'Cina'
-                WHEN LOWER(p.bangsa) LIKE '%india%' THEN 'India'
-                ELSE 'Lain-lain'
-            END AS bangsa_group,
-            CASE
-                WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-                WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-                WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-                WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-                WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-                ELSE '60+'
-            END AS umur_group,
-            p.status_umno AS status_umno,
-            COUNT(*) as total
-        ")
-                ->groupBy('bangsa_group', 'umur_group', 'status_umno')
-                ->get();
-        }
-
-        /*
-        |----------------------------------------------------------------------
-        | 7️⃣ Negeri Chart
-        |----------------------------------------------------------------------
-        */
-        // Chart for year1
-        $negeriChart1 = (clone $baseQuery)
-            ->where([['p.pilihan_raya_type', $type1], ['p.pilihan_raya_series', $series1]])
-            ->selectRaw("
-        COALESCE(p.negeri, 'UNKNOWN') AS negeri,
-        p.status_umno AS status_umno,
-        p.status_baru AS status_baru,
-        COUNT(*) AS total
-    ")
-            ->groupBy('negeri', 'status_umno', 'status_baru')
-            ->get();
-
-        // Chart for year2 (compare mode)
-        $negeriChart2 = null;
-        if ($mode === 'compare' && $year2) {
-            $negeriChart2 = (clone $baseQuery)
-                ->where([['p.pilihan_raya_type', $type2], ['p.pilihan_raya_series', $series2]])
-                ->selectRaw("
-            COALESCE(p.negeri, 'UNKNOWN') AS negeri,
-            p.status_umno AS status_umno,
-            p.status_baru AS status_baru,
-            COUNT(*) AS total
-        ")
-                ->groupBy('negeri', 'status_umno', 'status_baru')
-                ->get();
-        }
-        /*
-        |----------------------------------------------------------------------
-        | 8️⃣ DM × Umur Chart
-        |----------------------------------------------------------------------
-        */
-        $buildDMUmurChart = function ($query, $year) {
-            return (clone $query)
-                ->join('lokaliti as l', function ($join) use ($year) {
-                    $join->on('p.kod_lokaliti', '=', 'l.kod_lokaliti')
-                        ->whereYear('l.effective_from', '<=', $year)
-                        ->where(function ($q) use ($year) {
-                            $q->whereYear('l.effective_to', '>=', $year)->orWhereNull('l.effective_to');
-                        });
-                })
-                ->join('dm as d', function ($join) use ($year) {
-                    $join->on('l.kod_dm', '=', 'd.kod_dm')
-                        ->whereYear('d.effective_from', '<=', $year)
-                        ->where(function ($q) use ($year) {
-                            $q->whereYear('d.effective_to', '>=', $year)->orWhereNull('d.effective_to');
-                        });
-                })
-                ->join('dun as du', 'd.kod_dun', '=', 'du.kod_dun')
-                ->selectRaw("
-                du.nama_dun,
-                d.nama_dm,
-                CASE
-                    WHEN p.umur BETWEEN 18 AND 20 THEN '18-20'
-                    WHEN p.umur BETWEEN 21 AND 29 THEN '21-29'
-                    WHEN p.umur BETWEEN 30 AND 39 THEN '30-39'
-                    WHEN p.umur BETWEEN 40 AND 49 THEN '40-49'
-                    WHEN p.umur BETWEEN 50 AND 59 THEN '50-59'
-                    ELSE '60+'
-                END AS umur_group,
-                COUNT(DISTINCT p.id) AS total
-            ")->groupBy('du.nama_dun', 'd.nama_dm', 'umur_group')
-                ->get();
-        };
-
-        $dmUmurChart1 = $buildDMUmurChart($baseQuery, $year1);
-        $dmUmurChart2 = null;
-        if ($mode === 'compare' && $year2) {
-            $dmUmurChart2 = $buildDMUmurChart($baseQuery, $year2);
-        }
-
-        /*
-        |----------------------------------------------------------------------
-        | 9️⃣ Totals
-        |----------------------------------------------------------------------
-        */
-        // Base query for year1
-        $baseQuery1 = clone $baseQuery;
-        $totals1 = $baseQuery1->selectRaw("
-        COUNT(*) AS total_pengundi,
-        SUM(p.status_umno=1) AS total_umno,
-        SUM(p.status_baru=1) AS total_first_time
-    ")->first();
-
-        // If year2 exists, compute totals for year2
-        $totals2 = null;
-        if ($year2) {
-            $baseQuery2 = (clone $baseQuery)->whereYear('p.date_field', $year2); // adjust column if needed
-            $totals2 = $baseQuery2->selectRaw("
-            COUNT(*) AS total_pengundi,
-            SUM(p.status_umno=1) AS total_umno,
-            SUM(p.status_baru=1) AS total_first_time
-        ")->first();
-        }
-
-        // Return JSON dynamically
-        return response()->json([
-            'year1' => $year1,
-            'year2' => $year2,
-            'validDMs1' => $validDMs1,
-            'validDMs2' => $validDMs2,
-            'validLokaliti1' => $validLokaliti1,
-            'validLokaliti2' => $validLokaliti2,
-            'jantinaChart1' => $jantinaChart1,
-            'jantinaChart2' => $jantinaChart2,
-            'umurChart1' => $umurChart1,
-            'umurChart2' => $umurChart2,
-            'bangsaChart1' => $bangsaChart1,
-            'bangsaChart2' => $bangsaChart2,
-            'negeriChart1' => $negeriChart1,
-            'negeriChart2' => $negeriChart2,
-            'dmUmurChart1' => $dmUmurChart1,
-            'dmUmurChart2' => $dmUmurChart2,
-            'totals1' => $totals1,
-            'totals2' => $totals2,
-            'mode' => $mode,
-        ]);
-    }
-
-
-
-    public function generatePdf(Request $request)
-    {
-        $charts = $request->input('charts');
-
-        // $user = User::find(1);
-
-        // $user->notify(new NewPengundiNotification("New Pengundi registered"));
-
-        return Pdf::loadView('pengundi.pdf', [
-            'charts' => $charts
-        ])
-            ->setPaper('a4', 'portrait')
-            ->stream('pengundi-analytics.pdf');
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function bulkimport()
-    {
-        return view('pengundi.bulkimport');
-    }
-
-
-
-
-
-    public function importFromPaste(Request $request)
-    {
-        // Validate that the data is not empty
-        $request->validate([
-            'data' => 'required|string',
-        ]);
-
-        // Get the pasted data
-        $rawData = $request->input('data');
-
-        // Split the data into rows by new lines
-        $rows = explode("\n", $rawData);
-
-        // Initialize an array to hold the processed data
-        $processedData = [];
-
-        // Loop through each row
-        foreach ($rows as $row) {
-            // Trim any extra spaces from the row
-            $row = trim($row);
-
-            // Skip empty rows
-            if (empty($row)) {
-                continue;
-            }
-
-            // Normalize spaces: Replace multiple spaces/tabs with a single space, and then split by space
-            // This allows us to handle inconsistent spacing between columns.
-            $normalizedRow = preg_replace('/\s+/', ' ', $row);
-
-            // Split the row into columns (by spaces now, after normalization)
-            $columns = explode(' ', $normalizedRow);
-
-            // Optional: Check if the row has the expected number of columns (e.g., 5)
-            // If you want to check for an exact number of columns, you can validate here.
-            if (count($columns) >= 5) { // You can adjust this check based on the expected number of columns
-                $processedData[] = [
-                    'column1' => $columns[0] ?? null,
-                    'column2' => $columns[1] ?? null,
-                    'column3' => $columns[2] ?? null,
-                    'column4' => $columns[3] ?? null,
-                    'column5' => $columns[4] ?? null,
-                    // Add more columns if needed
-                ];
-            } else {
-                // Log a warning if the row doesn't match the expected column count
-                \Log::warning('Row skipped due to incorrect number of columns: ' . $row);
-            }
-        }
-
-        // Log the processed data for debugging or testing purposes
-        \Log::info('Processed Data:', $processedData);
-
-        // Optionally use dd() or dump() to view data in browser or console
-        // dd($processedData); // Uncomment if you want to dump the data
-
-        // Return success message (or simulate it in a console context)
-        return response()->json(['message' => 'Data imported successfully!', 'data' => $processedData]);
-    }
-
-
-
-
-
-
-
-
-
-
-    public function pasteimportpage()
-    {
-        $parlimens = Parlimen::all();
-        $duns = Dun::all();
-        $lokalitis = Lokaliti::select('kod_lokaliti', 'kod_dm')->distinct()
-            ->orderBy('kod_lokaliti', 'asc') // order by name ascending
-            ->get();
-        ;
-
-        $dms = Dm::select('kod_dm', 'dun_id')
-            ->distinct('kod_dm')  // distinct by 'kod_dm'
-            ->orderBy('kod_dm', 'asc')  // order by 'nama_dm' ascending
-            ->get();
-
-
-        return view('pengundi.pasteimport', compact('parlimens', 'duns', 'dms', 'lokalitis'));
-    }
-
-
-
-
-
-
-
-
-
-    /**
-     * Handle pasted data submission
-     */
-    public function submit(Request $request)
-    {
-        $rows = json_decode($request->paste_data, true);
-
-        if (!$rows) {
-            return response()->json(['error' => 'No data received'], 422);
-        }
-
-        foreach ($rows as $row) {
-
-            if (empty($row[0]))
-                continue;
-
-            Pengundi::updateOrCreate(
-                [
-                    'nokp_baru' => $row[0],
-                    'tarikh_undian' => $request->tarikh_undian,
-                ],
-                [
-                    'kod_lokaliti' => $request->kod_lokaliti,
-                    'nokp_lama' => $row[1] ?? null,
-                    'nama' => $row[2] ?? null,
-                    'jantina' => $row[3] ?? null,
-                    'bangsa' => $row[4] ?? null,
-                    'umur' => $row[5] ?? null,
-                    'tahun_lahir' => $row[6] ?? null,
-                    'alamat_spr' => $row[7] ?? null,
-                    'poskod' => $row[8] ?? null,
-                    'bandar' => $row[9] ?? null,
-                    'negeri' => $row[10] ?? null,
-                ]
-            );
-        }
-
-        return response()->json([
-            'success' => count($rows) . ' records imported successfully.'
-        ]);
-    }
 
 
 
@@ -831,68 +238,101 @@ class PengundiAnalyticsController extends Controller
     ///////////////////////data 2
 
 
-
     public function bulkimport2()
     {
-        return view('pengundi.bulkimport2');
+        $elections = Election::orderBy('year')->orderBy('number')->get();
+
+        return view('pengundi.bulkimport2', compact('elections'));
     }
 
 
 
     public function list()
     {
-        // ----------------------------
-        // 1️⃣ Get distinct pilihan_raya_type, pilihan_raya_series, and saluran
-        // ----------------------------
+        // Get distinct election_id and saluran
         $pengundiData = Pengundi::where('type_data_id', 2)
-            ->select('pilihan_raya_type', 'pilihan_raya_series', 'saluran')
+            ->with('election') // eager load election
+            ->select('election_id', 'saluran')
             ->distinct()
             ->get();
 
-        $pilihanRayaTypes = $pengundiData->pluck('pilihan_raya_type')->unique()->sort()->values();
-        $pilihanRayaSeries = $pengundiData->pluck('pilihan_raya_series')->unique()->sort()->values();
-        $saluranList = $pengundiData->pluck('saluran')->unique()->sort()->values();
+        // Extract distinct election numbers and years
+        $electionNumbers = $pengundiData->pluck('election')
+            ->filter() // remove nulls
+            ->pluck('number')
+            ->unique()
+            ->sort()
+            ->values();
+
+        $electionType = $pengundiData->pluck('election')
+            ->filter()
+            ->pluck('type')
+            ->unique()
+            ->sort()
+            ->values();
+
+        $saluranList = $pengundiData
+            ->pluck('saluran')
+            ->filter(fn($s) => !is_null($s) && $s !== 0 && $s !== '')
+            ->unique()
+            ->sort()
+            ->values();
 
         return view('pengundi.list', compact(
-            'pilihanRayaTypes',
-            'pilihanRayaSeries',
+            'electionNumbers',
+            'electionType',
             'saluranList'
         ));
     }
 
     public function getHierarchyByPru(Request $request)
     {
+        Log::info('getHierarchyByPru called', [
+            'type' => $request->type,
+            'series' => $request->series,
+        ]);
+
         $request->validate([
             'type' => 'required|string',
             'series' => 'required|integer',
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Resolve Election Year From DB
-        |--------------------------------------------------------------------------
-        */
+        // Resolve Election
+        $election = DB::table('elections')
+            ->where([
+                'type' => $request->type,
+                'number' => $request->series
+            ])
+            ->first(['id', 'year']);
 
-        $selectedPRUYear = DB::table('elections')
-            ->where('type', $request->type)
-            ->where('number', $request->series)
-            ->value('year');
+        if (!$election) {
+            Log::warning('Invalid election type/series', [
+                'type' => $request->type,
+                'series' => $request->series
+            ]);
 
-        if (!$selectedPRUYear) {
             return response()->json([
-                'error' => 'Invalid election type/series',
-                'test' => $selectedPRUYear,
+                'error' => 'Invalid election type/series'
             ], 400);
         }
 
+        $selectedPRUYear = $election->year;
         $selectedPRUDate = $selectedPRUYear . '-12-31';
 
-        /*
-        |--------------------------------------------------------------------------
-        | Build Hierarchy Query
-        |--------------------------------------------------------------------------
-        */
+        Log::info('Election year fetched', ['year' => $selectedPRUYear]);
+        Log::info('Using PRU date', ['selectedPRUDate' => $selectedPRUDate]);
 
+        // Fetch distinct saluran for this election
+        $saluranList = DB::table('pengundi')
+            ->whereNotNull('saluran')
+            ->where('saluran', '!=', 0)
+            ->where('election_id', $election->id)
+            ->distinct()
+            ->pluck('saluran')
+            ->sort()
+            ->values();
+
+        // Build Hierarchy Query
         $data = DB::table('pengundi')
             ->join('lokaliti', function ($join) use ($selectedPRUDate) {
                 $join->on('pengundi.kod_lokaliti', '=', 'lokaliti.kod_lokaliti')
@@ -918,21 +358,26 @@ class PengundiAnalyticsController extends Controller
                             ->orWhere('dun.effective_to', '>=', $selectedPRUDate);
                     });
             })
-            ->join('parlimen', 'dun.parlimen_id', '=', 'parlimen.id')
+            ->join('parlimen', 'dun.kod_par', '=', 'parlimen.kod_par')
             ->select(
                 'pengundi.kod_lokaliti',
                 'lokaliti.kod_dm',
                 'lokaliti.nama_lokaliti',
                 'dm.kod_dun',
                 'dm.nama_dm',
-                'dun.parlimen_id',
+                'dun.kod_par',
                 'dun.nama_dun',
                 'parlimen.nama_par'
             )
             ->distinct()
             ->get();
 
-        return response()->json($data);
+        Log::info('Hierarchy query executed', ['record_count' => $data->count()]);
+
+        return response()->json([
+            'hierarchy' => $data,
+            'saluran_list' => $saluranList
+        ]);
     }
 
 
@@ -970,12 +415,16 @@ class PengundiAnalyticsController extends Controller
         // -------------------------------
         // Step 1: Resolve PR year from elections table
         // -------------------------------
-        $selectedPRUYear = DB::table('elections')
-            ->where('type', $type)
-            ->where('number', $series)
-            ->value('year');
+        $election = DB::table('elections')
+            ->where([
+                'type' => $type,
+                'number' => $series
+            ])
+            ->first(['id', 'year']);
 
-        if (!$selectedPRUYear) {
+
+
+        if (!$election) {
             return response()->json([
                 'draw' => intval($request->draw ?? 1),
                 'recordsTotal' => 0,
@@ -984,15 +433,42 @@ class PengundiAnalyticsController extends Controller
             ]);
         }
 
+        $selectedPRUYear = $election->year;
+
         $selectedPRUDate = $selectedPRUYear . '-12-31';
+
+        $saluranList = DB::table('pengundi')
+            ->whereNotNull('saluran')
+            ->where('saluran', '!=', 0)
+            ->where('election_id', '=', $election->id)
+            ->distinct()
+            ->pluck('saluran')
+            ->sort()
+            ->values();
+
+        $selectParts = [
+            'p.kod_lokaliti',
+            'p.nama_lokaliti'
+        ];
+
+        foreach ($saluranList as $s) {
+            $s = (int) $s; // safety
+            $selectParts[] = "SUM(CASE WHEN p.saluran = $s THEN 1 ELSE 0 END) AS saluran_$s";
+        }
+
+        // total
+        $selectParts[] = "COUNT(*) AS total";
+
+        $selectRaw = implode(",\n", $selectParts);
 
 
         // -------------------------------
         // Step 2: Build query
         // -------------------------------
-        $pengundi = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate) {
+        $pengundi = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate, $election) {
             $query->from('pengundi as p')
                 ->select('p.id', 'p.kod_lokaliti', 'p.saluran', 'l.nama_lokaliti')
+
                 ->distinct()
                 ->join('lokaliti as l', function ($join) use ($selectedPRUDate) {
                     $join->on('p.kod_lokaliti', '=', 'l.kod_lokaliti')
@@ -1018,24 +494,16 @@ class PengundiAnalyticsController extends Controller
                                 ->orWhere('dn.effective_to', '>=', $selectedPRUDate);
                         });
                 })
-                ->where('p.pilihan_raya_type', $type)
-                ->where('p.pilihan_raya_series', $series)
-                ->where('dn.parlimen_id', $parlimen)
+                ->where('p.election_id', $election->id)
+                ->where('dn.kod_par', $parlimen)
                 ->where('d.kod_dun', $dun)
-                ->where('l.kod_dm', $dm);
+                ->where('l.kod_dm', $dm)
+                ->whereNotNull('p.saluran')   // ✅ NEW
+                ->where('p.saluran', '!=', ''); // ✅ NEW
+            ;
+
         }, 'p') // alias the subquery as p
-            ->selectRaw("
-    p.kod_lokaliti,
-    p.nama_lokaliti,
-    SUM(CASE WHEN p.saluran = 1 THEN 1 ELSE 0 END) AS saluran_1,
-    SUM(CASE WHEN p.saluran = 2 THEN 1 ELSE 0 END) AS saluran_2,
-    SUM(CASE WHEN p.saluran = 3 THEN 1 ELSE 0 END) AS saluran_3,
-    SUM(CASE WHEN p.saluran = 4 THEN 1 ELSE 0 END) AS saluran_4,
-    SUM(CASE WHEN p.saluran = 5 THEN 1 ELSE 0 END) AS saluran_5,
-    SUM(CASE WHEN p.saluran = 6 THEN 1 ELSE 0 END) AS saluran_6,
-    SUM(CASE WHEN p.saluran = 7 THEN 1 ELSE 0 END) AS saluran_7,
-    COUNT(*) AS total
-")
+            ->selectRaw($selectRaw)
             ->groupBy('p.kod_lokaliti', 'p.nama_lokaliti')
             ->orderBy('p.kod_lokaliti')
             ->get();
@@ -1097,134 +565,139 @@ class PengundiAnalyticsController extends Controller
         $dm = null,
         $lokaliti = null,
         $saluran = null,
-
     ) {
+
         // -------------------------------
-        // Step 0: Determine year
+        // Step 0: Election
         // -------------------------------
-        $year = null;
+        $election = null;
 
         if ($pilihan_raya_type && $pilihan_raya_series) {
-            $year = DB::table('elections')
+            $election = DB::table('elections')
                 ->where('type', $pilihan_raya_type)
                 ->where('number', $pilihan_raya_series)
-                ->value('year');
+                ->first(['id', 'year']);
         }
 
-        // fallback to current year if no record found
-        $year = $year ?: date('Y');
+        $year = $election->year ?? date('Y');
+        $electionId = $election->id ?? null;
+
+        $startDate = $year . '-01-01';
+        $endDate = $year . '-12-31';
 
         // -------------------------------
-        // Step 1: Filter DM
+        // Step 1: Main Query (JOIN instead of whereIn)
         // -------------------------------
-        $dmQuery = DB::table('dm')
-            ->whereYear('effective_from', '<=', $year)
-            ->where(function ($q) use ($year) {
-                $q->whereYear('effective_to', '>=', $year)
-                    ->orWhereNull('effective_to');
-            });
+        $pengundi = DB::table('pengundi as p')
+            ->select('p.*', 'l.nama_lokaliti', 'd.nama_dm', 'dn.nama_dun')
 
-        if ($parlimen) {
-            $dmQuery->whereIn('kod_dun', function ($q) use ($parlimen) {
-                $q->select('kod_dun')->from('dun')->where('parlimen_id', $parlimen);
-            });
-        }
+            // ✅ JOIN lokaliti
+            ->join('lokaliti as l', function ($join) use ($startDate, $endDate) {
+                $join->on('p.kod_lokaliti', '=', 'l.kod_lokaliti')
+                    ->where('l.effective_from', '<=', $endDate)
+                    ->where(function ($q) use ($startDate) {
+                        $q->where('l.effective_to', '>=', $startDate)
+                            ->orWhereNull('l.effective_to');
+                    });
+            })
 
-        if ($dun_kod) {
-            $dmQuery->where('kod_dun', $dun_kod);
-        }
+            // ✅ JOIN dm
+            ->join('dm as d', function ($join) use ($startDate, $endDate) {
+                $join->on('l.kod_dm', '=', 'd.kod_dm')
+                    ->where('d.effective_from', '<=', $endDate)
+                    ->where(function ($q) use ($startDate) {
+                        $q->where('d.effective_to', '>=', $startDate)
+                            ->orWhereNull('d.effective_to');
+                    });
+            })
 
-        if ($dm) {
-            $dmQuery->where('kod_dm', $dm);
-        }
+            // ✅ JOIN dun
+            ->join('dun as dn', function ($join) use ($startDate, $endDate) {
+                $join->on('d.kod_dun', '=', 'dn.kod_dun')
+                    ->where('dn.effective_from', '<=', $endDate)
+                    ->where(function ($q) use ($startDate) {
+                        $q->where('dn.effective_to', '>=', $startDate)
+                            ->orWhereNull('dn.effective_to');
+                    });
+            })
 
-        $validDMs = $dmQuery->pluck('kod_dm')->toArray();
+            // -------------------------------
+            // Filters
+            // -------------------------------
+            ->when($electionId, fn($q) => $q->where('p.election_id', $electionId))
+            ->when($parlimen, fn($q) => $q->where('dn.kod_par', $parlimen))
+            ->when($dun_kod, fn($q) => $q->where('d.kod_dun', $dun_kod))
+            ->when($dm, fn($q) => $q->where('l.kod_dm', $dm))
+            ->when($lokaliti, fn($q) => $q->where('p.kod_lokaliti', $lokaliti))
+            ->when($saluran, fn($q) => $q->where('p.saluran', $saluran))
 
-        // -------------------------------
-        // Step 2: Filter Lokaliti
-        // -------------------------------
-        $lokalitiQuery = DB::table('lokaliti')
-            ->whereIn('kod_dm', $validDMs);
-
-        if ($lokaliti) {
-            $lokalitiQuery->where('kod_lokaliti', $lokaliti);
-        }
-
-        $validLokaliti = $lokalitiQuery
-            ->select('kod_lokaliti', 'nama_lokaliti', 'kod_dm')
-            ->get()
-            ->keyBy('kod_lokaliti');
-
-        $validLokalitiCodes = $validLokaliti->keys()->toArray();
-
-        // -------------------------------
-        // Step 3: Filter Pengundi
-        // -------------------------------
-        $pengundiQuery = DB::table('pengundi')
-            ->where('type_data_id', 2)
-            ->whereIn('kod_lokaliti', $validLokalitiCodes);
-
-        if ($lokaliti) {
-            $pengundiQuery->where('kod_lokaliti', $lokaliti);
-        }
-
-        if ($saluran) {
-            $pengundiQuery->where('saluran', $saluran);
-        }
-
-        $pengundi = $pengundiQuery
-            ->select('*')
-            ->get()
-            ->map(function ($p) use ($validLokaliti) {
-                $p->nama_lokaliti = $validLokaliti[$p->kod_lokaliti]->nama_lokaliti ?? null;
-                return $p;
-            });
+            ->get();
 
         // -------------------------------
-        // Step 4: Get names for Parlimen, DUN, DM
+        // Step 2: Names (unchanged)
         // -------------------------------
         $parlimenName = $parlimen
             ? DB::table('parlimen')->where('id', $parlimen)->value('nama_par')
             : null;
 
         $dunName = $dun_kod
-            ? DB::table('dun')->where('kod_dun', $dun_kod)->value('nama_dun')
+            ? DB::table('dun')
+                ->where('kod_dun', $dun_kod)
+                ->whereYear('effective_from', '<=', $year)
+                ->where(function ($q) use ($year) {
+                    $q->whereYear('effective_to', '>=', $year)
+                        ->orWhereNull('effective_to');
+                })
+                ->value('nama_dun')
             : null;
 
         $dmName = $dm
-            ? DB::table('dm')->where('kod_dm', $dm)->value('nama_dm')
+            ? DB::table('dm')
+                ->where('kod_dm', $dm)
+                ->whereYear('effective_from', '<=', $year)
+                ->where(function ($q) use ($year) {
+                    $q->whereYear('effective_to', '>=', $year)
+                        ->orWhereNull('effective_to');
+                })
+                ->value('nama_dm')
             : null;
 
-        $lokalitiName = ($lokaliti && isset($validLokaliti[$lokaliti]))
-            ? $validLokaliti[$lokaliti]->nama_lokaliti
+        $lokalitiName = $lokaliti
+            ? DB::table('lokaliti')
+                ->where('kod_lokaliti', $lokaliti)
+                ->whereYear('effective_from', '<=', $year)
+                ->where(function ($q) use ($year) {
+                    $q->whereYear('effective_to', '>=', $year)
+                        ->orWhereNull('effective_to');
+                })
+                ->value('nama_lokaliti')
             : null;
 
         // -------------------------------
-        // Step 5: Build breadcrumbs
+        // Step 3: Breadcrumbs
         // -------------------------------
         $crumbs = [
             ['label' => 'Pengundi'],
             ['label' => 'List', 'url' => route('pengundi.list')],
-
         ];
-        if ($pilihan_raya_type)
-            $crumbs[] = ['label' => "$pilihan_raya_type"];
-        if ($pilihan_raya_series)
-            $crumbs[] = ['label' => "$pilihan_raya_series"];
-        if ($parlimenName)
-            $crumbs[] = ['label' => "$parlimenName"];
-        if ($dunName)
-            $crumbs[] = ['label' => "$dunName"];
-        if ($dmName)
-            $crumbs[] = ['label' => "$dmName"];
-        if ($lokalitiName)
-            $crumbs[] = ['label' => "$lokalitiName"];
 
+        if ($pilihan_raya_type)
+            $crumbs[] = ['label' => $pilihan_raya_type];
+        if ($pilihan_raya_series)
+            $crumbs[] = ['label' => $pilihan_raya_series];
+        if ($parlimenName)
+            $crumbs[] = ['label' => $parlimenName];
+        if ($dunName)
+            $crumbs[] = ['label' => $dunName];
+        if ($dmName)
+            $crumbs[] = ['label' => $dmName];
+        if ($lokalitiName)
+            $crumbs[] = ['label' => $lokalitiName];
         if ($saluran)
             $crumbs[] = ['label' => "Saluran $saluran"];
 
         // -------------------------------
-        // Step 6: Return Blade page
+        // Step 4: Return
         // -------------------------------
         return view('pengundi.list_details', compact(
             'pengundi',
@@ -1243,7 +716,6 @@ class PengundiAnalyticsController extends Controller
         ));
     }
 
-
     public function list_details_data(Request $request)
     {
         $parlimen = $request->input('parlimen');
@@ -1254,17 +726,18 @@ class PengundiAnalyticsController extends Controller
         $pilihan_raya_type = $request->input('pilihan_raya_type');
         $pilihan_raya_series = $request->input('pilihan_raya_series');
 
-        $year = null;
+        $election = null;
 
         if ($pilihan_raya_type && $pilihan_raya_series) {
-            $year = DB::table('elections')
+            $election = DB::table('elections')
                 ->where('type', $pilihan_raya_type)
                 ->where('number', $pilihan_raya_series)
-                ->value('year');
+                ->first(['id', 'year']);
         }
 
-        // fallback to current year if no record found
-        $year = $year ?: date('Y');
+        $year = $election->year ?? date('Y');
+
+
 
         // Step 1: Get valid DMs
         $validDMs = DB::table('dm')
@@ -1274,7 +747,7 @@ class PengundiAnalyticsController extends Controller
                     ->orWhereNull('effective_to');
             })
             ->when($parlimen, fn($q) => $q->whereIn('kod_dun', function ($q2) use ($parlimen) {
-                $q2->select('kod_dun')->from('dun')->where('parlimen_id', $parlimen);
+                $q2->select('kod_dun')->from('dun')->where('kod_par', $parlimen);
             }))
             ->when($dun_kod, fn($q) => $q->where('kod_dun', $dun_kod))
             ->when($dm, fn($q) => $q->where('kod_dm', $dm))
@@ -1290,7 +763,7 @@ class PengundiAnalyticsController extends Controller
 
         // Step 3: Build query for pengundi
         $query = DB::table('pengundi')
-            ->where('type_data_id', 2)
+            ->where('election_id', $election->id)
             ->whereIn('kod_lokaliti', $validLokalitiCodes)
             ->when($lokaliti, fn($q) => $q->where('kod_lokaliti', $lokaliti))
             ->when($saluran, fn($q) => $q->where('saluran', $saluran));
@@ -1378,7 +851,7 @@ class PengundiAnalyticsController extends Controller
         // Filter only PDFs that contain _merged or _summary
         $pdfFiles = array_filter($files, function ($file) {
             return str_ends_with($file, '.pdf') &&
-                (str_contains($file, '_merged') || str_contains($file, '_summary'));
+                (str_contains($file, '_list') || str_contains($file, '_summary'));
         });
 
         if (empty($pdfFiles)) {
@@ -1410,6 +883,57 @@ class PengundiAnalyticsController extends Controller
         ]);
     }
 
+
+    public function activity()
+    {
+        $query = Activity::where('subject_type', Pengundi::class)
+            ->latest();
+
+
+
+        return DataTables::of($query)
+
+            ->addColumn('user', function ($row) {
+                return $row->causer->name ?? 'System';
+            })
+
+            ->addColumn('action', function ($row) {
+
+
+
+
+                switch ($row->description) {
+
+                    case 'Import pengundi completed':
+
+                        $file = $row->properties['file'] ?? 'unknown file';
+                        $type = $row->properties['election_type'] ?? '-';
+                        $series = $row->properties['election_series'] ?? '-';
+                        $year = $row->properties['election_year'] ?? '-';
+                        $inserted = $row->properties['total_inserted'] ?? 0;
+
+                        return "
+                            <strong>Import Completed</strong><br>
+                            File: <strong>{$file}</strong><br>
+                            Election: <strong>{$type} {$series} ({$year})</strong><br>
+                            Total Inserted: <strong>{$inserted}</strong>
+                        ";
+
+
+                    default:
+                        // Make the description more human-friendly
+                        return ucfirst(str_replace('_', ' ', $row->description));
+                }
+            })
+
+            ->editColumn('created_at', function ($row) {
+                return $row->created_at
+                    ->timezone('Asia/Kuala_Lumpur')
+                    ->format('d M Y H:i');
+            })
+
+            ->make(true);
+    }
 
 }
 

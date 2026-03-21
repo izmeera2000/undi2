@@ -15,8 +15,10 @@ return new class extends Migration {
         Schema::create('dun', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('parlimen_id')
-                ->constrained('parlimen')
+            $table->string('kod_par');
+            $table->foreign('kod_par')
+                ->references('kod_par')
+                ->on('parlimen')
                 ->cascadeOnDelete();
 
             $table->string('kod_dun');
@@ -24,12 +26,18 @@ return new class extends Migration {
 
             // Restructure control
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->date('effective_from')->nullable();
+            $table->date('effective_from');
             $table->date('effective_to')->nullable();
 
             $table->timestamps();
 
-            $table->index(['kod_dun', 'status']);
+            $table->unique([
+                'kod_dun',
+                'kod_par',
+                'nama_dun',
+                'effective_from',
+                'effective_to'
+            ], 'unique_dun_full');
         });
     }
 

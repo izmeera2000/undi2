@@ -13,8 +13,10 @@ class SqlImportSeeder extends Seeder
                 DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         DB::disableQueryLog(); // 🔥 prevent memory issues
         $files = [
-            database_path('sql/pengundi.sql'),
+            // database_path('sql/pengundi.sql'),
             database_path('sql/maps.sql'),
+            database_path('sql/jurisdiction.sql'),
+            database_path('sql/groups.sql'),
             
             database_path('sql/members.sql'),
             

@@ -186,8 +186,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
         ///page bulk import
 
-        Route::get('bulkimport', [PengundiAnalyticsController::class, 'bulkimport'])->name('bulkimport');
-        Route::get('bulkimport2', [PengundiAnalyticsController::class, 'bulkimport2'])->name('bulkimport2');
+        // Route::get('bulkimport', [PengundiAnalyticsController::class, 'bulkimport'])->name('bulkimport');
+        Route::get('bulkimport', [PengundiAnalyticsController::class, 'bulkimport2'])->name('bulkimport2');
 
         ////import progress
 
@@ -198,7 +198,8 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::get('transferProgress', [PengundiImportController::class, 'transferProgress'])
             ->name('transferProgress');
 
-
+        Route::get('/activity', [PengundiAnalyticsController::class, 'activity'])
+            ->name('activity');
 
         Route::post('import', [PengundiImportController::class, 'import'])->name('import');
 
@@ -216,8 +217,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 
         ///////////// naalytics import pdf
-        Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
-            ->name('analytics.pdf');
+        // Route::post('analytics/pdf', [PengundiAnalyticsController::class, 'generatePdf'])
+        //     ->name('analytics.pdf');
 
 
         // Route::post('import/paste', [PengundiAnalyticsController::class, 'importFromPaste'])->name('import.paste');

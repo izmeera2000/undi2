@@ -53,14 +53,16 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 Log::error('Missing required filters', $this->filters);
                 return;
             }
-
+            $selectedPRUYear = null;
             // --------------------------------
             // Fetch election year from DB
             // --------------------------------
-            $selectedPRUYear = DB::table('elections')
+            $election = DB::table('elections')
                 ->where('type', $type)
                 ->where('number', $series)
-                ->value('year');
+                ->first(['id', 'year']);
+
+            $selectedPRUYear = $election->year;
 
             if (!$selectedPRUYear) {
                 Log::error('Election not found in DB', [
@@ -71,19 +73,23 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
             }
 
 
+
+
             $selectedPRUDate = $selectedPRUYear . '-12-31';
+
+            
 
 
             $areaInfo = DB::table('dm as d')
                 ->join('dun as dn', 'd.kod_dun', '=', 'dn.kod_dun')
-                ->join('parlimen as p', 'dn.parlimen_id', '=', 'p.id')
+                ->join('parlimen as p', 'dn.kod_par', '=', 'p.kod_par')
 
                 ->select(
                     'd.kod_dm',
                     'd.nama_dm',
                     'dn.kod_dun',
                     'dn.nama_dun',
-                    'p.id as parlimen_id',
+                    'p.kod_par as kod_par',
                     'p.nama_par'
                 )
 
@@ -91,24 +97,23 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 ->where('dn.kod_dun', $dun)
 
                 // DM validity
-                ->whereYear('d.effective_from', '<=', $selectedPRUYear)
-                ->where(function ($q) use ($selectedPRUYear) {
+                ->where('d.effective_from', '<=', $selectedPRUDate)
+                ->where(function ($q) use ($selectedPRUDate) {
                     $q->whereNull('d.effective_to')
-                        ->orWhereYear('d.effective_to', '>=', $selectedPRUYear);
+                        ->orWhere('d.effective_to', '>=', $selectedPRUDate);
                 })
 
                 // DUN validity
-                ->whereYear('dn.effective_from', '<=', $selectedPRUYear)
-                ->where(function ($q) use ($selectedPRUYear) {
+                ->where('dn.effective_from', '<=', $selectedPRUDate)
+                ->where(function ($q) use ($selectedPRUDate) {
                     $q->whereNull('dn.effective_to')
-                        ->orWhereYear('dn.effective_to', '>=', $selectedPRUYear);
+                        ->orWhere('dn.effective_to', '>=', $selectedPRUDate);
                 })
 
                 ->first();
 
             $distinctSaluran = DB::table('pengundi')
-                ->where('pilihan_raya_type', $type)
-                ->where('pilihan_raya_series', $series)
+                ->where('election_id', $election->id)
                 ->where('kod_lokaliti', '!=', null) // optional: only valid lokaliti
                 ->distinct()
                 ->orderBy('saluran')
@@ -129,7 +134,7 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                 'memory_before_query_mb' => round(memory_get_usage(true) / 1024 / 1024, 2)
             ]);
 
-            $rows = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate) {
+            $rows = DB::table(function ($query) use ($type, $series, $parlimen, $dun, $dm, $selectedPRUDate, $election) {
                 $query->from('pengundi as p')
                     ->select('p.id', 'p.kod_lokaliti', 'p.saluran', 'l.nama_lokaliti')
                     ->distinct()
@@ -157,9 +162,9 @@ class GenerateLokalitiSummaryPdfJob implements ShouldQueue
                                     ->orWhere('dn.effective_to', '>=', $selectedPRUDate);
                             });
                     })
-                    ->where('p.pilihan_raya_type', $type)
-                    ->where('p.pilihan_raya_series', $series)
-                    ->where('dn.parlimen_id', $parlimen)
+                    ->where('election_id', $election->id)
+
+                    ->where('dn.kod_par', $parlimen)
                     ->where('d.kod_dun', $dun)
                     ->where('l.kod_dm', $dm);
             }, 'p')

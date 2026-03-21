@@ -197,7 +197,7 @@ $response = Http::withCookies([
                     <select wire:model.live="parlimen" class="form-select" @disabled(!$this->type || !$this->series)>
                         <option value="">-- Pilih Parlimen --</option>
                         @foreach($this->parlimenOptions as $p)
-                            <option value="{{ $p['parlimen_id'] }}">{{ $p['nama_par'] }}</option>
+                            <option value="{{ $p['kod_par'] }}">{{ $p['nama_par'] }}</option>
                         @endforeach
                     </select>
                 </div>

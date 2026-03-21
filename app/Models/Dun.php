@@ -13,7 +13,7 @@ class Dun extends Model
     protected $table = 'dun';
 
     protected $fillable = [
-        'parlimen_id',
+        'kod_par',
         'kod_dun',       // Ensure 'kod_dun' is part of fillable fields
         'nama_dun',
         'status',
@@ -31,7 +31,7 @@ class Dun extends Model
      */
     public function parlimen()
     {
-        return $this->belongsTo(Parlimen::class, 'parlimen_id');
+        return $this->belongsTo(Parlimen::class, 'kod_par');
     }
 
     /**
@@ -74,7 +74,7 @@ public function lokalitis()
     {
         return LogOptions::defaults()
             ->useLogName('dun')  // Set log name to 'dun'
-            ->logOnly(['kod_dun', 'nama_dun', 'parlimen_id']) // Only log changes to these attributes
+            ->logOnly(['kod_dun', 'nama_dun', 'kod_par']) // Only log changes to these attributes
             ->logOnlyDirty() // Log only dirty (changed) fields
             ->dontSubmitEmptyLogs() // Don't submit empty logs if no changes
             ->setDescriptionForEvent(fn(string $eventName) => "Dun with ID {$this->id} was {$eventName}"); // Custom log description

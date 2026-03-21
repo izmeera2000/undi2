@@ -6,7 +6,7 @@
   @php
     $crumbs = [
       ['label' => 'Pengundi'],
-      ['label' => 'Bulk Import', 'url' => route('pengundi.bulkimport')],
+      ['label' => 'Bulk Import', 'url' => route('pengundi.bulkimport2')],
     ];
   @endphp
 @endsection
@@ -39,40 +39,47 @@
                 <small class="text-muted">Only CSV format is allowed.</small>
               </div>
 
-              <div class="mb-3">
+              {{-- <div class="mb-3">
                 <label class="form-label fw-semibold">Tahun Undian</label>
                 <input type="number" name="tarikh_undian" class="form-control" placeholder="Contoh: 2022" required>
-              </div>
-
-              {{-- <div class="mb-3">
-                <label class="form-label fw-semibold">Effective From (Optional)</label>
-                <input type="date" name="effective_from" class="form-control">
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Effective To (Optional)</label>
-                <input type="date" name="effective_to" class="form-control">
               </div> --}}
 
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Jenis Pilihan Raya</label>
-                <select name="pilihan_raya_type" class="form-select" required>
-                  <option value="" disabled selected>Pilih Jenis Pilihan Raya</option>
-                  <option value="PRU">PRU</option>
-                  <option value="PRN">PRN</option>
-                  <option value="PRK">PRK</option>
-                </select>
+              <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="enableEffective" name="enable_effective">
+                <label class="form-check-label fw-semibold" for="enableEffective">
+                  Enable Parlimen / DUN / DM / Lokaliti Insert
+                </label>
+              </div>
+
+              <div id="effectiveFields" style="display: none;">
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Effective From</label>
+                  <input type="date" name="effective_from" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Effective To</label>
+                  <input type="date" name="effective_to" class="form-control">
+                </div>
               </div>
 
               <div class="mb-3">
-                <label class="form-label fw-semibold">Nombor Siri Pilihan Raya</label>
-                <input type="number" name="pilihan_raya_series" class="form-control" placeholder="Contoh: 15" required
-                  min="1">
+                <label class="form-label fw-semibold">Pilihan Raya</label>
+                <select name="election_id" class="form-select" required>
+                  <option value="" disabled selected>Pilih Pilihan Raya</option>
+                  @foreach($elections as $election)
+                    <option value="{{ $election->id }}">
+                      {{ $election->type }} - {{ $election->number }} ({{ $election->year }})
+                    </option>
+                  @endforeach
+                </select>
               </div>
 
               <button type="submit" class="btn btn-success w-100" id="submitBtn">
                 Upload & Import
               </button>
+
+
             </form>
 
             {{-- Loading --}}
@@ -191,51 +198,91 @@
 
   {{-- SCRIPT --}}
   <script>
-    document.getElementById('importForm').addEventListener('submit', function (e) {
-      e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function () {
 
-      const form = e.target;
-      const submitBtn = document.getElementById('submitBtn');
-      const loading = document.getElementById('loading');
-      const importWrapper = document.getElementById('importProgressWrapper');
-      const importBar = document.getElementById('importProgressBar');
-      const transferWrapper = document.getElementById('transferProgressWrapper');
-      const transferBar = document.getElementById('transferProgressBar');
-      const successMsg = document.getElementById('successMsg');
-      const errorMsg = document.getElementById('errorMsg');
+      const checkbox = document.getElementById('enableEffective');
+      const fields = document.getElementById('effectiveFields');
+      const from = document.querySelector('input[name="effective_from"]');
+      const to = document.querySelector('input[name="effective_to"]');
 
-      submitBtn.disabled = true;
-      loading.classList.remove('d-none');
-      importWrapper.classList.remove('d-none');
-      transferWrapper.classList.remove('d-none');
-      successMsg.classList.add('d-none');
-      errorMsg.classList.add('d-none');
+      // ✅ Handle toggle + required in ONE listener
+      checkbox.addEventListener('change', function () {
+        const isChecked = this.checked;
 
-      const formData = new FormData(form);
+        fields.style.display = isChecked ? 'block' : 'none';
+        from.required = isChecked;
+        to.required = isChecked;
+      });
 
-      fetch("{{ route('pengundi.import2') }}", {
-        method: 'POST',
-        body: formData,
-        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
-      })
-        .then(response => response.json().then(data => {
-          if (!response.ok) throw data;
-          return data;
-        }))
-        .then(data => {
-          if (data.success) {
-            successMsg.innerText = data.success;
-            successMsg.classList.remove('d-none');
+      // ✅ Form submit logic
+      document.getElementById('importForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        console.log('Form submission triggered.');
+
+        const form = e.target;
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const importWrapper = document.getElementById('importProgressWrapper');
+        const transferWrapper = document.getElementById('transferProgressWrapper');
+        const successMsg = document.getElementById('successMsg');
+        const errorMsg = document.getElementById('errorMsg');
+
+        submitBtn.disabled = true;
+        loading.classList.remove('d-none');
+        importWrapper.classList.remove('d-none');
+        transferWrapper.classList.remove('d-none');
+        successMsg.classList.add('d-none');
+        errorMsg.classList.add('d-none');
+
+        const formData = new FormData(form);
+
+        // LOG FormData properly
+        console.log('FormData contents:');
+        for (let [key, value] of formData.entries()) {
+          if (value instanceof File) {
+            console.log(key, value.name, value.size + ' bytes');
+          } else {
+            console.log(key, value);
           }
-          loading.classList.add('d-none');
-          submitBtn.disabled = false;
+        }
+
+        fetch("{{ route('pengundi.import2') }}", {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+          }
         })
-        .catch(data => {
-          errorMsg.innerText = data.error || 'Unknown error during import';
-          errorMsg.classList.remove('d-none');
-          loading.classList.add('d-none');
-          submitBtn.disabled = false;
-        });
+          .then(response => response.text().then(text => {
+            // console.log('Raw server response:', text);
+            try {
+              return JSON.parse(text);
+            } catch (err) {
+              console.error('Failed to parse JSON:', err);
+              throw { error: 'Invalid JSON response' };
+            }
+          }))
+          .then(data => {
+            if (data.success) {
+              console.log('Import successful:', JSON.stringify(data, null, 2));
+              successMsg.innerText = data.success;
+              successMsg.classList.remove('d-none');
+            } else {
+              throw data;
+            }
+
+            loading.classList.add('d-none');
+            submitBtn.disabled = false;
+          })
+          .catch(data => {
+            console.error('Import failed:', JSON.stringify(data, null, 2));
+            errorMsg.innerText = data.error || 'Unknown error during import';
+            errorMsg.classList.remove('d-none');
+
+            loading.classList.add('d-none');
+            submitBtn.disabled = false;
+          });
+      });
 
     });
   </script>

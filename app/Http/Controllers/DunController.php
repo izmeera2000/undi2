@@ -51,7 +51,7 @@ public function index()
     public function store(Request $request)
     {
         $request->validate([
-            'parlimen_id' => 'required',
+            'kod_par' => 'required',
             'kod_dun' => 'required|unique:dun,kod_dun',
             'nama_dun' => 'required',
             'status' => 'required|string', // Add validation for status
@@ -81,14 +81,14 @@ public function index()
         $request->validate([
             'kod_dun' => 'required|unique:dun,kod_dun,' . $dun->id, // ignore current DUN
             'nama_dun' => 'required',
-            'parlimen_id' => 'required|exists:parlimen,id', // ensure selected Parlimen exists
+            'kod_par' => 'required|exists:parlimen,kod_par', // ensure selected Parlimen exists
             'status' => 'required|string', // Add validation for status
             'effective_from' => 'nullable|date', // Add validation for effective_from
             'effective_to' => 'nullable|date|after_or_equal:effective_from', // Ensure effective_to is after effective_from
         ]);
 
         // Update Dun record
-        $dun->update($request->only('kod_dun', 'nama_dun', 'parlimen_id', 'status', 'effective_from', 'effective_to'));
+        $dun->update($request->only('kod_dun', 'nama_dun', 'kod_par', 'status', 'effective_from', 'effective_to'));
 
         // Log activity on update
         activity()->performedOn($dun)->log("Dun with ID {$dun->id} updated.");

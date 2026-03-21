@@ -52,18 +52,26 @@ class GenerateLokalitiBatchJob implements ShouldQueue
         | Get election year
         |--------------------------------------------------------------------------
         */
-        $selectedPRUYear = DB::table('elections')
-            ->where('type', $type)
-            ->where('number', $series)
-            ->value('year');
+        $election = DB::table('elections')
+            ->where([
+                'type' => $type,
+                'number' => $series
+            ])
+            ->first(['id', 'year']);
 
-        if (!$selectedPRUYear) {
+
+
+        if (!$election) {
             Log::error('Election not found.', [
                 'type' => $type,
                 'series' => $series
             ]);
             return;
         }
+
+        $selectedPRUYear = $election->year;
+
+        $selectedPRUDate = $selectedPRUYear . '-12-31';
 
         /*
         |--------------------------------------------------------------------------
@@ -133,8 +141,7 @@ class GenerateLokalitiBatchJob implements ShouldQueue
 
             // Fetch records for this specific code
             $records = DB::table('pengundi')
-                ->where('pilihan_raya_type', $type)
-                ->where('pilihan_raya_series', $series)
+                ->where('election_id', $election->id)
                 ->where('kod_lokaliti', $kodLokaliti)
                 ->orderBy('id')
                 ->get();
@@ -201,9 +208,11 @@ class GenerateLokalitiBatchJob implements ShouldQueue
                 */
 
                 Bus::batch($mergeJobs)
-                    ->then(function () use ($filtersCopy, $userIdCopy) {
+                    ->then(function () use ($filtersCopy, $userIdCopy, $typeCopy, $seriesCopy) {
 
                         Log::info('Merge batch finished. Generating summary.');
+                        $filtersCopy['type'] = $typeCopy;
+                        $filtersCopy['series'] = $seriesCopy;
 
                         GenerateLokalitiSummaryPdfJob::dispatch(
                             $filtersCopy,

@@ -881,7 +881,7 @@ class CulaanController extends Controller
             'bangsa' => $pengundi->bangsa,
             'kategori_pengundi' => $pengundi->kategori_pengundi,
             'status_pengundi' => $pengundi->status_pengundi,
-            'status_culaan' => $pengundi->status_culaan,
+            'status_culaan' => substr($pengundi->status_culaan, 0, 1),
             'cawangan' => $pengundi->cawangan,
             'no_ahli' => $pengundi->no_ahli,
             'alamat' => $pengundi->alamat,

@@ -277,12 +277,13 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label>Status Pengundi</label>
-                                <select name="status_pengundi" class="form-control">
-                                    <option value="">-- Pilih Status --</option>
+                                <label for="status_pengundi">Status Pengundi</label>
+                                <select name="status_pengundi" id="status_pengundi" class="form-control">
+                                    <option value="" selected disabled>Select Status</option>
+                                    <option value="Penerima Bantuan">Penerima Bantuan</option>
                                     <option value="OKU">OKU</option>
                                     <option value="Sakit">Sakit</option>
-                                    <option value="Penerima Bantuan">Penerima Bantuan</option>
+                                    <option value="Sakit terlantar">Sakit Terlantar</option>
                                 </select>
                             </div>
 
@@ -437,11 +438,15 @@
                                     <option value="Pengundi Luar">Pengundi Luar</option>
                                 </select>
                             </div>
-
                             <div class="col-md-4">
-                                <label>Status Pengundi</label>
-                                <input type="text" name="status_pengundi" class="form-control"
-                                    placeholder="Status Pengundi">
+                                <label for="status_pengundi">Status Pengundi</label>
+                                <select name="status_pengundi" id="status_pengundi" class="form-control">
+                                    <option value="" selected disabled>Select Status</option>
+                                    <option value="Penerima Bantuan">Penerima Bantuan</option>
+                                    <option value="OKU">OKU</option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Sakit terlantar">Sakit Terlantar</option>
+                                </select>
                             </div>
 
                             <div class="col-md-4">
@@ -545,6 +550,7 @@
     <script src="{{ asset('assets/vendors/datatables/datatables.js') }}"></script>
 
     <script>
+        let choicesEdit; // declare in outer scope
 
         let table;
 
@@ -750,8 +756,8 @@
                     $('#editPengundiForm [name="alamat"]').val(pengundi.alamat);
                     $('#editPengundiForm [name="status_ahli"]').val(pengundi.status_ahli);
                     $('#editPengundiForm [name="kategori_ahli"]').val(pengundi.kategori_ahli);
-                    $('#editPengundiForm [name="lokaliti"]').val(pengundi.lokaliti2);
 
+                    choicesEdit.setChoiceByValue(pengundi.lokaliti2);
                     // Add or update hidden ID field for save/update
                     if (!$('#editPengundiForm [name="id"]').length) {
                         $('#editPengundiForm').append(`<input type="hidden" name="id" value="${pengundi.id}">`);
@@ -993,32 +999,33 @@
         });
 
     </script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const lokalitiSelect = document.getElementById('lokalitiedit');
-    if (lokalitiSelect) {
-        new Choices(lokalitiSelect, {
-            searchEnabled: true,
-            itemSelectText: '',
-            shouldSort: false,
-            placeholderValue: 'Select Lokaliti',
-        });
-    }
-});
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const lokalitiSelect = document.getElementById('lokalitiadd');
-    if (lokalitiSelect) {
-        new Choices(lokalitiSelect, {
-            searchEnabled: true,
-            itemSelectText: '',
-            shouldSort: false,
-            placeholderValue: 'Select Lokaliti',
+            // Edit form select
+
+            const lokalitiSelectEdit = document.getElementById('lokalitiedit');
+            if (lokalitiSelectEdit) {
+                choicesEdit = new Choices(lokalitiSelectEdit, {
+                    searchEnabled: true,
+                    itemSelectText: '',
+                    shouldSort: false,
+                    placeholderValue: 'Select Lokaliti',
+                });
+            }
+
+            // Add form select
+            const lokalitiSelectAdd = document.getElementById('lokalitiadd');
+            if (lokalitiSelectAdd) {
+                new Choices(lokalitiSelectAdd, {   // <-- fixed reference here
+                    searchEnabled: true,
+                    itemSelectText: '',
+                    shouldSort: false,
+                    placeholderValue: 'Select Lokaliti',
+                });
+            }
+
         });
-    }
-});
-</script>
+    </script>
 
 @endpush

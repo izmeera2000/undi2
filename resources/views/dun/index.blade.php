@@ -74,7 +74,7 @@
                         <div class="mb-3">
 
                             <label class="form-label">Parlimen</label>
-                        <select name="parlimen_id" class="form-control">
+                        <select name="kod_par" class="form-control">
                             <option value="">-- Select Parlimen --</option>
                             @foreach($parlimens as $parlimen)
                                 <option value="{{ $parlimen->id }}">

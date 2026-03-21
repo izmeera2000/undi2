@@ -32,9 +32,9 @@
 
                     <div class="mb-3">
                         <label class="form-label">Parlimen</label>
-                        <select name="parlimen_id" class="form-control" required>
+                        <select name="kod_par" class="form-control" required>
                             @foreach($parlimens as $parlimen)
-                                <option value="{{ $parlimen->id }}" {{ $dun->parlimen_id == $parlimen->id ? 'selected' : '' }}>
+                                <option value="{{ $parlimen->id }}" {{ $dun->kod_par == $parlimen->kod_par ? 'selected' : '' }}>
                                     {{ $parlimen->nama_par }}
                                 </option>
                             @endforeach

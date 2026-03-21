@@ -129,92 +129,108 @@
 </script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
+    const userId = "{{ auth()->id() }}";
+    const SOUND_LOCK_KEY = 'notification_sound_master';
 
-        const userId = "{{ auth()->id() }}";
+    const badge = document.getElementById('notification-badge');
+    const countSpan = document.querySelector('.notification-count');
+    const notificationList = document.querySelector('.notification-list');
 
-        // Grab elements
-        const badge = document.getElementById('notification-badge');
-        const countSpan = document.querySelector('.notification-count');
-        const notificationList = document.querySelector('.notification-list');
+    // Claim lock if no other tab has it
+    function claimSoundMaster() {
+        const lock = JSON.parse(localStorage.getItem(SOUND_LOCK_KEY) || '{}');
+        const now = Date.now();
 
-        if (window.Echo) {
-            window.Echo.private(`App.Models.User.${userId}`)
-                .notification((notification) => {
+        if (!lock.tab || now - lock.timestamp > 5000) { // lock expired or empty
+            localStorage.setItem(SOUND_LOCK_KEY, JSON.stringify({ tab: userId, timestamp: now }));
+            return true; // this tab is master
+        }
+        return lock.tab === userId; // true if this tab already master
+    }
 
-                    // Play sound
+    // Refresh lock periodically (only if master)
+    setInterval(() => {
+        const lock = JSON.parse(localStorage.getItem(SOUND_LOCK_KEY) || '{}');
+        if (lock.tab === userId) {
+            localStorage.setItem(SOUND_LOCK_KEY, JSON.stringify({ tab: userId, timestamp: Date.now() }));
+        }
+    }, 2000);
+
+    // Listen for lock changes in other tabs
+    window.addEventListener('storage', (event) => {
+        if (event.key === SOUND_LOCK_KEY) {
+            // nothing to do here for now, can add UI indicator if needed
+        }
+    });
+
+    // Determine if this tab is currently the sound master
+    let isSoundMaster = claimSoundMaster();
+
+    if (window.Echo) {
+        window.Echo.private(`App.Models.User.${userId}`)
+            .notification((notification) => {
+
+                // Only play sound if this tab is the master
+                if (isSoundMaster) {
                     const sound = document.getElementById('notification-sound');
                     if (sound) {
-                        sound.currentTime = 0; // rewind in case it’s still playing
+                        sound.currentTime = 0;
                         sound.play().catch(e => console.log('Sound play failed:', e));
                     }
+                }
 
-                    // Show toast
-                    toastr.success(notification.message, notification.title);
+                // Show toast and update notification list in all tabs
+                toastr.success(notification.message, notification.title);
 
-                    if (notificationList) {
-                        const item = document.createElement('a');
+                if (notificationList) {
+                    const item = document.createElement('a');
+                    const url = notification.url || '#';
+                    item.href = url;
+                    item.dataset.id = notification.id;
 
-                        const url = notification.url || '#';
-                        item.href = url;
-                        item.dataset.id = notification.id;
-
-                        // Open PDF links in new tab
-                        if (url.endsWith('.pdf')) {
-                            item.target = '_blank';
-                        }
-
-                        item.className =
-                            "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
-
-                        const now = new Date().toISOString();
-
-                        item.innerHTML = `
-                <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
-                    <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
-                </div>
-
-                <div class="notification-content flex-grow-1">
-                    <div class="notification-title fw-semibold">
-                        ${notification.title ?? 'Notification'}
-                    </div>
-
-                    <div class="notification-text small text-muted">
-                        ${notification.message ?? ''}
-                    </div>
-
-                    <div class="notification-time small text-muted mt-1" data-time="${now}">
-                        <i class="bi bi-clock me-1"></i>Just now
-                    </div>
-                </div>
-            `;
-
-                        notificationList.prepend(item);
-
-                        const items = notificationList.querySelectorAll('.notification-item');
-                        if (items.length > 5) {
-                            items[items.length - 1].remove();
-                        }
+                    if (url.endsWith('.pdf')) {
+                        item.target = '_blank';
                     }
 
-                    if (badge) {
-                        let count = parseInt(badge.innerText || '0', 10) + 1;
-                        badge.innerText = count;
-                        badge.style.display = '';
+                    item.className = "notification-item d-flex gap-3 p-3 border-bottom unread bg-primary-light";
 
-                        if (countSpan) {
-                            countSpan.innerText = count + ' new';
-                        }
+                    const now = new Date().toISOString();
+
+                    item.innerHTML = `
+                        <div class="notification-avatar ${notification.notify_type ?? 'primary'} rounded-circle d-flex align-items-center justify-content-center">
+                            <i class="bi ${notification.icon ?? 'bi-bell'}"></i>
+                        </div>
+                        <div class="notification-content flex-grow-1">
+                            <div class="notification-title fw-semibold">${notification.title ?? 'Notification'}</div>
+                            <div class="notification-text small text-muted">${notification.message ?? ''}</div>
+                            <div class="notification-time small text-muted mt-1" data-time="${now}">
+                                <i class="bi bi-clock me-1"></i>Just now
+                            </div>
+                        </div>
+                    `;
+
+                    notificationList.prepend(item);
+
+                    const items = notificationList.querySelectorAll('.notification-item');
+                    if (items.length > 5) {
+                        items[items.length - 1].remove();
                     }
+                }
 
-                });
-        } else {
-            // console.log('Echo is not loaded');
-        }
+                if (badge) {
+                    let count = parseInt(badge.innerText || '0', 10) + 1;
+                    badge.innerText = count;
+                    badge.style.display = '';
 
-    });
+                    if (countSpan) {
+                        countSpan.innerText = count + ' new';
+                    }
+                }
+            });
+    }
+});
 </script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
 

@@ -45,7 +45,7 @@ class Dm extends Model
             'id',            // Foreign key on the Dun model
             'id',            // Foreign key on the Parlimen model
             'kod_dun',       // Local key on the Dm model (updated to kod_dun)
-            'parlimen_id'    // Local key on the Dun model
+            'kod_par'    // Local key on the Dun model
         );
     }
 

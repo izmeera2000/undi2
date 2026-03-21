@@ -45,7 +45,7 @@
                         <select id="dunSelect" class="form-select" disabled required>
                             <option value="">-- Pilih DUN --</option>
                             @foreach($duns as $dun)
-                                <option value="{{ $dun->kod_dun }}" data-parent="{{ $dun->parlimen_id }}">
+                                <option value="{{ $dun->kod_dun }}" data-parent="{{ $dun->kod_par }}">
                                     {{ $dun->nama_dun }} ({{ $dun->kod_dun }})
                                 </option>
                             @endforeach

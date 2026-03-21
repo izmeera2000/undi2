@@ -19,7 +19,7 @@ class Parlimen extends Model
      */
     public function duns()
     {
-        return $this->hasMany(Dun::class, 'parlimen_id', 'id');
+        return $this->hasMany(Dun::class, 'kod_par', 'id');
     }
 
     /**

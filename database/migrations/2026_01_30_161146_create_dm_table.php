@@ -12,24 +12,27 @@ return new class extends Migration {
     {
         Schema::create('dm', function (Blueprint $table) {
             $table->id();
- 
-            $table->string('kod_dun');
 
+            $table->string('kod_dun');
             $table->string('kod_dm');
             $table->string('nama_dm');
 
-            // Restructure control
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->date('effective_from')->nullable();
+            $table->date('effective_from');
             $table->date('effective_to')->nullable();
 
             $table->timestamps();
 
-            $table->index(['kod_dm', 'status']);
+            // 🔥 THIS is the real fix
+            $table->unique([
+                'kod_dm',
+                'kod_dun',
+                'nama_dm',
+                'effective_from',
+                'effective_to'
+            ], 'unique_dm_full');
         });
-
     }
-
     /**
      * Reverse the migrations.
      */
